@@ -16,25 +16,6 @@ public class ZakljucniListZbController {
 
     private final ZakljucniListZbService zakljucniService;
 
-//    @PostMapping(value = "/{kvartal}/{jbbks}/{year}")
-//    public ResponseEntity<?> addZakljucni(@RequestBody List<ZakljucniListDto> dtos,
-//                                          @PathVariable(name = "kvartal") Integer kvartal,
-//                                          @PathVariable(name = "jbbks") Integer jbbks,
-//                                          @PathVariable(name = "year") Integer year) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-//        //User user = (User) authentication.getPrincipal();
-//
-//        try {
-//            String result = String.valueOf(zakljucniService.saveZakljucniList(dtos, kvartal, jbbks, year, email));
-//            return ResponseEntity.ok(result);
-//        }
-//        catch (Exception e) {
-//            // Handle the exception and return an error response with status code 400
-//            return ResponseEntity.badRequest().body(e.getMessage());
-//        }
-//    }
-
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
                                                    @PathVariable(name = "kvartal") Integer kvartal) {
@@ -69,7 +50,7 @@ public class ZakljucniListZbController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
-            List<ZaKListResponse> result =  List.of(zakljucniService.getLastValidVersionZListByStatus(email, status));
+            List<ZaKListResponse> result =  List.of(zakljucniService.findValidObrazacToRaise(email, status));
             return ResponseEntity.ok(result);
         }
         catch (Exception e) {

@@ -111,4 +111,5 @@ public class ZakljucniListZb {
 
     private Integer OPISSTORNO;
 
+
 }

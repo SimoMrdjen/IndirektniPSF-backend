@@ -114,7 +114,7 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
         }
     }
     @Transactional
-    @Override
+
     public Integer checkIfExistValidZListAndFindVersion(Integer kvartal, Integer jbbks ) throws Exception {
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
@@ -122,51 +122,53 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
         if (optionalZb.isEmpty()) {
             return 1;
         }
-
         ZakljucniListZb zb = optionalZb.get();
 
         if (zb.getRadna() == 1 && zb.getSTORNO() == 0 && zb.getSTATUS() >= 10) {
             throw new Exception("Za tekući kvartal već postoji učitan \nvažeći ZaključniList koji je vec overen!");
         }
-
         if (zb.getRadna() == 1) {
             zb.setRadna(0);
             zakljucniRepository.save(zb);
         }
-
         return zb.getVerzija() + 1;
     }
 
-//    public ZaKListResponse getLastValidVersionZList(String email, Integer status) throws Exception {
-//
-//        var jbbks = getJbbksIBK(email);
-//        Optional<ZakljucniListZb> zb =
-//                zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc(jbbks);
-//
-//        if(zb.isEmpty()|| zb.get().getSTORNO() == 1 ) {
-//            throw new IllegalArgumentException("Ne postoji vazeci ucitan Zakljucni list");
-//        }
-//        if(zb.get().getSTATUS() >= 20) {
-//            throw new Exception("Važeća verzija učitanog \n" +
-//                    "Zaključnog lista poslata je Vašem DBK-u!");
-//        }
-//
-//        LocalDate date = LocalDate.ofEpochDay(zb.get().getDATUM_DOK() - 25569);
-//        return ZaKListResponse.builder()
-//                .id(zb.get().getGenMysql())
-//                .date(date)
-//                .kvartal(zb.get().getKojiKvartal())
-//                .year(zb.get().getGODINA())
-//                .version(zb.get().getVerzija())
-//                .status(zb.get().getSTATUS())
-//                .jbbk(zb.get().getJbbkIndKor())
-//                .build();
-//    }
+    public ZaKListResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
-    public ZaKListResponse getLastValidVersionZListByStatus(String email, Integer status) {
+        var jbbks = getJbbksIBK(email);
+        Optional<ZakljucniListZb> optionalZb =
+               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
+        var zb = this.ifObrazacExistGetIt(optionalZb);
+        this.isObrazacStorniran(zb);
+        this.resolveObrazacAccordingStatus(zb, status);
+        return mapper.toResponse(zb);
+    }
 
+    private void resolveObrazacAccordingStatus(ZakljucniListZb zb, Integer status) throws Exception {
 
-        return null;
+        var actualStatus = zb.getSTATUS();
+        if (actualStatus >= 20) {
+            throw new Exception("Dokument je vec poslat Vasem DBK-u!");
+        } else if(actualStatus == 0 && status == 10) {
+            throw new Exception("Dokument jos nije odobren, \nidite na opciju odobravanje!");
+        } else if(actualStatus == 10 && status == 0) {
+            throw new Exception("Dokument je vec odobren, \nmozete ici na opciju overavanje!");
+        }
+    }
+
+    public void isObrazacStorniran(ZakljucniListZb zb) throws Exception {
+        if( zb.getSTORNO() == 1) {
+            throw  new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
+        }
+    }
+
+    public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
+        if (!optionalZb.isPresent()) {
+            throw new IllegalArgumentException("Ne postoji ucitan dokument!");
+        }
+        ZakljucniListZb zb = optionalZb.get();
+        return zb;
     }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
@@ -205,7 +207,7 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
         User user = userRepository.findByEmail(email).orElseThrow();
 
         var zb = zakljucniRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Zakljucni lis ne postoji!"));
+                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
             throw new Exception("Zakljucni list ima status veci od 10 \n" +
@@ -246,7 +248,6 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
         zakljucniRepository.save(zb);
         return "Zakljucni list je storniran!";
     }
-
 
 
 

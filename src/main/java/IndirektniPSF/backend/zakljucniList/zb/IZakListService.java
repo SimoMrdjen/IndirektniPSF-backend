@@ -19,7 +19,7 @@ public interface IZakListService {
 //                                    String email) throws Exception;
    void checkJbbks(User user, Integer jbbksExcell) throws Exception;
 
-    Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception;
+//    Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception;
 
 
 }
