@@ -15,16 +15,8 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final UserMapper mapper;
     private final PasswordEncoder passwordEncoder;
-
-    @Transactional
-    public Integer getSifraPP(Integer radnik) {
-        return userRepository.findById(radnik)
-                .get()
-                .getSifra_pp();
-    }
 
     public List<UserDto> getAllUsers() {
         return

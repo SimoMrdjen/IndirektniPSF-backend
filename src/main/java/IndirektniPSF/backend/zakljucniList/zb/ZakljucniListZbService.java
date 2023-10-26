@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ZakljucniListZbService implements IZakListService, ParametersService {
+public class ZakljucniListZbService implements IZakListService {
 
     private final ZakljucniListZbRepository zakljucniRepository;
     private final SekretarijarService sekretarijarService;
@@ -38,7 +38,7 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
     private final ObrKontrService obrKontrService;
     private final ExcelService excelService;
     private final ZakljucniListMapper mapper;
-
+    private final ParametersService parameterService;
 
 
     @Transactional
@@ -97,17 +97,17 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
         if(kvartal != excelKvartal) {
             throw new IllegalArgumentException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
         }
-       checkIfKvartalIsForValidPeriod(kvartal, year);
+        parameterService.checkIfKvartalIsForValidPeriod(kvartal, year);
     }
 
 
-    public Integer getJbbksIBK(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow();
-        return pPartnerService.getJBBKS(user.getSifra_pp());
-    }
+//    public Integer getJbbksIBK(String email) {
+//        User user = userRepository.findByEmail(email).orElseThrow();
+//        return pPartnerService.getJBBKS(user.getSifra_pp());
+//    }
 
     public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
-        var jbbkDb =getJbbksIBK(user.getEmail()); //find  in PPARTNER by sifraPP in ind_lozinka
+        var jbbkDb =parameterService.getJbbksIBK(user.getEmail()); //find  in PPARTNER by sifraPP in ind_lozinka
 
         if (!jbbkDb.equals(jbbksExcell)) {
             throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
@@ -136,7 +136,7 @@ public class ZakljucniListZbService implements IZakListService, ParametersServic
 
     public ZaKListResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
-        var jbbks = getJbbksIBK(email);
+        var jbbks = parameterService.getJbbksIBK(email);
         Optional<ZakljucniListZb> optionalZb =
                zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
         var zb = this.ifObrazacExistGetIt(optionalZb);

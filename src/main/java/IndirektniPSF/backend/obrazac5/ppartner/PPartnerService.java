@@ -19,4 +19,10 @@ public class PPartnerService {
                 .get()
                 .getJbkbs();
     }
+
+    public  String getPartner(Integer pparner) {
+        return pPartnerRepository.findById(pparner)
+                .get()
+                .getPartner();
+    }
 }

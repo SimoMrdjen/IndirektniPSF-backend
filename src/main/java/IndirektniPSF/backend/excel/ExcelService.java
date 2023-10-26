@@ -9,11 +9,9 @@ import java.io.InputStream;
 @Service
 public class ExcelService {
 
-
     public Integer readCellByIndexes(InputStream inputStream, int rowIndex, int colIndex) throws Exception {
 
         Integer cellValue = null;
-
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
             Row row = sheet.getRow(rowIndex);

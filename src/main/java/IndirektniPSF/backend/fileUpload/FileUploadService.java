@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.fileUpload;
 
+import IndirektniPSF.backend.parameters.ParametersService;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,12 +12,14 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
-public class FileUploadService {
+public class FileUploadService  {
 
     @Value("${upload.path}") // Configure this in your application properties
     private String uploadPath;
 
     private final ZakljucniListZbService zakljucniListZbService;
+    private final ParametersService parameterService;
+
 
     public String getDateAndTimeAsPartOfFilePath() {
 
@@ -26,7 +29,7 @@ public class FileUploadService {
 
     public String createPath(Integer year, String email, Integer kvartal, String typeOfObrazac ) {
 
-        Integer jbbk =  zakljucniListZbService.getJbbksIBK(email);
+        Integer jbbk =  parameterService.getJbbksIBK(email);
         String path = uploadPath + "/" + year;
         File directory = new File(path);
         if (!directory.exists()) {

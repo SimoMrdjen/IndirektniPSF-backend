@@ -1,6 +1,7 @@
 package IndirektniPSF.backend.security.auth;
 
 
+import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.security.config.JwtService;
 import IndirektniPSF.backend.security.token.Token;
 import IndirektniPSF.backend.security.token.TokenRepository;
@@ -27,8 +28,9 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final PPartnerService pPartnerService;
 
-   // public static User GLOBALUSER;
+    // public static User GLOBALUSER;
 
     public AuthenticationResponse register(RegisterRequest request) {
         var user = User.builder()
@@ -62,6 +64,7 @@ public class AuthenticationService {
                 .orElseThrow();
 
 
+        var partner = pPartnerService.getPartner(user.getSifra_pp());
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
@@ -70,6 +73,7 @@ public class AuthenticationService {
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
                 .role(String.valueOf(user.getRole()))
+                .indirektni(partner)
                 .build();
     }
 
