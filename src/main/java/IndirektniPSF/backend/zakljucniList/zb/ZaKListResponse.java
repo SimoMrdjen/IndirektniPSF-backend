@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,20 +13,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class ZaKListResponse {
+public class ZaKListResponse extends ObrazacResponse {
 
-    @JsonProperty("id")
-    Integer id;
-    @JsonProperty("date")
-    LocalDate date;
-    @JsonProperty("kvartal")
-    Integer kvartal;
-    @JsonProperty("year")
-    Integer year;
-    @JsonProperty("version")
-    Integer version;
-    @JsonProperty("jbbk")
-    Integer jbbk;
-    @JsonProperty("status")
-    Integer status;
 }
