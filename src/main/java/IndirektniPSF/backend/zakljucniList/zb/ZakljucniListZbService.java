@@ -117,6 +117,7 @@ public class ZakljucniListZbService implements IZakListService {
     @Transactional
 
     public Integer checkIfExistValidZListAndFindVersion(Integer kvartal, Integer jbbks ) throws Exception {
+
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
 
@@ -138,9 +139,16 @@ public class ZakljucniListZbService implements IZakListService {
     public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
         var jbbks = parameterService.getJbbksIBK(email);
-        Optional<ZakljucniListZb> optionalZb =
-               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
-        var zb = this.ifObrazacExistGetIt(optionalZb);
+
+        ZakljucniListZb zb = zakljucniRepository
+                .findFirstByJbbkIndKorOrderByGenMysqlDesc(jbbks)
+                .orElseThrow(() -> new IllegalStateException("Obrazac ne postoji!"));
+
+
+//        Optional<ZakljucniListZb> optionalZb =
+//               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
+//        var zb = this.ifObrazacExistGetIt(optionalZb);
+
         this.isObrazacStorniran(zb);
         this.resolveObrazacAccordingStatus(zb, status);
         return mapper.toResponse(zb);
@@ -164,13 +172,13 @@ public class ZakljucniListZbService implements IZakListService {
         }
     }
 
-    public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
-        if (!optionalZb.isPresent()) {
-            throw new IllegalArgumentException("Ne postoji ucitan dokument!");
-        }
-        ZakljucniListZb zb = optionalZb.get();
-        return zb;
-    }
+//    public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
+//        if (!optionalZb.isPresent()) {
+//            throw new IllegalArgumentException("Ne postoji ucitan dokument!");
+//        }
+//        ZakljucniListZb zb = optionalZb.get();
+//        return zb;
+//    }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
 
@@ -208,10 +216,10 @@ public class ZakljucniListZbService implements IZakListService {
         User user = userRepository.findByEmail(email).orElseThrow();
 
         var zb = zakljucniRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
+                .orElseThrow(() -> new IllegalStateException("Obrazac ne postoji!"));
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Zakljucni list ima status veci od 10 \n" +
+            throw new Exception("Obrazac ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
         return raiseStatusDependentOfActuallStatus(zb, user);
@@ -229,7 +237,7 @@ public class ZakljucniListZbService implements IZakListService {
         zb.setSTATUS(status + 10);
         var savedZb = zakljucniRepository.save(zb);
 
-        return "Zakljucnom listu je status \npodignut na nivo " +
+        return "Dokumentu je status \npodignut na nivo " +
                 savedZb.getSTATUS() + "!";
     }
 
@@ -237,68 +245,16 @@ public class ZakljucniListZbService implements IZakListService {
     public String stornoZakList(Integer id, String email) throws Exception {
         User user = userRepository.findByEmail(email).orElseThrow();
         var zb = zakljucniRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
+                .orElseThrow(() -> new IllegalStateException("Obrazac ne postoji!"));
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Zakljucni list ima status veci od 10 \n" +
+            throw new Exception("Obrazac ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
         zb.setSTORNO(1);
         zb.setRadna(0);
         zb.setSTOSIFRAD(user.getSifraradnika());
         zakljucniRepository.save(zb);
-        return "Zakljucni list je storniran!";
+        return "Obrazac je storniran!";
     }
-
-
-
-//    @Transactional
-//    public StringBuilder saveZakljucniList(List<ZakljucniListDto> dtos,
-//                                           Integer kvartal,
-//                                           Integer jbbks,
-//                                           Integer year,
-//                                           String email) throws Exception {
-//
-//        responseMessage.delete(0, responseMessage.length());
-//        User user = userRepository.findByEmail(email).orElseThrow();
-//        Integer sifSekret = user.getZa_sif_sekret();
-//        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
-//        Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-//        //provere
-//        Integer version = checkIfExistValidZListAndFindVersion(kvartal, jbbks);
-//        checkJbbks(user, jbbks);
-//        checkDuplicatesKonta(dtos);
-//
-//        var zb =
-//                ZakljucniListZb.builder()
-//                        .GEN_OPENTAB(0)
-//                        .GEN_APVDBK(0)
-//                        .kojiKvartal(kvartal)
-//                        .GODINA(year)
-//                        .verzija(version)
-//                        .radna(1)
-//                        .SIF_SEKRET(sifSekret)
-//                        .RAZDEO(sekretarijat.getRazdeo())
-//                        .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
-//                        .jbbkIndKor(jbbks)
-//                        .SIF_RAC(1)
-//                        .DINARSKI(1)
-//                        .STATUS(0)
-//                        .POSLATO_O(0)
-//                        .POVUCENO(0)
-//                        .KONACNO(0)
-//                        .POSLAO_NAM(user.getSifraradnika())
-//                        .DATUM_DOK(today)
-//                        .PROKNJIZENO(0)
-//                        .XLS(0)
-//                        .STORNO(0)
-//                        .STOSIFRAD(0)
-//                        .build();
-//        var zbSaved = zakljucniRepository.save(zb);
-//
-//        zakljucniDetailsService.saveDetails(dtos, zbSaved);
-//        return responseMessage;
-//    }
-
-
 }
