@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -50,7 +51,7 @@ public class ZakljucniListZbController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
-            List<ZaKListResponse> result =  List.of(zakljucniService.findValidObrazacToRaise(email, status));
+            List<ObrazacResponse> result =  List.of(zakljucniService.findValidObrazacToRaise(email, status));
             return ResponseEntity.ok(result);
         }
         catch (Exception e) {

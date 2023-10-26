@@ -1,7 +1,7 @@
 package IndirektniPSF.backend.zakljucniList.details;
 
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
-import IndirektniPSF.backend.zakljucniList.zb.ZaKListResponse;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -80,9 +80,9 @@ public class ZakljucniListMapper {
         return zakljucniListDtos;
     }
 
-    public ZaKListResponse toResponse(ZakljucniListZb zb) {
+    public ObrazacResponse toResponse(ZakljucniListZb zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDATUM_DOK() - 25569);
-        return ZaKListResponse.builder()
+        return ObrazacResponse.builder()
                 .id(zb.getGenMysql())
                 .date(date)
                 .kvartal(zb.getKojiKvartal())

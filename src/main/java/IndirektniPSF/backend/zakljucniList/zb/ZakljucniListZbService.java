@@ -5,6 +5,7 @@ import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import IndirektniPSF.backend.parameters.ParametersService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
@@ -134,7 +135,7 @@ public class ZakljucniListZbService implements IZakListService {
         return zb.getVerzija() + 1;
     }
 
-    public ZaKListResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
+    public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
         var jbbks = parameterService.getJbbksIBK(email);
         Optional<ZakljucniListZb> optionalZb =
