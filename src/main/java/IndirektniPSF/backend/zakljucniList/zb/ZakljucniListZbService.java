@@ -2,6 +2,7 @@ package IndirektniPSF.backend.zakljucniList.zb;
 
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
+import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbRepository;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
@@ -33,7 +34,7 @@ public class ZakljucniListZbService implements IZakListService {
     private final SekretarijarService sekretarijarService;
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
-   // private final ObrazacZbRepository obrazacZbRepository;
+    //private final ObrazacZbRepository obrazacZbRepository;
     private final ZakljucniDetailsService zakljucniDetailsService;
     private StringBuilder responseMessage =  new StringBuilder();
     private final ObrKontrService obrKontrService;
@@ -214,24 +215,25 @@ public class ZakljucniListZbService implements IZakListService {
             throw new Exception("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
-        return raiseStatusDependentOfActuallStatus(zb, user);
+        return parameterService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
     }
 
-    @Transactional
-    private String raiseStatusDependentOfActuallStatus(ZakljucniListZb zb, User user) {
+//    @Transactional
+//    private String raiseStatusDependentOfActuallStatus(ZakljucniListZb zb, User user) {
+//
+//        var status = zb.getSTATUS();
+//        if (status == 0) {
+//            zb.setPODIGAO_STATUS(user.getSifraradnika());
+//        } else {
+//            zb.setPOSLAO_NAM(user.getSifraradnika());
+//        }
+//        zb.setSTATUS(status + 10);
+//        var savedZb = zakljucniRepository.save(zb);
+//
+//        return "Zakljucnom listu je status \npodignut na nivo " +
+//                savedZb.getSTATUS() + "!";
+//    }
 
-        var status = zb.getSTATUS();
-        if (status == 0) {
-            zb.setPODIGAO_STATUS(user.getSifraradnika());
-        } else {
-            zb.setPOSLAO_NAM(user.getSifraradnika());
-        }
-        zb.setSTATUS(status + 10);
-        var savedZb = zakljucniRepository.save(zb);
-
-        return "Zakljucnom listu je status \npodignut na nivo " +
-                savedZb.getSTATUS() + "!";
-    }
 
     @Transactional
     public String stornoZakList(Integer id, String email) throws Exception {
@@ -249,56 +251,4 @@ public class ZakljucniListZbService implements IZakListService {
         zakljucniRepository.save(zb);
         return "Zakljucni list je storniran!";
     }
-
-
-
-//    @Transactional
-//    public StringBuilder saveZakljucniList(List<ZakljucniListDto> dtos,
-//                                           Integer kvartal,
-//                                           Integer jbbks,
-//                                           Integer year,
-//                                           String email) throws Exception {
-//
-//        responseMessage.delete(0, responseMessage.length());
-//        User user = userRepository.findByEmail(email).orElseThrow();
-//        Integer sifSekret = user.getZa_sif_sekret();
-//        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
-//        Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-//        //provere
-//        Integer version = checkIfExistValidZListAndFindVersion(kvartal, jbbks);
-//        checkJbbks(user, jbbks);
-//        checkDuplicatesKonta(dtos);
-//
-//        var zb =
-//                ZakljucniListZb.builder()
-//                        .GEN_OPENTAB(0)
-//                        .GEN_APVDBK(0)
-//                        .kojiKvartal(kvartal)
-//                        .GODINA(year)
-//                        .verzija(version)
-//                        .radna(1)
-//                        .SIF_SEKRET(sifSekret)
-//                        .RAZDEO(sekretarijat.getRazdeo())
-//                        .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
-//                        .jbbkIndKor(jbbks)
-//                        .SIF_RAC(1)
-//                        .DINARSKI(1)
-//                        .STATUS(0)
-//                        .POSLATO_O(0)
-//                        .POVUCENO(0)
-//                        .KONACNO(0)
-//                        .POSLAO_NAM(user.getSifraradnika())
-//                        .DATUM_DOK(today)
-//                        .PROKNJIZENO(0)
-//                        .XLS(0)
-//                        .STORNO(0)
-//                        .STOSIFRAD(0)
-//                        .build();
-//        var zbSaved = zakljucniRepository.save(zb);
-//
-//        zakljucniDetailsService.saveDetails(dtos, zbSaved);
-//        return responseMessage;
-//    }
-
-
 }

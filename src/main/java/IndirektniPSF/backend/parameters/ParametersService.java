@@ -4,6 +4,7 @@ import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -58,6 +59,23 @@ public class ParametersService {
         User user = userRepository.findByEmail(email).orElseThrow();
         return pPartnerService.getJBBKS(user.getSifra_pp());
     }
+
+    public <T extends StatusUpdatable> String raiseStatusDependentOfActuallStatus(
+            T entity, User user, JpaRepository repository) {
+
+        var status = entity.getSTATUS();
+        if (status == 0) {
+            entity.setPODIGAO_STATUS(user.getSifraradnika());
+        } else {
+            entity.setPOSLAO_NAM(user.getSifraradnika());
+        }
+        entity.setSTATUS(status + 10);
+        T savedEntity = (T) repository.save(entity);
+
+        return "Entity status is raised to level " + savedEntity.getSTATUS() + "!";
+    }
+
+
     }
 
 
