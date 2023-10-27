@@ -2,6 +2,7 @@ package IndirektniPSF.backend.zakljucniList.zb;
 
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
+import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbRepository;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
@@ -33,7 +34,7 @@ public class ZakljucniListZbService implements IZakListService {
     private final SekretarijarService sekretarijarService;
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
-   // private final ObrazacZbRepository obrazacZbRepository;
+    //private final ObrazacZbRepository obrazacZbRepository;
     private final ZakljucniDetailsService zakljucniDetailsService;
     private StringBuilder responseMessage =  new StringBuilder();
     private final ObrKontrService obrKontrService;
@@ -117,7 +118,6 @@ public class ZakljucniListZbService implements IZakListService {
     @Transactional
 
     public Integer checkIfExistValidZListAndFindVersion(Integer kvartal, Integer jbbks ) throws Exception {
-
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
 
@@ -139,16 +139,9 @@ public class ZakljucniListZbService implements IZakListService {
     public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
         var jbbks = parameterService.getJbbksIBK(email);
-
-        ZakljucniListZb zb = zakljucniRepository
-                .findFirstByJbbkIndKorOrderByGenMysqlDesc(jbbks)
-                .orElseThrow(() -> new IllegalStateException("Obrazac ne postoji!"));
-
-
-//        Optional<ZakljucniListZb> optionalZb =
-//               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
-//        var zb = this.ifObrazacExistGetIt(optionalZb);
-
+        Optional<ZakljucniListZb> optionalZb =
+               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
+        var zb = this.ifObrazacExistGetIt(optionalZb);
         this.isObrazacStorniran(zb);
         this.resolveObrazacAccordingStatus(zb, status);
         return mapper.toResponse(zb);
@@ -172,13 +165,13 @@ public class ZakljucniListZbService implements IZakListService {
         }
     }
 
-//    public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
-//        if (!optionalZb.isPresent()) {
-//            throw new IllegalArgumentException("Ne postoji ucitan dokument!");
-//        }
-//        ZakljucniListZb zb = optionalZb.get();
-//        return zb;
-//    }
+    public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
+        if (!optionalZb.isPresent()) {
+            throw new IllegalArgumentException("Ne postoji ucitan dokument!");
+        }
+        ZakljucniListZb zb = optionalZb.get();
+        return zb;
+    }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
 
@@ -216,45 +209,46 @@ public class ZakljucniListZbService implements IZakListService {
         User user = userRepository.findByEmail(email).orElseThrow();
 
         var zb = zakljucniRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Obrazac ne postoji!"));
+                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Obrazac ima status veci od 10 \n" +
+            throw new Exception("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
-        return raiseStatusDependentOfActuallStatus(zb, user);
+        return parameterService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
     }
 
-    @Transactional
-    private String raiseStatusDependentOfActuallStatus(ZakljucniListZb zb, User user) {
+//    @Transactional
+//    private String raiseStatusDependentOfActuallStatus(ZakljucniListZb zb, User user) {
+//
+//        var status = zb.getSTATUS();
+//        if (status == 0) {
+//            zb.setPODIGAO_STATUS(user.getSifraradnika());
+//        } else {
+//            zb.setPOSLAO_NAM(user.getSifraradnika());
+//        }
+//        zb.setSTATUS(status + 10);
+//        var savedZb = zakljucniRepository.save(zb);
+//
+//        return "Zakljucnom listu je status \npodignut na nivo " +
+//                savedZb.getSTATUS() + "!";
+//    }
 
-        var status = zb.getSTATUS();
-        if (status == 0) {
-            zb.setPODIGAO_STATUS(user.getSifraradnika());
-        } else {
-            zb.setPOSLAO_NAM(user.getSifraradnika());
-        }
-        zb.setSTATUS(status + 10);
-        var savedZb = zakljucniRepository.save(zb);
-
-        return "Dokumentu je status \npodignut na nivo " +
-                savedZb.getSTATUS() + "!";
-    }
 
     @Transactional
     public String stornoZakList(Integer id, String email) throws Exception {
         User user = userRepository.findByEmail(email).orElseThrow();
         var zb = zakljucniRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Obrazac ne postoji!"));
+                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Obrazac ima status veci od 10 \n" +
+            throw new Exception("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
         zb.setSTORNO(1);
         zb.setRadna(0);
         zb.setSTOSIFRAD(user.getSifraradnika());
         zakljucniRepository.save(zb);
-        return "Obrazac je storniran!";
+        return "Zakljucni list je storniran!";
     }
 }
