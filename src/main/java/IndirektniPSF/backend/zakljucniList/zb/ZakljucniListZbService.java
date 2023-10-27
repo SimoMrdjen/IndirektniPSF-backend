@@ -6,8 +6,9 @@ import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbRepository;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
+import IndirektniPSF.backend.parameters.AbParameterService;
 import IndirektniPSF.backend.parameters.ObrazacResponse;
-import IndirektniPSF.backend.parameters.ParametersService;
+import IndirektniPSF.backend.parameters.StatusService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
@@ -28,19 +29,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ZakljucniListZbService implements IZakListService {
+public class ZakljucniListZbService extends AbParameterService implements IZakListService {
 
     private final ZakljucniListZbRepository zakljucniRepository;
     private final SekretarijarService sekretarijarService;
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
-    //private final ObrazacZbRepository obrazacZbRepository;
     private final ZakljucniDetailsService zakljucniDetailsService;
     private StringBuilder responseMessage =  new StringBuilder();
     private final ObrKontrService obrKontrService;
     private final ExcelService excelService;
     private final ZakljucniListMapper mapper;
-    private final ParametersService parameterService;
+    private final StatusService statusService;
 
 
     @Transactional
@@ -99,17 +99,11 @@ public class ZakljucniListZbService implements IZakListService {
         if(kvartal != excelKvartal) {
             throw new IllegalArgumentException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
         }
-        parameterService.checkIfKvartalIsForValidPeriod(kvartal, year);
+        this.checkIfKvartalIsForValidPeriod(kvartal, year);
     }
 
-
-//    public Integer getJbbksIBK(String email) {
-//        User user = userRepository.findByEmail(email).orElseThrow();
-//        return pPartnerService.getJBBKS(user.getSifra_pp());
-//    }
-
     public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
-        var jbbkDb =parameterService.getJbbksIBK(user.getEmail()); //find  in PPARTNER by sifraPP in ind_lozinka
+        var jbbkDb =this.getJbbksIBK(user.getEmail()); //find  in PPARTNER by sifraPP in ind_lozinka
 
         if (!jbbkDb.equals(jbbksExcell)) {
             throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
@@ -138,7 +132,7 @@ public class ZakljucniListZbService implements IZakListService {
 
     public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
-        var jbbks = parameterService.getJbbksIBK(email);
+        var jbbks = this.getJbbksIBK(email);
         Optional<ZakljucniListZb> optionalZb =
                zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
         var zb = this.ifObrazacExistGetIt(optionalZb);
@@ -215,7 +209,7 @@ public class ZakljucniListZbService implements IZakListService {
             throw new Exception("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
-        return parameterService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
+        return statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
     }
 
 //    @Transactional
