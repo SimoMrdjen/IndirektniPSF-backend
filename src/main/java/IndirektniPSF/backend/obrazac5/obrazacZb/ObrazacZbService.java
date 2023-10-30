@@ -5,6 +5,8 @@ import IndirektniPSF.backend.obrazac5.obrazac.ObrazacService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
+import IndirektniPSF.backend.parameters.AbParameterService;
+import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +15,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 @Component
-public class ObrazacZbService {
+public class ObrazacZbService extends AbParameterService {
     private final ObrazacZbRepository obrazacZbRepository;
     private final SekretarijarService sekretarijarService;
     private final ObrazacService obrazacService;
@@ -80,8 +83,53 @@ public class ObrazacZbService {
 
     @Transactional
     public Integer findVersion(Integer jbbks, Integer kvartal) {
-        Integer version = obrazacZbRepository.getLastVersionValue(jbbks, kvartal).orElse(0);
-        return version + 1;
+        var optionalObrazacZb = this.findLastVersionOfObrazacZb(jbbks, kvartal);
+        if (optionalObrazacZb.isEmpty()) {
+        return 1;}
+        return optionalObrazacZb.get().getVerzija() + 1;
+    }
+
+    public String stornoObrAfterObrIO(User user, Integer kvartal) {
+
+        Optional<ObrazacZb> optionalObrazacZb = this.findLastVersionOfObrazacZb(user, kvartal);
+
+        if (optionalObrazacZb.isEmpty())
+            return "";
+
+        var obrazacZb = optionalObrazacZb.get();
+        if (obrazacZb.getRadna() == 0 || obrazacZb.getStorno() == 1)
+            return "";
+
+       return this.stornoObr5(obrazacZb, user);
+
+
+    }
+
+    private String stornoObr5(Integer id, String email) {
+        User user = this.getUser(email);
+        var obrazacZb = obrazacZbRepository.findById(id).get();
+        obrazacZb.setRadna(0);
+        obrazacZb.setStorno(1);
+        obrazacZb.setStosifrad(user.getSifraradnika());
+        obrazacZbRepository.save(obrazacZb);
+        return "Obrazac5 uspesno je storniran";
+    }
+
+    private String stornoObr5(ObrazacZb obrazacZb, User user) {
+        obrazacZb.setRadna(0);
+        obrazacZb.setStorno(1);
+        obrazacZb.setStosifrad(user.getSifraradnika());
+        obrazacZbRepository.save(obrazacZb);
+        return "Obrazac5 uspesno je storniran";
+    }
+
+    private  Optional<ObrazacZb> findLastVersionOfObrazacZb(User user, Integer kvartal) {
+        var jbbk = this.getJbbksIBK(user);
+        return obrazacZbRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
+    }
+
+    private  Optional<ObrazacZb> findLastVersionOfObrazacZb(Integer jbbk, Integer kvartal) {
+        return obrazacZbRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
 }

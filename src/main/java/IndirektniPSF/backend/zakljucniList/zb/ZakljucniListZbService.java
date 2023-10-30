@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbRepository;
@@ -41,6 +42,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     private final ExcelService excelService;
     private final ZakljucniListMapper mapper;
     private final StatusService statusService;
+    private final ObrazacIOService obrazacIoService;
 
 
     @Transactional
@@ -108,6 +110,16 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         if (!jbbkDb.equals(jbbksExcell)) {
             throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
         }
+    }
+
+    public boolean checkIfExistValidZakList(Integer kvartal, Integer jbbks) {
+        Optional<ZakljucniListZb> optionalZb =
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
+
+        if (optionalZb.isEmpty() || optionalZb.get().getRadna() == 0 || optionalZb.get().getSTORNO() == 1) {
+            return false;
+        }
+        return true;
     }
     @Transactional
 
@@ -212,37 +224,37 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
     }
 
-//    @Transactional
-//    private String raiseStatusDependentOfActuallStatus(ZakljucniListZb zb, User user) {
-//
-//        var status = zb.getSTATUS();
-//        if (status == 0) {
-//            zb.setPODIGAO_STATUS(user.getSifraradnika());
-//        } else {
-//            zb.setPOSLAO_NAM(user.getSifraradnika());
-//        }
-//        zb.setSTATUS(status + 10);
-//        var savedZb = zakljucniRepository.save(zb);
-//
-//        return "Zakljucnom listu je status \npodignut na nivo " +
-//                savedZb.getSTATUS() + "!";
-//    }
-
-
     @Transactional
     public String stornoZakList(Integer id, String email) throws Exception {
+
         User user = userRepository.findByEmail(email).orElseThrow();
-        var zb = zakljucniRepository.findById(id)
+
+        var zb = this.findZakListById(id);
+
+        this.checkStatusAndStorno(zb);
+
+        zb.setSTORNO(1);
+        zb.setRadna(0);
+        zb.setSTOSIFRAD(user.getSifraradnika());
+
+        //TODO- add method to check if next obrazac exists and storno it
+        obrazacIoService.stornoIO(user, zb.getKojiKvartal(), zb.getGODINA());
+
+        zakljucniRepository.save(zb);
+        return "Zakljucni list je storniran!";
+    }
+
+    public ZakljucniListZb findZakListById(Integer id) {
+        return   zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
+    }
+
+    public  void checkStatusAndStorno(ZakljucniListZb zb) throws Exception {
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
             throw new Exception("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
-        zb.setSTORNO(1);
-        zb.setRadna(0);
-        zb.setSTOSIFRAD(user.getSifraradnika());
-        zakljucniRepository.save(zb);
-        return "Zakljucni list je storniran!";
     }
+
 }

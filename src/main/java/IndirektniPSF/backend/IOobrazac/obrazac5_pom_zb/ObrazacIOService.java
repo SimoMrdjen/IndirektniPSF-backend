@@ -3,9 +3,13 @@ package IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom.ObrazacIODetailService;
+import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
+import IndirektniPSF.backend.parameters.AbParameterService;
+import IndirektniPSF.backend.parameters.ObrazacService;
+import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -15,16 +19,18 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 @Component
-public class ObrazacIOService {
+public class ObrazacIOService extends AbParameterService {
     private final ObrazacIORepository obrazacIOrepository;
     private final SekretarijarService sekretarijarService;
     private final PPartnerService pPartnerService;
     private final ObrazacIODetailService obrazacIODetailService;
     private final UserRepository userRepository;
+    private final ObrazacZbService obrazacService;
 
     @Transactional
     public Obrazac5_pom_zb saveObrazacIO(List<ObrazacIODTO> dtos, Integer kvartal, Integer year, String email) {
@@ -79,5 +85,40 @@ public class ObrazacIOService {
     private Integer findVersion(Integer jbbk, Integer kvartal) {
         Integer version = obrazacIOrepository.getLastVersionValue(jbbk, kvartal).orElse(0);
         return version + 1;
+    }
+
+
+        @Transactional
+        public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
+
+            var optionalIO = findLastVersionOfObrIO(user,kvartal);
+            
+            if (optionalIO.isEmpty() || optionalIO.get().getRADNA() == 0 || optionalIO.get().getSTORNO() == 1) {
+                return "";
+            }
+            var io = optionalIO.get();
+
+            io.setSTORNO(1);
+            io.setRADNA(0);
+            io.setSTOSIFRAD(user.getSifraradnika());
+            io.setOPISSTORNO("Storniran prethodni dokument!");
+            //TODO- add method to check if next obrazac exists and storno it
+           // obrazacIoService.stornoIO(id, email);
+            
+            obrazacIOrepository.save(io);
+            return "Obrazac IO je storniran!" + obrazacService.stornoObrAfterObrIO(user, kvartal);
+
+    }
+
+    private String stornoIO(User user, Integer kvartal) {
+
+    }
+
+    private String stornoIO(Integer id, Integer kvartal) {
+
+    }
+    public Optional<Obrazac5_pom_zb> findLastVersionOfObrIO(User user, Integer kvartal) {
+        var jbbk = this.getJbbksIBK(user);
+        return obrazacIOrepository.getLastVersionByJBBK_IND_KORAndKOJI_KVARTAL??????(user, kvartal);
     }
 }

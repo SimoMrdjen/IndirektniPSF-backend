@@ -29,4 +29,6 @@ public class ObrazacZbController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    //TODO -add storno put method provide id of obrazac call storno(id, email)
 }

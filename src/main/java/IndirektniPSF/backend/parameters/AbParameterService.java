@@ -4,6 +4,7 @@ import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -58,5 +59,15 @@ public abstract class AbParameterService {
         User user = userRepository.findByEmail(email).orElseThrow();
         return pPartnerService.getJBBKS(user.getSifra_pp());
     }
+    protected Integer getJbbksIBK( User user) {
+        return pPartnerService.getJBBKS(user.getSifra_pp());
+    }
 
+    protected Integer getYear(Integer kvartal) {
+        return (kvartal == 4 || kvartal == 5) ? LocalDate.now().getYear() - 1 : LocalDate.now().getYear();
+    }
+
+    protected User getUser(String email) {
+      return  userRepository.findByEmail(email).orElseThrow(() ->  new NotFoundException("Korisnik ne postoji!"));
+    }
 }

@@ -14,4 +14,5 @@ public interface ObrazacZbRepository extends JpaRepository<ObrazacZb, Integer> {
     Optional<Integer> getLastVersionValue(Integer jbbks, Integer kvartal);
 
 
+    Optional<ObrazacZb> findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(Integer kvartal, Integer jbbk);
 }
