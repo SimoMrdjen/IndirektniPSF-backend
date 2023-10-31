@@ -81,44 +81,42 @@ public class ObrazacIOService extends AbParameterService {
         return obrIOSaved;
     }
 
-    @Transactional
     private Integer findVersion(Integer jbbk, Integer kvartal) {
         Integer version = obrazacIOrepository.getLastVersionValue(jbbk, kvartal).orElse(0);
         return version + 1;
     }
 
+    @Transactional
+    public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
 
-        @Transactional
-        public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
+        var optionalIO = findLastVersionOfObrIO(user,kvartal);
 
-            var optionalIO = findLastVersionOfObrIO(user,kvartal);
+        if (optionalIO.isEmpty() || optionalIO.get().getRADNA() == 0 || optionalIO.get().getSTORNO() == 1) {
+            return "";
+        }
+        var io = optionalIO.get();
+
+        io.setSTORNO(1);
+        io.setRADNA(0);
+        io.setSTOSIFRAD(user.getSifraradnika());
+        io.setOPISSTORNO("Storniran prethodni dokument!");
             
-            if (optionalIO.isEmpty() || optionalIO.get().getRADNA() == 0 || optionalIO.get().getSTORNO() == 1) {
-                return "";
-            }
-            var io = optionalIO.get();
+        obrazacIOrepository.save(io);
+        return "Obrazac IO je storniran!" + obrazacService.stornoObrAfterObrIO(user, kvartal);
+    }
 
+    private String stornoIO(Integer id, String email) {
+        var user = this.getUser(email);
+        var io = obrazacIOrepository.findById(id).get();
             io.setSTORNO(1);
             io.setRADNA(0);
             io.setSTOSIFRAD(user.getSifraradnika());
-            io.setOPISSTORNO("Storniran prethodni dokument!");
-            //TODO- add method to check if next obrazac exists and storno it
-           // obrazacIoService.stornoIO(id, email);
-            
-            obrazacIOrepository.save(io);
-            return "Obrazac IO je storniran!" + obrazacService.stornoObrAfterObrIO(user, kvartal);
-
+        obrazacIOrepository.save(io);
+        return "Obrazac IO je storniran!";
     }
 
-    private String stornoIO(User user, Integer kvartal) {
-
-    }
-
-    private String stornoIO(Integer id, Integer kvartal) {
-
-    }
     public Optional<Obrazac5_pom_zb> findLastVersionOfObrIO(User user, Integer kvartal) {
         var jbbk = this.getJbbksIBK(user);
-        return obrazacIOrepository.getLastVersionByJBBK_IND_KORAndKOJI_KVARTAL??????(user, kvartal);
+        return obrazacIOrepository.findFirstByJBBK_IND_KORAndKOJI_KVARTALOrderByVERZIJADesc(jbbk, kvartal);
     }
 }

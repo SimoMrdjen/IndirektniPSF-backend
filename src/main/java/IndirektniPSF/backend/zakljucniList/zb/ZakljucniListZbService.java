@@ -56,8 +56,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
         List<ZakljucniListDto> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
-
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = this.getUser(email);
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
@@ -105,7 +104,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     }
 
     public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
-        var jbbkDb =this.getJbbksIBK(user.getEmail()); //find  in PPARTNER by sifraPP in ind_lozinka
+        var jbbkDb =this.getJbbksIBK(user);
 
         if (!jbbkDb.equals(jbbksExcell)) {
             throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
@@ -121,8 +120,8 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         }
         return true;
     }
-    @Transactional
 
+    @Transactional
     public Integer checkIfExistValidZListAndFindVersion(Integer kvartal, Integer jbbks ) throws Exception {
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
@@ -132,12 +131,9 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         }
         ZakljucniListZb zb = optionalZb.get();
 
-        if (zb.getRadna() == 1 && zb.getSTORNO() == 0 && zb.getSTATUS() >= 10) {
-            throw new Exception("Za tekući kvartal već postoji učitan \nvažeći ZaključniList koji je vec overen!");
-        }
-        if (zb.getRadna() == 1) {
-            zb.setRadna(0);
-            zakljucniRepository.save(zb);
+        if (zb.getRadna() == 1 && zb.getSTORNO() == 0 ) {
+            throw new Exception("Za tekući kvartal već postoji učitan \nvažeći ZaključniList!\nUkoliko zelite da ucitate novu verziju " +
+                    "\nprethodnu morate stornirati!");
         }
         return zb.getVerzija() + 1;
     }
@@ -212,7 +208,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
     @Transactional
     public String raiseStatus(Integer id, String email) throws Exception {
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = this.getUser(email);
 
         var zb = zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
@@ -227,21 +223,17 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     @Transactional
     public String stornoZakList(Integer id, String email) throws Exception {
 
-        User user = userRepository.findByEmail(email).orElseThrow();
-
+        User user = this.getUser(email);
         var zb = this.findZakListById(id);
-
         this.checkStatusAndStorno(zb);
-
         zb.setSTORNO(1);
         zb.setRadna(0);
         zb.setSTOSIFRAD(user.getSifraradnika());
-
-        //TODO- add method to check if next obrazac exists and storno it
-        obrazacIoService.stornoIO(user, zb.getKojiKvartal(), zb.getGODINA());
-
+        //TODO dodati opis storno
+        zb.setOPISSTORNO("Naknadno");
         zakljucniRepository.save(zb);
-        return "Zakljucni list je storniran!";
+        return "Zakljucni list je storniran!"
+                + obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());
     }
 
     public ZakljucniListZb findZakListById(Integer id) {

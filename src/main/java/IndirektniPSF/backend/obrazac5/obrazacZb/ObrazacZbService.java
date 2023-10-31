@@ -100,7 +100,8 @@ public class ObrazacZbService extends AbParameterService {
         if (obrazacZb.getRadna() == 0 || obrazacZb.getStorno() == 1)
             return "";
 
-       return this.stornoObr5(obrazacZb, user);
+        obrazacZb.setOpisstorno("Storniran prethodni dokument!");
+        return this.stornoObr5(obrazacZb, user);
 
 
     }
