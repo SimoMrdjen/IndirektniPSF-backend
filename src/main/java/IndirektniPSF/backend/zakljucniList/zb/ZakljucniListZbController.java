@@ -60,6 +60,20 @@ public class ZakljucniListZbController {
         }
     }
 
+    @GetMapping(value = "/storno/{kvartal}")
+    public ResponseEntity<?> getZakListZaStorno(@PathVariable(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            List<ObrazacResponse> result =  List.of(zakljucniService.findValidObrazacToStorno(email, kvartal));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            // Handle the exception and return an error response with status code 400
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PutMapping(value = "/storno/{id}")
     public ResponseEntity<?> stornoZakList(@PathVariable(name = "id") Integer id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

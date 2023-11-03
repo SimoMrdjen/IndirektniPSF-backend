@@ -4,6 +4,7 @@ import IndirektniPSF.backend.security.user.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -13,6 +14,14 @@ public interface ObrazacIORepository extends JpaRepository<Obrazac5_pom_zb, Inte
     @Query(value = "select MAX(verzija)  from obrazac5_pom_zb o where o.jbbk_ind_kor = ?1 and koji_kvartal = ?2",
             nativeQuery = true)
     Optional<Integer> getLastVersionValue(Integer jbbk, Integer kvartal);
-    Optional<Obrazac5_pom_zb> findFirstByJBBK_IND_KORAndKOJI_KVARTALOrderByVERZIJADesc(Integer jbbk_ind_kor, Integer koji_kvartal);
+
+    //@Query("SELECT o FROM Obrazac5_pom_zb o WHERE o.JBBK_IND_KOR = :jbbkIndKor AND o.KOJI_KVARTAL = :kojiKvartal ORDER BY o.VERZIJA DESC")
+//    @Query(value = "SELECT * FROM obrazac5_pom_zb WHERE JBBK_IND_KOR = :jbbkIndKor AND KOJI_KVARTAL = :kojiKvartal ORDER BY VERZIJA DESC", nativeQuery = true)
+//
+//    Optional<Obrazac5_pom_zb> findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(Integer jbbk_ind_kor, Integer koji_kvartal);
+
+    @Query(value = "SELECT * FROM obrazac5_pom_zb WHERE JBBK_IND_KOR = :jbbkIndKor AND KOJI_KVARTAL = :kojiKvartal ORDER BY VERZIJA DESC", nativeQuery = true)
+    Optional<Obrazac5_pom_zb> findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(@Param("jbbkIndKor") Integer jbbkIndKor, @Param("kojiKvartal") Integer kojiKvartal);
+
 
 }

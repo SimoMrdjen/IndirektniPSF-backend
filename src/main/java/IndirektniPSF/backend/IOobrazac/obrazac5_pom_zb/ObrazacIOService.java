@@ -117,6 +117,6 @@ public class ObrazacIOService extends AbParameterService {
 
     public Optional<Obrazac5_pom_zb> findLastVersionOfObrIO(User user, Integer kvartal) {
         var jbbk = this.getJbbksIBK(user);
-        return obrazacIOrepository.findFirstByJBBK_IND_KORAndKOJI_KVARTALOrderByVERZIJADesc(jbbk, kvartal);
+        return obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
     }
 }

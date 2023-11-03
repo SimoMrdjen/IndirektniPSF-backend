@@ -70,4 +70,6 @@ public abstract class AbParameterService {
     protected User getUser(String email) {
       return  userRepository.findByEmail(email).orElseThrow(() ->  new NotFoundException("Korisnik ne postoji!"));
     }
+
+
 }

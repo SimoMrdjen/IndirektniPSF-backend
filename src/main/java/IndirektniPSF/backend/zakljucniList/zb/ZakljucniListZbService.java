@@ -96,13 +96,6 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return responseMessage;
     }
 
-    private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) {
-        if(kvartal != excelKvartal) {
-            throw new IllegalArgumentException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
-        }
-        this.checkIfKvartalIsForValidPeriod(kvartal, year);
-    }
-
     public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
         var jbbkDb =this.getJbbksIBK(user);
 
@@ -110,6 +103,15 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
             throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
         }
     }
+
+    private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) {
+        if(kvartal != excelKvartal) {
+            throw new IllegalArgumentException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
+        }
+        this.checkIfKvartalIsForValidPeriod(kvartal, year);
+    }
+
+
 
     public boolean checkIfExistValidZakList(Integer kvartal, Integer jbbks) {
         Optional<ZakljucniListZb> optionalZb =
@@ -137,7 +139,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         }
         return zb.getVerzija() + 1;
     }
-
+// RAISING STATUS
     public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);
@@ -149,6 +151,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return mapper.toResponse(zb);
     }
 
+    //TODO implement through StatusService
     private void resolveObrazacAccordingStatus(ZakljucniListZb zb, Integer status) throws Exception {
 
         var actualStatus = zb.getSTATUS();
@@ -161,11 +164,6 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         }
     }
 
-    public void isObrazacStorniran(ZakljucniListZb zb) throws Exception {
-        if( zb.getSTORNO() == 1) {
-            throw  new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
-        }
-    }
 
     public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
         if (!optionalZb.isPresent()) {
@@ -220,6 +218,23 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
     }
 
+    public ZakljucniListZb findZakListById(Integer id) {
+        return   zakljucniRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
+    }
+
+    public  void checkStatusAndStorno(ZakljucniListZb zb) throws Exception {
+
+        if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
+            throw new Exception("Zakljucni list ima status veci od 10 \n" +
+                    "ili je vec storniran");
+        }
+    }
+
+
+
+ //STORNO
+
     @Transactional
     public String stornoZakList(Integer id, String email) throws Exception {
 
@@ -236,17 +251,19 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
                 + obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());
     }
 
-    public ZakljucniListZb findZakListById(Integer id) {
-        return   zakljucniRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
+    public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
+
+        var jbbks = this.getJbbksIBK(email);
+        Optional<ZakljucniListZb> optionalZb =
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
+        var zb = this.ifObrazacExistGetIt(optionalZb);
+        this.isObrazacStorniran(zb);
+        return mapper.toResponse(zb);
     }
 
-    public  void checkStatusAndStorno(ZakljucniListZb zb) throws Exception {
-
-        if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Zakljucni list ima status veci od 10 \n" +
-                    "ili je vec storniran");
+    public void isObrazacStorniran(ZakljucniListZb zb) throws Exception {
+        if( zb.getSTORNO() == 1) {
+            throw  new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
         }
     }
-
 }
