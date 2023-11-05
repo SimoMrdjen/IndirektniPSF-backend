@@ -3,11 +3,13 @@ package IndirektniPSF.backend.parameters;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
+import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.Optional;
 
 public abstract class AbParameterService {
 
@@ -71,5 +73,20 @@ public abstract class AbParameterService {
       return  userRepository.findByEmail(email).orElseThrow(() ->  new NotFoundException("Korisnik ne postoji!"));
     }
 
+    protected  void checkStatusAndStorno(ZakljucniListZb zb) throws Exception {
+
+        if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
+            throw new Exception("Dokument ima status veci od 10 \n" +
+                    "ili je vec storniran");
+        }
+    }
+
+    protected void checkJbbks(User user, Integer jbbksExcell) throws Exception {
+        var jbbkDb =this.getJbbksIBK(user);
+
+        if (!jbbkDb.equals(jbbksExcell)) {
+            throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
+        }
+    }
 
 }

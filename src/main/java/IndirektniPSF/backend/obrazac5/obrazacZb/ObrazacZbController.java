@@ -30,5 +30,8 @@ public class ObrazacZbController {
         }
     }
 
+    //TODO add endpoint for  excel
+
+
     //TODO -add storno put method provide id of obrazac call storno(id, email)
 }

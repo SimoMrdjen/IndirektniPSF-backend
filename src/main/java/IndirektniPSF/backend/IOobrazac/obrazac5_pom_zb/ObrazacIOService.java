@@ -3,6 +3,11 @@ package IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom.ObrazacIODetailService;
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom.ObrazacIOMapper;
+import IndirektniPSF.backend.excel.ExcelService;
+import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
+import IndirektniPSF.backend.obrazac5.obrazac.ObrazacMapper;
+import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
 import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
@@ -15,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.time.LocalDate;
@@ -31,7 +37,70 @@ public class ObrazacIOService extends AbParameterService {
     private final ObrazacIODetailService obrazacIODetailService;
     private final UserRepository userRepository;
     private final ObrazacZbService obrazacService;
+    private StringBuilder responseMessage =  new StringBuilder();
+    private final ExcelService excelService;
 
+    private final ObrazacIOMapper mapper;
+
+
+    @Transactional
+    public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
+
+        responseMessage.delete(0, responseMessage.length());
+        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
+        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
+        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
+        //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
+//TODO
+        List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
+
+        User user = this.getUser(email);
+        Integer sifSekret = user.getZa_sif_sekret();
+        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
+        Integer today = (int) LocalDate.now().toEpochDay() + 25569;
+        //provere
+//        checkDuplicatesKonta(dtos);
+        Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
+        checkJbbks(user, jbbk);
+
+        Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
+                .KOJI_KVARTAL(kvartal)
+                .GODINA(year)
+                .VERZIJA(version)
+                .RADNA(1)
+                .SIF_SEKRET(sifSekret)
+                .RAZDEO(sekretarijat.getRazdeo())
+                .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
+                .JBBK_IND_KOR(jbbk)
+                .SIF_RAC(1)
+                .DINARSKI(1)
+                .STATUS(0)
+                .POSLATO_O(0)
+                .POVUCENO(0)
+                .KONACNO(0)
+                .POSLAO_NAM(user.getSifraradnika())
+                .DATUM_DOK(today)
+                .PODIGAO_STATUS(0)
+                .DATUM_POD_STATUSA(0)
+                .POSLAO_U_ORG(0)
+                .DATUM_SLANJA(0)
+                .POSLAO_IZ_ORG(0)
+                .DATUM_ORG(0)
+                .ZAPRIMIO_VER(0)
+                .OVERIO_VER(0)
+                .ODOBRIO_VER(0)
+                .PROKNJIZENO(0)
+                .XLS(1)
+                .STORNO(0)
+                .STOSIFRAD(0)
+                .GEN_OPENTAB(0)
+                .build();
+
+        Obrazac5_pom_zb obrIOSaved = obrazacIOrepository.save(obrIO);
+
+        obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved);
+        return responseMessage;
+    }
     @Transactional
     public Obrazac5_pom_zb saveObrazacIO(List<ObrazacIODTO> dtos, Integer kvartal, Integer year, String email) {
 
@@ -40,7 +109,7 @@ public class ObrazacIOService extends AbParameterService {
         Integer sifSekret = user.getZa_sif_sekret(); //fetch from table user-bice- user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret); //fetch from table user or sekr, im not sure
         Integer jbbk = pPartnerService.getJBBKS(user.getSifra_pp());
-        Integer version = findVersion(jbbk, kvartal);
+        Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
         Integer todayInt = (int) LocalDate.now().toEpochDay() + 25569;
 
         Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
@@ -81,7 +150,7 @@ public class ObrazacIOService extends AbParameterService {
         return obrIOSaved;
     }
 
-    private Integer findVersion(Integer jbbk, Integer kvartal) {
+    private Integer checkIfExistValidZListAndFindVersion(Integer jbbk, Integer kvartal) {
         Integer version = obrazacIOrepository.getLastVersionValue(jbbk, kvartal).orElse(0);
         return version + 1;
     }

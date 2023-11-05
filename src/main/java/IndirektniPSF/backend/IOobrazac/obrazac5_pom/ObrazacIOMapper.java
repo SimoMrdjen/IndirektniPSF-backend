@@ -1,7 +1,14 @@
 package IndirektniPSF.backend.IOobrazac.obrazac5_pom;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
+import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class ObrazacIOMapper {
@@ -39,5 +46,56 @@ public class ObrazacIOMapper {
                 .UPARENO(0)
                 .POTRAZUJE2(0.00)
                 .build();
+    }
+
+    public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
+        List<ObrazacIODTO> dtos = new ArrayList<>();
+        //TODO set values of excel columns and first row
+        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            int i = 25; // Start reading from the 26th row (assuming 0-based index)
+
+            while (true) {
+                Row row = sheet.getRow(i);
+                if (row == null) {
+                    break; // Stop reading when you find a blank row
+                }
+
+                // Check if the row should be skipped based on the cell types
+                if (isCellTypeNumericAndNotNull(row, 0))
+                {
+                    ObrazacIODTO dto = new ObrazacIODTO();
+                    dto.setProp1((int) row.getCell(0).getNumericCellValue());
+                    dto.setProp2( row.getCell(1).getStringCellValue());
+                    dto.setProp3((int)row.getCell(2).getNumericCellValue());
+                    dto.setProp4(row.getCell(3).getStringCellValue());
+                    dto.setProp5(row.getCell(4).getStringCellValue());
+                    dto.setProp6(row.getCell(5).getNumericCellValue());
+                    dto.setProp7(row.getCell(6).getNumericCellValue());
+
+
+                    dtos.add(dto);
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
+        }
+        return dtos;
+    }
+
+//    private boolean isCellTypeNumeric(Row row, int cellIndex) {
+//        Cell cell = row.getCell(cellIndex);
+//        if ( CellType.NUMERIC.equals(cell.getCellType())) {
+//            return true;
+//        }
+//        return false; // Skip the row if the cell is not numeric
+//    }
+    private boolean isCellTypeNumericAndNotNull(Row row, int cellIndex) {
+        Cell cell = row.getCell(cellIndex);
+        if (cell != null && CellType.NUMERIC.equals(cell.getCellType())) {
+            return true;
+        }
+        return false; // Skip the row if the cell is not numeric
     }
 }

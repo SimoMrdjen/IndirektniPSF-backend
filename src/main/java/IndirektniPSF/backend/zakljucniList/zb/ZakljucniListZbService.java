@@ -96,13 +96,13 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return responseMessage;
     }
 
-    public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
-        var jbbkDb =this.getJbbksIBK(user);
-
-        if (!jbbkDb.equals(jbbksExcell)) {
-            throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
-        }
-    }
+//    public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
+//        var jbbkDb =this.getJbbksIBK(user);
+//
+//        if (!jbbkDb.equals(jbbksExcell)) {
+//            throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
+//        }
+//    }
 
     private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) {
         if(kvartal != excelKvartal) {
@@ -143,35 +143,27 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);
-        Optional<ZakljucniListZb> optionalZb =
-               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks);
-        var zb = this.ifObrazacExistGetIt(optionalZb);
+
+        ZakljucniListZb zb =
+               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks)
+                       .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
-        this.resolveObrazacAccordingStatus(zb, status);
+        statusService.resolveObrazacAccordingStatus(zb, status);
         return mapper.toResponse(zb);
     }
 
-    //TODO implement through StatusService
-    private void resolveObrazacAccordingStatus(ZakljucniListZb zb, Integer status) throws Exception {
-
-        var actualStatus = zb.getSTATUS();
-        if (actualStatus >= 20) {
-            throw new Exception("Dokument je vec poslat Vasem DBK-u!");
-        } else if(actualStatus == 0 && status == 10) {
-            throw new Exception("Dokument jos nije odobren, \nidite na opciju odobravanje!");
-        } else if(actualStatus == 10 && status == 0) {
-            throw new Exception("Dokument je vec odobren, \nmozete ici na opciju overavanje!");
-        }
-    }
-
-
-    public ZakljucniListZb ifObrazacExistGetIt( Optional<ZakljucniListZb> optionalZb) {
-        if (!optionalZb.isPresent()) {
-            throw new IllegalArgumentException("Ne postoji ucitan dokument!");
-        }
-        ZakljucniListZb zb = optionalZb.get();
-        return zb;
-    }
+//    //TODO implement through StatusService
+//    private void resolveObrazacAccordingStatus(ZakljucniListZb zb, Integer status) throws Exception {
+//
+//        var actualStatus = zb.getSTATUS();
+//        if (actualStatus >= 20) {
+//            throw new Exception("Dokument je vec poslat Vasem DBK-u!");
+//        } else if(actualStatus == 0 && status == 10) {
+//            throw new Exception("Dokument jos nije odobren, \nidite na opciju odobravanje!");
+//        } else if(actualStatus == 10 && status == 0) {
+//            throw new Exception("Dokument je vec odobren, \nmozete ici na opciju overavanje!");
+//        }
+//    }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
 
@@ -223,16 +215,6 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
     }
 
-    public  void checkStatusAndStorno(ZakljucniListZb zb) throws Exception {
-
-        if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Zakljucni list ima status veci od 10 \n" +
-                    "ili je vec storniran");
-        }
-    }
-
-
-
  //STORNO
 
     @Transactional
@@ -254,9 +236,9 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);
-        Optional<ZakljucniListZb> optionalZb =
-                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
-        var zb = this.ifObrazacExistGetIt(optionalZb);
+        ZakljucniListZb zb =
+                zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks)
+                        .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
         return mapper.toResponse(zb);
     }

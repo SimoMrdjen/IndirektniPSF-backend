@@ -17,7 +17,7 @@ public interface IZakListService {
 //                                    Integer jbbks,
 //                                    Integer year,
 //                                    String email) throws Exception;
-   void checkJbbks(User user, Integer jbbksExcell) throws Exception;
+//   void checkJbbks(User user, Integer jbbksExcell) throws Exception;
 
 //    Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception;
 

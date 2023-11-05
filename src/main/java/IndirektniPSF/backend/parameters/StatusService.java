@@ -6,9 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-
 @Service
-public class StatusService {
+public   class StatusService {
 
     public <T extends StatusUpdatable> String raiseStatusDependentOfActuallStatus(
             T entity, User user, JpaRepository repository) {
@@ -25,7 +24,7 @@ public class StatusService {
         return "Entity status is raised to level " + savedEntity.getSTATUS() + "!";
     }
 
-    private <T extends StatusUpdatable> void resolveObrazacAccordingStatus(T entity, Integer status) throws Exception {
+    public <T extends StatusUpdatable> void resolveObrazacAccordingStatus(T entity, Integer status) throws Exception {
 
         var actualStatus = entity.getSTATUS();
         if (actualStatus >= 20) {
