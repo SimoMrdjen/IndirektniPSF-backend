@@ -158,7 +158,7 @@ public class ObrazacZbService extends AbParameterService {
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
 
         //necessary to add checking methods-Zakljucni is example
-        Integer version = findVersion(jbbk, kvartal);
+        Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
 
         ObrazacZb zb = ObrazacZb.builder()
                 //.gen_interbase(1)
