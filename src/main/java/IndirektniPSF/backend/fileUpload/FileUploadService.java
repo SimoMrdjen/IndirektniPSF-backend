@@ -1,12 +1,17 @@
 package IndirektniPSF.backend.fileUpload;
 
 import IndirektniPSF.backend.parameters.AbParameterService;
+import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -57,5 +62,36 @@ public class FileUploadService extends AbParameterService {
 //        }
         return path;
 
+    }
+
+    public void saveExcelFile(Integer year, String email, Integer kvartal, String typeOfObrazac, MultipartFile file) {
+        String uploadPath = this.createPath(year, email, kvartal, typeOfObrazac);
+
+        try {
+            String filePath = uploadPath + File.separator + this.getDateAndTimeAsPartOfFilePath() + " " +
+                    file.getOriginalFilename();
+            file.transferTo(new File(filePath));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void saveTxtFile(Integer year, String email, Integer kvartal, String typeOfObrazac, String content) {
+
+        String uploadPath = this.createPath(year, email, kvartal, typeOfObrazac);
+        var fileName = this.getDateAndTimeAsPartOfFilePath();
+        Path filePath = Paths.get(uploadPath, fileName);
+
+        try {
+            FileWriter fileWriter = new FileWriter(filePath.toString());
+            fileWriter.write(content);
+            fileWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Integer findYear(Integer kvartal) {
+        var year = LocalDateTime.now().getYear();
+        return (kvartal == 4 || kvartal == 5) ? (year - 1) : year;
     }
 }

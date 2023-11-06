@@ -1,11 +1,13 @@
 package IndirektniPSF.backend.obrazac5.obrazacZb;
 
+import IndirektniPSF.backend.fileUpload.FileUploadService;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -15,6 +17,7 @@ import java.util.List;
 public class ObrazacZbController {
 
     private final ObrazacZbService obrazacZbService;
+    private final FileUploadService fileUploadService;
 
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addObrazacZb(@RequestBody List<Obrazac5DTO> dtos,
@@ -30,7 +33,26 @@ public class ObrazacZbController {
         }
     }
 
-    //TODO add endpoint for  excel
+    @PostMapping(value = "/{kvartal}")
+    public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
+                                                   @PathVariable(name = "kvartal") Integer kvartal) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        var year = fileUploadService.findYear(kvartal);
+        String typeOfObrazac = "Obrazac_5";
+        fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+
+        try {
+            String result = String.valueOf(obrazacZbService.saveZakljucniFromExcel(file, kvartal, email));
+            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 
     //TODO -add storno put method provide id of obrazac call storno(id, email)

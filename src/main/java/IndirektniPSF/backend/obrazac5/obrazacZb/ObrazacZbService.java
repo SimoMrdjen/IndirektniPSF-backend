@@ -45,7 +45,7 @@ public class ObrazacZbService extends AbParameterService {
 //        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
 //        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
         //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
-//TODO
+
         List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
         User user = this.getUser(email);
