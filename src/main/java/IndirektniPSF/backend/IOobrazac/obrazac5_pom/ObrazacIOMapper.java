@@ -48,12 +48,14 @@ public class ObrazacIOMapper {
                 .build();
     }
 
+
     public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
         List<ObrazacIODTO> dtos = new ArrayList<>();
-        //TODO set values of excel columns and first row
+        DataFormatter formatter = new DataFormatter();
+
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
-            int i = 25; // Start reading from the 26th row (assuming 0-based index)
+            int i = 7; // Start reading from the 8th row (assuming 0-based index)
 
             while (true) {
                 Row row = sheet.getRow(i);
@@ -61,21 +63,39 @@ public class ObrazacIOMapper {
                     break; // Stop reading when you find a blank row
                 }
 
-                // Check if the row should be skipped based on the cell types
-                if (isCellTypeNumericAndNotNull(row, 0))
-                {
-                    ObrazacIODTO dto = new ObrazacIODTO();
-                    dto.setProp1((int) row.getCell(0).getNumericCellValue());
-                    dto.setProp2( row.getCell(1).getStringCellValue());
-                    dto.setProp3((int)row.getCell(2).getNumericCellValue());
-                    dto.setProp4(row.getCell(3).getStringCellValue());
-                    dto.setProp5(row.getCell(4).getStringCellValue());
-                    dto.setProp6(row.getCell(5).getNumericCellValue());
-                    dto.setProp7(row.getCell(6).getNumericCellValue());
+                ObrazacIODTO dto = new ObrazacIODTO();
 
-
-                    dtos.add(dto);
+                // Process each cell as per the cell type
+                for (int columnIndex = 0; columnIndex <= 6; columnIndex++) {
+                    Cell cell = row.getCell(columnIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    switch (cell.getCellType()) {
+                        case STRING:
+                            String stringValue = cell.getStringCellValue();
+                            assignStringValue(dto, columnIndex, stringValue);
+                            break;
+                        case NUMERIC:
+                            if (DateUtil.isCellDateFormatted(cell)) {
+                                // Handle Date if required
+                            } else {
+                                double numericValue = cell.getNumericCellValue();
+                                assignNumericValue(dto, columnIndex, numericValue);
+                            }
+                            break;
+                        case BOOLEAN:
+                            // Handle BOOLEAN if required
+                            break;
+                        case BLANK:
+                            // Handle BLANK if required
+                            break;
+                        case FORMULA:
+                            // Evaluate formula if required
+                            break;
+                        default:
+                            // Handle other cases or throw an error
+                    }
                 }
+
+                dtos.add(dto);
                 i++;
             }
         } catch (Exception e) {
@@ -83,6 +103,73 @@ public class ObrazacIOMapper {
         }
         return dtos;
     }
+
+    private void assignStringValue(ObrazacIODTO dto, int columnIndex, String value) {
+        switch (columnIndex) {
+            case 1:
+                dto.setProp2(value);
+                break;
+            case 3:
+                dto.setProp4(value);
+                break;
+            case 4:
+                dto.setProp5(value);
+                break;
+        }
+    }
+
+    private void assignNumericValue(ObrazacIODTO dto, int columnIndex, double value) {
+        switch (columnIndex) {
+            case 0:
+                dto.setProp1((int) value);
+                break;
+            case 2:
+                dto.setProp3((int) value);
+                break;
+            case 5:
+                dto.setProp6(value);
+                break;
+            case 6:
+                dto.setProp7(value);
+                break;
+        }
+    }
+
+//    public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
+//        List<ObrazacIODTO> dtos = new ArrayList<>();
+//        //TODO set values of excel columns and first row
+//        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+//            Sheet sheet = workbook.getSheetAt(0);
+//            int i = 7; // Start reading from the 26th row (assuming 0-based index)
+//
+//            while (true) {
+//                Row row = sheet.getRow(i);
+//                if (row == null) {
+//                    break; // Stop reading when you find a blank row
+//                }
+//
+//                // Check if the row should be skipped based on the cell types
+////                if (isCellTypeNumericAndNotNull(row, 0))
+////                {
+//                    ObrazacIODTO dto = new ObrazacIODTO();
+//                    dto.setProp1((int) row.getCell(0).getNumericCellValue());
+//                    dto.setProp2(String.valueOf(row.getCell(1).getNumericCellValue()));
+//                    dto.setProp3((int)row.getCell(2).getNumericCellValue());
+//                    dto.setProp4(row.getCell(3).getStringCellValue());
+//                    dto.setProp5(row.getCell(4).getStringCellValue());
+//                    dto.setProp6(row.getCell(5).getNumericCellValue());
+//                    dto.setProp7(row.getCell(6).getNumericCellValue());
+//
+//
+//                    dtos.add(dto);
+////                }
+//                i++;
+//            }
+//        } catch (Exception e) {
+//            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
+//        }
+//        return dtos;
+//    }
 
 //    private boolean isCellTypeNumeric(Row row, int cellIndex) {
 //        Cell cell = row.getCell(cellIndex);

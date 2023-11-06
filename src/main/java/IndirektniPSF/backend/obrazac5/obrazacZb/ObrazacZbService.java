@@ -41,9 +41,9 @@ public class ObrazacZbService extends AbParameterService {
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
-        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
-        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
+//        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
+//        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
+//        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
         //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
 //TODO
         List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
@@ -52,10 +52,11 @@ public class ObrazacZbService extends AbParameterService {
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
+        var jbbk = getJbbksIBK(user);
         //provere
 //        checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
-        checkJbbks(user, jbbk);
+       // checkJbbks(user, jbbk);
 
         ObrazacZb zb = ObrazacZb.builder()
                 //.gen_interbase(1)

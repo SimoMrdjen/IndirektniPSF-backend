@@ -47,9 +47,9 @@ public class ObrazacIOService extends AbParameterService {
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
+        Integer year = excelService.readCellByIndexes(file.getInputStream(), 2,3);
         Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
-        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
+        //Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 2,5);
         //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
 //TODO
         List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
