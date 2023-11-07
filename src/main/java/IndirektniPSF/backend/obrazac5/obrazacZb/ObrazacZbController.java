@@ -19,19 +19,19 @@ public class ObrazacZbController {
     private final ObrazacZbService obrazacZbService;
     private final FileUploadService fileUploadService;
 
-    @PostMapping(value = "/{kvartal}")
-    public ResponseEntity<?> addObrazacZb(@RequestBody List<Obrazac5DTO> dtos,
-                                                  @PathVariable(name = "kvartal") Integer kvartal) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        try {
-            return ResponseEntity.ok(obrazacZbService.saveObrazac5(dtos, kvartal, email));
-        }
-        catch (Exception e) {
-            // Handle the exception and return an error response with status code 400
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @PostMapping(value = "/{kvartal}")
+//    public ResponseEntity<?> addObrazacZb(@RequestBody List<Obrazac5DTO> dtos,
+//                                                  @PathVariable(name = "kvartal") Integer kvartal) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String email = authentication.getName();
+//        try {
+//            return ResponseEntity.ok(obrazacZbService.saveObrazac5(dtos, kvartal, email));
+//        }
+//        catch (Exception e) {
+//            // Handle the exception and return an error response with status code 400
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
 
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,

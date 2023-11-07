@@ -21,16 +21,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+
 @RequiredArgsConstructor
 @Service
 @Component
 public class ObrazacIOService extends AbParameterService {
+
     private final ObrazacIORepository obrazacIOrepository;
     private final SekretarijarService sekretarijarService;
     private final PPartnerService pPartnerService;
@@ -43,63 +46,75 @@ public class ObrazacIOService extends AbParameterService {
     private final ObrazacIOMapper mapper;
 
 
-    @Transactional
+   // @Transactional
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-        Integer year = excelService.readCellByIndexes(file.getInputStream(), 2,3);
-        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
-        //Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 2,5);
-        //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
-//TODO
-        List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
-        User user = this.getUser(email);
-        Integer sifSekret = user.getZa_sif_sekret();
-        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
-        Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-        //provere
+        try {
+            Integer year = 2023; //excelService.readCellByIndexes(file.getInputStream(), 2,3);
+            Integer jbbk = 3578; // excelService.readCellByIndexes(file.getInputStream(), 2,1);
+            //Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 2,5);
+            //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
+            var proba = file.getInputStream();
+
+            List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
+
+            User user = this.getUser(email);
+            Integer sifSekret = user.getZa_sif_sekret();
+            Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
+            Integer today = (int) LocalDate.now().toEpochDay() + 25569;
+            //provere
 //        checkDuplicatesKonta(dtos);
-        Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
-        checkJbbks(user, jbbk);
+            Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
+            checkJbbks(user, jbbk);
 
-        Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
-                .KOJI_KVARTAL(kvartal)
-                .GODINA(year)
-                .VERZIJA(version)
-                .RADNA(1)
-                .SIF_SEKRET(sifSekret)
-                .RAZDEO(sekretarijat.getRazdeo())
-                .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
-                .JBBK_IND_KOR(jbbk)
-                .SIF_RAC(1)
-                .DINARSKI(1)
-                .STATUS(0)
-                .POSLATO_O(0)
-                .POVUCENO(0)
-                .KONACNO(0)
-                .POSLAO_NAM(user.getSifraradnika())
-                .DATUM_DOK(today)
-                .PODIGAO_STATUS(0)
-                .DATUM_POD_STATUSA(0)
-                .POSLAO_U_ORG(0)
-                .DATUM_SLANJA(0)
-                .POSLAO_IZ_ORG(0)
-                .DATUM_ORG(0)
-                .ZAPRIMIO_VER(0)
-                .OVERIO_VER(0)
-                .ODOBRIO_VER(0)
-                .PROKNJIZENO(0)
-                .XLS(1)
-                .STORNO(0)
-                .STOSIFRAD(0)
-                .GEN_OPENTAB(0)
-                .build();
+            Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
+                    .KOJI_KVARTAL(kvartal)
+                    .GODINA(year)
+                    .VERZIJA(version)
+                    .RADNA(1)
+                    .SIF_SEKRET(sifSekret)
+                    .RAZDEO(sekretarijat.getRazdeo())
+                    .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
+                    .JBBK_IND_KOR(jbbk)
+                    .SIF_RAC(1)
+                    .DINARSKI(1)
+                    .STATUS(0)
+                    .POSLATO_O(0)
+                    .POVUCENO(0)
+                    .KONACNO(0)
+                    .POSLAO_NAM(user.getSifraradnika())
+                    .DATUM_DOK(today)
+                    .PODIGAO_STATUS(0)
+                    .DATUM_POD_STATUSA(0)
+                    .POSLAO_U_ORG(0)
+                    .DATUM_SLANJA(0)
+                    .POSLAO_IZ_ORG(0)
+                    .DATUM_ORG(0)
+                    .ZAPRIMIO_VER(0)
+                    .OVERIO_VER(0)
+                    .ODOBRIO_VER(0)
+                    .PROKNJIZENO(0)
+                    .XLS(1)
+                    .STORNO(0)
+                    .STOSIFRAD(0)
+                    .GEN_OPENTAB(0)
+                    .build();
 
-        Obrazac5_pom_zb obrIOSaved = obrazacIOrepository.save(obrIO);
+            Obrazac5_pom_zb obrIOSaved = obrazacIOrepository.save(obrIO);
 
-        obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved);
-        return responseMessage;
+            obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved);
+            return responseMessage;
+
+        } catch (Exception ex) {
+            // Log the stack trace here or rethrow the exception
+            System.out.println( "Exception occurred while processing the file" + ex);
+            throw ex;
+        }
+
+
+
     }
     @Transactional
     public Obrazac5_pom_zb saveObrazacIO(List<ObrazacIODTO> dtos, Integer kvartal, Integer year, String email) {

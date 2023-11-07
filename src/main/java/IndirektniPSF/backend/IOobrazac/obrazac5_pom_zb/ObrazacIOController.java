@@ -38,10 +38,11 @@ public class ObrazacIOController {
         String email = authentication.getName();
         var year = fileUploadService.findYear(kvartal);
         String typeOfObrazac = "Obrazac_IO";
-        fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+      fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
 
         try {
-            String result = String.valueOf(obrazacIOService.saveZakljucniFromExcel(file, kvartal, email));
+             String result = String.valueOf(obrazacIOService.saveZakljucniFromExcel(file, kvartal, email));
+
             fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
             return ResponseEntity.ok(result);
         }

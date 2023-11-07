@@ -21,6 +21,7 @@ public class ZakljucniListZbController {
 
     private final ZakljucniListZbService zakljucniService;
     private final FileUploadService fileUploadService;
+    private String message;
 
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
@@ -28,19 +29,27 @@ public class ZakljucniListZbController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        var year = fileUploadService.findYear(kvartal);
-        String typeOfObrazac = "ZakljucniList";
-        fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+//        var year = fileUploadService.findYear(kvartal);
+//        String typeOfObrazac = "ZakljucniList";
+//        fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
 
         try {
-            String result = String.valueOf(zakljucniService.saveZakljucniFromExcel(file, kvartal, email));
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
-            return ResponseEntity.ok(result);
+            message = String.valueOf(zakljucniService.saveZakljucniFromExcel(file, kvartal, email));
+//            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
+            return ResponseEntity.ok(message);
         }
         catch (Exception e) {
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, e.getMessage());
+            //fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, e.getMessage());
+            message = e.getMessage();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+        finally{
+            var year = fileUploadService.findYear(kvartal);
+            String typeOfObrazac = "ZakljucniList";
+            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, message);
+            fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+        }
+
     }
 
     @PutMapping(value = "/status/{id}")
