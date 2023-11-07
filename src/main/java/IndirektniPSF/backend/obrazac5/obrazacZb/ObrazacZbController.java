@@ -18,6 +18,8 @@ public class ObrazacZbController {
 
     private final ObrazacZbService obrazacZbService;
     private final FileUploadService fileUploadService;
+    private String message;
+
 
 //    @PostMapping(value = "/{kvartal}")
 //    public ResponseEntity<?> addObrazacZb(@RequestBody List<Obrazac5DTO> dtos,
@@ -39,18 +41,20 @@ public class ObrazacZbController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        var year = fileUploadService.findYear(kvartal);
-        String typeOfObrazac = "Obrazac_5";
-        fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
 
         try {
-            String result = String.valueOf(obrazacZbService.saveZakljucniFromExcel(file, kvartal, email));
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
-            return ResponseEntity.ok(result);
+            message = String.valueOf(obrazacZbService.saveZakljucniFromExcel(file, kvartal, email));
+            return ResponseEntity.ok(message);
         }
         catch (Exception e) {
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, e.getMessage());
+            message = e.getMessage();
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        finally{
+            var year = fileUploadService.findYear(kvartal);
+            String typeOfObrazac = "Obrazac_5";
+            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, message);
+            fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
         }
     }
 

@@ -29,17 +29,12 @@ public class ZakljucniListZbController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-//        var year = fileUploadService.findYear(kvartal);
-//        String typeOfObrazac = "ZakljucniList";
-//        fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
 
         try {
             message = String.valueOf(zakljucniService.saveZakljucniFromExcel(file, kvartal, email));
-//            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
             return ResponseEntity.ok(message);
         }
         catch (Exception e) {
-            //fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, e.getMessage());
             message = e.getMessage();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -61,7 +56,6 @@ public class ZakljucniListZbController {
             return ResponseEntity.ok(result);
         }
         catch (Exception e) {
-            // Handle the exception and return an error response with status code 400
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -74,7 +68,6 @@ public class ZakljucniListZbController {
             return ResponseEntity.ok(result);
         }
         catch (Exception e) {
-            // Handle the exception and return an error response with status code 400
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

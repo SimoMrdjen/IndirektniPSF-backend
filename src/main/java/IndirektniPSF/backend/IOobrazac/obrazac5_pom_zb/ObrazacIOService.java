@@ -52,11 +52,11 @@ public class ObrazacIOService extends AbParameterService {
         responseMessage.delete(0, responseMessage.length());
 
         try {
-            Integer year = 2023; //excelService.readCellByIndexes(file.getInputStream(), 2,3);
-            Integer jbbk = 3578; // excelService.readCellByIndexes(file.getInputStream(), 2,1);
+            Integer year = excelService.readCellByIndexes(file.getInputStream(), 2,3);
+            Integer jbbk = excelService.readCellByIndexes(file.getInputStream(), 2,1);
             //Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 2,5);
             //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
-            var proba = file.getInputStream();
+           //var proba = file.getInputStream();
 
             List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 

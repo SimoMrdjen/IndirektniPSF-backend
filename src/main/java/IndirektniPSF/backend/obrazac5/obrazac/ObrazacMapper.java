@@ -51,7 +51,7 @@ public class ObrazacMapper {
     public List<Obrazac5DTO> mapExcelToPojo(InputStream inputStream) {
         List<Obrazac5DTO> dtos = new ArrayList<>();
         //TODO set values of excel columns and first row
-        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+        try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
             int i = 25; // Start reading from the 26th row (assuming 0-based index)
 
