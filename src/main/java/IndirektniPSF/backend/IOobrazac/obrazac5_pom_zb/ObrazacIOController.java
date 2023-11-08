@@ -35,23 +35,6 @@ public class ObrazacIOController {
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
                                                    @PathVariable(name = "kvartal") Integer kvartal) {
-//        System.out.println("File received: " + file.getOriginalFilename());
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-//        var year = fileUploadService.findYear(kvartal);
-//        String typeOfObrazac = "Obrazac_IO";
-//      fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
-//
-//        try {
-//             String result = String.valueOf(obrazacIOService.saveZakljucniFromExcel(file, kvartal, email));
-//
-//            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, result);
-//            return ResponseEntity.ok(result);
-//        }
-//        catch (Exception e) {
-//            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, e.getMessage());
-//            return ResponseEntity.badRequest().body(e.getMessage());
-//        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -65,10 +48,7 @@ public class ObrazacIOController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         finally{
-            var year = fileUploadService.findYear(kvartal);
-            String typeOfObrazac = "Obrazac_IO";
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, message);
-            fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+            fileUploadService.saveTxtAndExcelFile(email, kvartal,"Obrazac_IO", file, message);
         }
     }
 }

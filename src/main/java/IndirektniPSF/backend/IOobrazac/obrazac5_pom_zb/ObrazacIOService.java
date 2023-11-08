@@ -108,7 +108,6 @@ public class ObrazacIOService extends AbParameterService {
             return responseMessage;
 
         } catch (Exception ex) {
-            // Log the stack trace here or rethrow the exception
             System.out.println( "Exception occurred while processing the file" + ex);
             throw ex;
         }

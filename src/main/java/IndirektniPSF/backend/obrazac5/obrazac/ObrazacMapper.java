@@ -17,7 +17,6 @@ public class ObrazacMapper {
                 .verzija(1)
                 .koji_kvartal(0)
                 .sif_rac(1)
-
                 .oznakaop(dto.getProp1())
                 .konto(dto.getProp2())
                 .opis(dto.getProp3())
@@ -31,7 +30,6 @@ public class ObrazacMapper {
                 .godplan(dto.getProp4())
                 .izvrsenje(dto.getProp5())
                 .unosio(0)
-
                 .dinarski(1)
                 .kvplan(0.0)
                 .rep_b(0.0)

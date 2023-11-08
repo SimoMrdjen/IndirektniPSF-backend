@@ -96,22 +96,12 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return responseMessage;
     }
 
-//    public void checkJbbks(User user, Integer jbbksExcell) throws Exception {
-//        var jbbkDb =this.getJbbksIBK(user);
-//
-//        if (!jbbkDb.equals(jbbksExcell)) {
-//            throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
-//        }
-//    }
-
     private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) {
         if(kvartal != excelKvartal) {
             throw new IllegalArgumentException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
         }
         this.checkIfKvartalIsForValidPeriod(kvartal, year);
     }
-
-
 
     public boolean checkIfExistValidZakList(Integer kvartal, Integer jbbks) {
         Optional<ZakljucniListZb> optionalZb =
@@ -151,19 +141,6 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         statusService.resolveObrazacAccordingStatus(zb, status);
         return mapper.toResponse(zb);
     }
-
-//    //TODO implement through StatusService
-//    private void resolveObrazacAccordingStatus(ZakljucniListZb zb, Integer status) throws Exception {
-//
-//        var actualStatus = zb.getSTATUS();
-//        if (actualStatus >= 20) {
-//            throw new Exception("Dokument je vec poslat Vasem DBK-u!");
-//        } else if(actualStatus == 0 && status == 10) {
-//            throw new Exception("Dokument jos nije odobren, \nidite na opciju odobravanje!");
-//        } else if(actualStatus == 10 && status == 0) {
-//            throw new Exception("Dokument je vec odobren, \nmozete ici na opciju overavanje!");
-//        }
-//    }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
 
@@ -237,7 +214,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
         var jbbks = this.getJbbksIBK(email);
         ZakljucniListZb zb =
-                zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks)
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks)
                         .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
         return mapper.toResponse(zb);

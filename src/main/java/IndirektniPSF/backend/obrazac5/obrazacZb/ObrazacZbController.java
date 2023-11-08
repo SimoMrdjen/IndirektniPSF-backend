@@ -19,6 +19,29 @@ public class ObrazacZbController {
     private final ObrazacZbService obrazacZbService;
     private final FileUploadService fileUploadService;
     private String message;
+    
+    @PostMapping(value = "/{kvartal}")
+    public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
+                                                   @PathVariable(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        try {
+            message = String.valueOf(obrazacZbService.saveZakljucniFromExcel(file, kvartal, email));
+            return ResponseEntity.ok(message);
+        }
+        catch (Exception e) {
+            message = e.getMessage();
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        finally{
+            fileUploadService.saveTxtAndExcelFile(email, kvartal,"Obrazac_5", file, message);
+        }
+    }
+
+
+    //TODO -add storno put method provide id of obrazac call storno(id, email)
+
 
 
 //    @PostMapping(value = "/{kvartal}")
@@ -34,30 +57,4 @@ public class ObrazacZbController {
 //            return ResponseEntity.badRequest().body(e.getMessage());
 //        }
 //    }
-
-    @PostMapping(value = "/{kvartal}")
-    public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
-                                                   @PathVariable(name = "kvartal") Integer kvartal) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        try {
-            message = String.valueOf(obrazacZbService.saveZakljucniFromExcel(file, kvartal, email));
-            return ResponseEntity.ok(message);
-        }
-        catch (Exception e) {
-            message = e.getMessage();
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        finally{
-            var year = fileUploadService.findYear(kvartal);
-            String typeOfObrazac = "Obrazac_5";
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, message);
-            fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
-        }
-    }
-
-
-    //TODO -add storno put method provide id of obrazac call storno(id, email)
 }

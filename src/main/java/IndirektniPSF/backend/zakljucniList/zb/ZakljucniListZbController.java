@@ -39,12 +39,8 @@ public class ZakljucniListZbController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         finally{
-            var year = fileUploadService.findYear(kvartal);
-            String typeOfObrazac = "ZakljucniList";
-            fileUploadService.saveTxtFile(year, email, kvartal, typeOfObrazac, message);
-            fileUploadService.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+            fileUploadService.saveTxtAndExcelFile(email, kvartal,"ZakljucniList", file, message);
         }
-
     }
 
     @PutMapping(value = "/status/{id}")

@@ -78,8 +78,11 @@ public class FileUploadService extends AbParameterService {
     public void saveTxtFile(Integer year, String email, Integer kvartal, String typeOfObrazac, String content) {
 
         String uploadPath = this.createPath(year, email, kvartal, typeOfObrazac);
-        var fileName = this.getDateAndTimeAsPartOfFilePath();
+        var fileName = this.getDateAndTimeAsPartOfFilePath() + ".txt";
         Path filePath = Paths.get(uploadPath, fileName);
+        if(content.isEmpty()) {
+            content = "Obrazac je uspesno ucitan";
+        }
 
         try {
             FileWriter fileWriter = new FileWriter(filePath.toString());
@@ -93,5 +96,13 @@ public class FileUploadService extends AbParameterService {
     public Integer findYear(Integer kvartal) {
         var year = LocalDateTime.now().getYear();
         return (kvartal == 4 || kvartal == 5) ? (year - 1) : year;
+    }
+
+    public void saveTxtAndExcelFile( String email, Integer kvartal, String typeOfObrazac,
+                                    MultipartFile file, String content) {
+
+        var year = this.findYear(kvartal);
+        this.saveTxtFile(year, email, kvartal, typeOfObrazac, content);
+        this.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
     }
 }
