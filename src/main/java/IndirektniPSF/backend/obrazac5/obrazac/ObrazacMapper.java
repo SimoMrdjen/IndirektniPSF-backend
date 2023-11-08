@@ -1,9 +1,7 @@
 package IndirektniPSF.backend.obrazac5.obrazac;
 
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
-import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -13,12 +11,13 @@ import java.util.List;
 @Component
 public class ObrazacMapper {
     public Obrazac mapDtoToEntity(Obrazac5DTO dto) {
+        var konto = (dto.getProp2() != null ? dto.getProp2() : 0);
         return Obrazac.builder()
                 .verzija(1)
                 .koji_kvartal(0)
                 .sif_rac(1)
                 .oznakaop(dto.getProp1())
-                .konto(dto.getProp2())
+                .konto(konto)
                 .opis(dto.getProp3())
                 .planprihoda(dto.getProp4())
                 .republika(dto.getProp6())
@@ -48,36 +47,34 @@ public class ObrazacMapper {
 
     public List<Obrazac5DTO> mapExcelToPojo(InputStream inputStream) {
         List<Obrazac5DTO> dtos = new ArrayList<>();
-        //TODO set values of excel columns and first row
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
             int i = 25; // Start reading from the 26th row (assuming 0-based index)
+            int consecutiveBlankRows = 0;
+            int allowedBlankRows = 3; // End reading after 3 blank rows
 
-            while (true) {
+            while (consecutiveBlankRows < allowedBlankRows) {
                 Row row = sheet.getRow(i);
-                if (row == null) {
-                    break; // Stop reading when you find a blank row
+                if (row == null || row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK) {
+                    consecutiveBlankRows++;
+                    i++;
+                    continue;
+                } else {
+                    consecutiveBlankRows = 0;
                 }
-
-                // Check if the row should be skipped based on the cell types
-                if (isCellTypeNumericAndNotNull(row, 0) && isCellTypeNumericAndNotNull(row, 1) &&
-                        isCellTypeNumeric(row, 3) && isCellTypeNumeric(row, 9)) {
-                    Obrazac5DTO dto = new Obrazac5DTO();
-                    dto.setProp1((int) row.getCell(0).getNumericCellValue());
-                    dto.setProp2((int) row.getCell(1).getNumericCellValue());
-                    dto.setProp3(row.getCell(2).getStringCellValue());
-                    dto.setProp4(row.getCell(3).getNumericCellValue());
-                    dto.setProp5(row.getCell(4).getNumericCellValue());
-                    dto.setProp6(row.getCell(5).getNumericCellValue());
-                    dto.setProp7(row.getCell(6).getNumericCellValue());
-                    dto.setProp8(row.getCell(7).getNumericCellValue());
-                    dto.setProp9(row.getCell(8).getNumericCellValue());
-                    dto.setProp10(row.getCell(9).getNumericCellValue());
-                    dto.setProp11(row.getCell(10).getNumericCellValue());
-                    dto.setPropDuz((int) row.getCell(11).getNumericCellValue());
-
-                    dtos.add(dto);
-                }
+                Obrazac5DTO dto = new Obrazac5DTO();
+                dto.setProp1(getIntegerValueFromCell(row.getCell(0)));
+                dto.setProp2(getIntegerValueFromCell(row.getCell(1)));
+                dto.setProp3(row.getCell(2).getStringCellValue());
+                dto.setProp4(getDoubleValueFromCell(row.getCell(3)));
+                dto.setProp5(getDoubleValueFromCell(row.getCell(4)));
+                dto.setProp6(getDoubleValueFromCell(row.getCell(5)));
+                dto.setProp7(getDoubleValueFromCell(row.getCell(6)));
+                dto.setProp8(getDoubleValueFromCell(row.getCell(7)));
+                dto.setProp9(getDoubleValueFromCell(row.getCell(8)));
+                dto.setProp10(getDoubleValueFromCell(row.getCell(9)));
+                dto.setProp11(getDoubleValueFromCell(row.getCell(10)));
+                dtos.add(dto);
                 i++;
             }
         } catch (Exception e) {
@@ -86,18 +83,16 @@ public class ObrazacMapper {
         return dtos;
     }
 
-    private boolean isCellTypeNumeric(Row row, int cellIndex) {
-        Cell cell = row.getCell(cellIndex);
-        if ( CellType.NUMERIC.equals(cell.getCellType())) {
-            return true;
-        }
-        return false; // Skip the row if the cell is not numeric
+    private Integer getIntegerValueFromCell(Cell cell) {
+        return cell != null && cell.getCellType() == CellType.NUMERIC ? (int) cell.getNumericCellValue() : null;
     }
-    private boolean isCellTypeNumericAndNotNull(Row row, int cellIndex) {
-        Cell cell = row.getCell(cellIndex);
-        if (cell != null && CellType.NUMERIC.equals(cell.getCellType())) {
-            return true;
+
+    private Double getDoubleValueFromCell(Cell cell) {
+        if (cell == null || cell.getCellType() != CellType.NUMERIC) {
+            return 0.00; // Return 0.00 if the cell is null or not numeric
+        } else {
+            return cell.getNumericCellValue(); // Return the cell's value if it is numeric
         }
-        return false; // Skip the row if the cell is not numeric
     }
+
 }

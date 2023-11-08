@@ -54,8 +54,6 @@ public class ObrazacIOMapper {
                 .build();
     }
 
-
-
         private void assignStringValue(ObrazacIODTO dto, int columnIndex, String value) {
             switch (columnIndex) {
                 case 1:
@@ -67,29 +65,8 @@ public class ObrazacIOMapper {
                 case 4:
                     dto.setProp5(value);
                     break;
-                // Add more cases if there are more string columns
             }
         }
-
-//        private void assignNumericValue(ObrazacIODTO dto, int columnIndex, double value) {
-//            switch (columnIndex) {
-//                case 0:
-//                    dto.setProp1((int) value);
-//                    break;
-//                case 2:
-//                    dto.setProp3((int) value);
-//                    break;
-//                case 5:
-//                    dto.setProp6(value);
-//                    break;
-//                case 6:
-//                    dto.setProp7(value);
-//                    break;
-//                // Add more cases if there are more numeric columns
-//            }
-//        }
-
-
 
     public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
 
@@ -126,19 +103,4 @@ public class ObrazacIOMapper {
         }
         return dtos;
     }
-
-//    private boolean isCellTypeNumeric(Row row, int cellIndex) {
-//        Cell cell = row.getCell(cellIndex);
-//        if ( CellType.NUMERIC.equals(cell.getCellType())) {
-//            return true;
-//        }
-//        return false; // Skip the row if the cell is not numeric
-//    }
-//    private boolean isCellTypeNumericAndNotNull(Row row, int cellIndex) {
-//        Cell cell = row.getCell(cellIndex);
-//        if (cell != null && CellType.NUMERIC.equals(cell.getCellType())) {
-//            return true;
-//        }
-//        return false; // Skip the row if the cell is not numeric
-//    }
 }

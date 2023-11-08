@@ -2,6 +2,7 @@ package IndirektniPSF.backend.IOobrazac.obrazac5_pom;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
+import IndirektniPSF.backend.glavaSvi.GlavaSviService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,8 @@ public class ObrazacIODetailService {
 
     private final ObrazacIOMapper obrazacMapper;
     private final Obrazac5_pomRepository obrazac5_pomRepository;
+    private final GlavaSviService glavaSviService;
+
 
     @Transactional
     public void saveListOfObrazac5_pom(List<ObrazacIODTO> dtos, Obrazac5_pom_zb obrIOSaved) {
@@ -25,7 +28,8 @@ public class ObrazacIODetailService {
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
         Integer kvartal = obrIOSaved.getKOJI_KVARTAL();
-        String glava = "1";//iz tabela GLAVA ili GLAVASVI- kolona OZNAKA pomocu obrIOSaved.getJBBK_IND_KOR()
+        var jbbk = obrIOSaved.getJBBK_IND_KOR();
+        String oznakaGlave = glavaSviService.findGlava(jbbk);
 
         List<Obrazac5_pom> obrazacList =
         dtos.stream()
@@ -43,7 +47,7 @@ public class ObrazacIODetailService {
             obrazac.setJBBK_IND_KOR(obrIOSaved.getJBBK_IND_KOR());
             obrazac.setSIF_RAC(obrIOSaved.getSIF_RAC());
             obrazac.setRAZDEO(obrIOSaved.getRAZDEO());
-            obrazac.setOZNAKAGLAVE(glava);
+            obrazac.setOZNAKAGLAVE(oznakaGlave);
             obrazac.setUNOSIO(obrIOSaved.getPOSLAO_NAM());
         });
         obrazac5_pomRepository.saveAll(obrazacList);

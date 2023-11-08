@@ -20,18 +20,6 @@ public class ObrazacIOController {
     private final FileUploadService fileUploadService;
     private String message;
 
-
-//    @PostMapping(value = "/{kvartal}/{year}")
-//    public ResponseEntity<Obrazac5_pom_zb>  addObrazacIO(//@RequestHeader(value = "Authorization") String token,
-//                                                       @RequestBody List<ObrazacIODTO> dtos,
-//                                                       @PathVariable(name = "kvartal") Integer kvartal,
-//                                                       @PathVariable(name = "year") Integer year) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-//        return ResponseEntity.ok(obrazacIOService.saveObrazacIO(dtos, kvartal, year, email));
-//
-//    }
-
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
                                                    @PathVariable(name = "kvartal") Integer kvartal) {
@@ -51,4 +39,16 @@ public class ObrazacIOController {
             fileUploadService.saveTxtAndExcelFile(email, kvartal,"Obrazac_IO", file, message);
         }
     }
+
+//    @PostMapping(value = "/{kvartal}/{year}")
+//    public ResponseEntity<Obrazac5_pom_zb>  addObrazacIO(//@RequestHeader(value = "Authorization") String token,
+//                                                       @RequestBody List<ObrazacIODTO> dtos,
+//                                                       @PathVariable(name = "kvartal") Integer kvartal,
+//                                                       @PathVariable(name = "year") Integer year) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String email = authentication.getName();
+//        return ResponseEntity.ok(obrazacIOService.saveObrazacIO(dtos, kvartal, year, email));
+//
+//    }
+
 }

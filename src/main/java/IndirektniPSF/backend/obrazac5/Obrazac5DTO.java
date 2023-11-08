@@ -3,15 +3,14 @@ package IndirektniPSF.backend.obrazac5;
 import lombok.*;
 
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Obrazac5DTO {
 
     private Integer prop1 ;
-    private Integer prop2 ;
+    private Integer prop2;
     private String prop3;
     private Double prop4;
     private Double prop5;
@@ -21,5 +20,9 @@ public class Obrazac5DTO {
     private Double prop9;
     private Double prop10;
     private Double prop11;
-    private Integer propDuz;
+
+    public void setProp2(Integer prop2) {
+        this.prop2 = (prop2 != null) ? prop2 : 0;
+    }
+
 }

@@ -46,7 +46,7 @@ public class ObrazacIOService extends AbParameterService {
     private final ObrazacIOMapper mapper;
 
 
-   // @Transactional
+    @Transactional
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
@@ -54,9 +54,7 @@ public class ObrazacIOService extends AbParameterService {
         try {
             Integer year = excelService.readCellByIndexes(file.getInputStream(), 2,3);
             Integer jbbk = excelService.readCellByIndexes(file.getInputStream(), 2,1);
-            //Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 2,5);
             //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
-           //var proba = file.getInputStream();
 
             List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
@@ -111,64 +109,12 @@ public class ObrazacIOService extends AbParameterService {
             System.out.println( "Exception occurred while processing the file" + ex);
             throw ex;
         }
-
-
-
-    }
-    @Transactional
-    public Obrazac5_pom_zb saveObrazacIO(List<ObrazacIODTO> dtos, Integer kvartal, Integer year, String email) {
-
-        var user = userRepository.findByEmail(email).orElseThrow();
-
-        Integer sifSekret = user.getZa_sif_sekret(); //fetch from table user-bice- user.getZa_sif_sekret();
-        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret); //fetch from table user or sekr, im not sure
-        Integer jbbk = pPartnerService.getJBBKS(user.getSifra_pp());
-        Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
-        Integer todayInt = (int) LocalDate.now().toEpochDay() + 25569;
-
-        Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
-                .KOJI_KVARTAL(kvartal)
-                .GODINA(year)
-                .VERZIJA(version)
-                .RADNA(1)
-                .SIF_SEKRET(sifSekret)
-                .RAZDEO(sekretarijat.getRazdeo())
-                .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
-                .JBBK_IND_KOR(jbbk)
-                .SIF_RAC(1)
-                .DINARSKI(1)
-                .STATUS(0)
-                .POSLATO_O(0)
-                .POVUCENO(0)
-                .KONACNO(0)
-                .POSLAO_NAM(user.getSifraradnika())
-                .DATUM_DOK(todayInt)
-                .PODIGAO_STATUS(0)
-                .DATUM_POD_STATUSA(0)
-                .POSLAO_U_ORG(0)
-                .DATUM_SLANJA(0)
-                .POSLAO_IZ_ORG(0)
-                .DATUM_ORG(0)
-                .ZAPRIMIO_VER(0)
-                .OVERIO_VER(0)
-                .ODOBRIO_VER(0)
-                .PROKNJIZENO(0)
-                .XLS(1)
-                .STORNO(0)
-                .STOSIFRAD(0)
-                .GEN_OPENTAB(0)
-                .build();
-        Obrazac5_pom_zb obrIOSaved = obrazacIOrepository.save(obrIO);
-
-        obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved);
-        return obrIOSaved;
     }
 
     private Integer checkIfExistValidZListAndFindVersion(Integer jbbk, Integer kvartal) {
         Integer version = obrazacIOrepository.getLastVersionValue(jbbk, kvartal).orElse(0);
         return version + 1;
     }
-
     @Transactional
     public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
 
@@ -188,6 +134,7 @@ public class ObrazacIOService extends AbParameterService {
         return "Obrazac IO je storniran!" + obrazacService.stornoObrAfterObrIO(user, kvartal);
     }
 
+    @Transactional
     private String stornoIO(Integer id, String email) {
         var user = this.getUser(email);
         var io = obrazacIOrepository.findById(id).get();
@@ -202,4 +149,53 @@ public class ObrazacIOService extends AbParameterService {
         var jbbk = this.getJbbksIBK(user);
         return obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
     }
+
+  //  @Transactional
+//    public Obrazac5_pom_zb saveObrazacIO(List<ObrazacIODTO> dtos, Integer kvartal, Integer year, String email) {
+//
+//        var user = userRepository.findByEmail(email).orElseThrow();
+//
+//        Integer sifSekret = user.getZa_sif_sekret(); //fetch from table user-bice- user.getZa_sif_sekret();
+//        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret); //fetch from table user or sekr, im not sure
+//        Integer jbbk = pPartnerService.getJBBKS(user.getSifra_pp());
+//        Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
+//        Integer todayInt = (int) LocalDate.now().toEpochDay() + 25569;
+//
+//        Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
+//                .KOJI_KVARTAL(kvartal)
+//                .GODINA(year)
+//                .VERZIJA(version)
+//                .RADNA(1)
+//                .SIF_SEKRET(sifSekret)
+//                .RAZDEO(sekretarijat.getRazdeo())
+//                .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
+//                .JBBK_IND_KOR(jbbk)
+//                .SIF_RAC(1)
+//                .DINARSKI(1)
+//                .STATUS(0)
+//                .POSLATO_O(0)
+//                .POVUCENO(0)
+//                .KONACNO(0)
+//                .POSLAO_NAM(user.getSifraradnika())
+//                .DATUM_DOK(todayInt)
+//                .PODIGAO_STATUS(0)
+//                .DATUM_POD_STATUSA(0)
+//                .POSLAO_U_ORG(0)
+//                .DATUM_SLANJA(0)
+//                .POSLAO_IZ_ORG(0)
+//                .DATUM_ORG(0)
+//                .ZAPRIMIO_VER(0)
+//                .OVERIO_VER(0)
+//                .ODOBRIO_VER(0)
+//                .PROKNJIZENO(0)
+//                .XLS(1)
+//                .STORNO(0)
+//                .STOSIFRAD(0)
+//                .GEN_OPENTAB(0)
+//                .build();
+//        Obrazac5_pom_zb obrIOSaved = obrazacIOrepository.save(obrIO);
+//
+//        obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved);
+//        return obrIOSaved;
+//    }
 }

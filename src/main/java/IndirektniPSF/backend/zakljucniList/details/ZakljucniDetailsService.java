@@ -23,7 +23,6 @@ public class ZakljucniDetailsService {
     private final ZakljucniDetailsRepository zakljucniDetailsRepository;
     private final SubkontoService subkontoService;
     private final GlavaSviService glavaSviService;
-    //private final ExcelService excelService;
 
     @Transactional
     public List<ZakljucniListDetails> saveDetailsExcel(List<ZakljucniListDto> dtos, ZakljucniListZb zbSaved) throws Exception {

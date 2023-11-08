@@ -11,8 +11,6 @@ import lombok.Data;
 @Table(name = "GLAVASVI")
 public class GlavaSvi {
 
-
-
     @Column(name = "SIFRAGLAVE")
     private Integer sifraGlave;
     @Id

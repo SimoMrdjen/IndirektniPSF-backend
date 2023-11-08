@@ -92,5 +92,4 @@ public class ZakljucniListMapper {
                 .jbbk(zb.getJbbkIndKor())
                 .build();
     }
-
 }

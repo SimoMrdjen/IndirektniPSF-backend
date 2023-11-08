@@ -53,15 +53,7 @@ public class FileUploadService extends AbParameterService {
             boolean result =
                     directoryJbbk.mkdir();
         }
-
-//        path += "/" + typeOfObrazac;
-//        File directoryType = new File(path);
-//        if (!directoryType.exists()) {
-//            boolean result =
-//                    directoryType.mkdir();
-//        }
         return path;
-
     }
 
     public void saveExcelFile(Integer year, String email, Integer kvartal, String typeOfObrazac, MultipartFile file) {

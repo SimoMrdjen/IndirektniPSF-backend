@@ -32,7 +32,6 @@ public class ObrazacZbService extends AbParameterService {
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
     private StringBuilder responseMessage =  new StringBuilder();
-    private final ExcelService excelService;
     private final ObrazacMapper mapper;
 
 
@@ -41,11 +40,6 @@ public class ObrazacZbService extends AbParameterService {
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-//        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
-//        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
-//        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
-        //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
-
         List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
         User user = this.getUser(email);
@@ -56,7 +50,6 @@ public class ObrazacZbService extends AbParameterService {
         //provere
 //        checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
-       // checkJbbks(user, jbbk);
 
         ObrazacZb zb = ObrazacZb.builder()
                 //.gen_interbase(1)
@@ -103,6 +96,7 @@ public class ObrazacZbService extends AbParameterService {
         return optionalObrazacZb.get().getVerzija() + 1;
     }
 
+    @Transactional
     public String stornoObrAfterObrIO(User user, Integer kvartal) {
 
         Optional<ObrazacZb> optionalObrazacZb = this.findLastVersionOfObrazacZb(user, kvartal);
@@ -118,6 +112,7 @@ public class ObrazacZbService extends AbParameterService {
         return this.stornoObr5(obrazacZb, user);
     }
 
+    @Transactional
     private String stornoObr5(Integer id, String email) {
         User user = this.getUser(email);
         var obrazacZb = obrazacZbRepository.findById(id).get();
@@ -128,6 +123,7 @@ public class ObrazacZbService extends AbParameterService {
         return "Obrazac5 uspesno je storniran";
     }
 
+    @Transactional
     private String stornoObr5(ObrazacZb obrazacZb, User user) {
         obrazacZb.setRadna(0);
         obrazacZb.setStorno(1);
@@ -144,59 +140,4 @@ public class ObrazacZbService extends AbParameterService {
     private  Optional<ObrazacZb> findLastVersionOfObrazacZb(Integer jbbk, Integer kvartal) {
         return obrazacZbRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
-
-    @Transactional
-    public ObrazacZb saveObrazac5(List<Obrazac5DTO> dtos, Integer kvartal, String email) throws Exception {
-        Object object = new Object();
-
-        var user = userRepository.findByEmail(email).orElseThrow();
-
-        Integer sifSekret = user.getZa_sif_sekret(); //fetch from table user-bice- user.getZa_sif_sekret();
-        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret); //fetch from table user or sekr, im not sure
-
-        Integer jbbk = pPartnerService.getJBBKS(user.getSifra_pp()); //find  in PPARTNER by sifraPP in ind_lozinka ind_lozinkaService.getJbbk
-
-        Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-
-        //necessary to add checking methods-Zakljucni is example
-        Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
-
-        ObrazacZb zb = ObrazacZb.builder()
-                //.gen_interbase(1)
-                .koji_kvartal(kvartal)
-                .tip_obrazca(5)
-                .sif_sekret(sifSekret)
-                .razdeo(sekretarijat.getRazdeo())
-                .sif_rac(1)
-                .verzija(version)
-                .dinarski(1)
-                .status(0)
-                .poslato_o(0)
-                .radna(1)
-                .povuceno(0)
-                .konacno(0)
-                .poslao_nam(user.getSifraradnika())
-                .poslao_u_org(0)
-                .poslao_iz_org(0)
-                .zaprimio_ver(0)
-                .overio_ver(0)
-                .odobrio_ver(0)
-                .proknjizeno(0)
-                .jbbk_ind_kor(jbbk)
-                .storno(0)
-                .stosifrad(0)
-                .opisstorno("_")
-                .podigao_status(0)
-                .datum_pod_statusa(0)
-                .datum_org(0)
-                .nivo_konsolidacije(0)
-                .build();
-
-        ObrazacZb zbSaved = obrazacZbRepository.save(zb);
-
-        obrazacService.saveListObrazac(dtos, zbSaved);
-
-        return zbSaved;
-    }
-
 }
