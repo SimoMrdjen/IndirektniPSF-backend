@@ -19,7 +19,7 @@ public class ObrazacZbController {
     private final ObrazacZbService obrazacZbService;
     private final FileUploadService fileUploadService;
     private String message;
-    
+
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<?> addZakljucniFromExcel(@RequestBody MultipartFile file,
                                                    @PathVariable(name = "kvartal") Integer kvartal) {

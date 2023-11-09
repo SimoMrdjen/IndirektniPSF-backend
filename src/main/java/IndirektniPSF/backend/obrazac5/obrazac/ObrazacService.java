@@ -26,6 +26,7 @@ public class ObrazacService {
         List<Obrazac> obrazacList =
                 dtos.stream()
                         .filter(dto -> dto.getProp2() % 1000 != 0)
+                        .filter(dto -> (dto.getProp4() != 0 && dto.getProp5() != 0))
                         .map(obrazacMapper::mapDtoToEntity)
                         .collect(Collectors.toList());
 

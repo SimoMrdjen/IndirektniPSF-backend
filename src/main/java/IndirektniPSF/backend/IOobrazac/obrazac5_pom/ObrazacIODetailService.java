@@ -3,12 +3,14 @@ package IndirektniPSF.backend.IOobrazac.obrazac5_pom;
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
 import IndirektniPSF.backend.glavaSvi.GlavaSviService;
+import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -22,13 +24,15 @@ public class ObrazacIODetailService {
 
 
     @Transactional
-    public void saveListOfObrazac5_pom(List<ObrazacIODTO> dtos, Obrazac5_pom_zb obrIOSaved) {
+    public List<Obrazac5_pom> saveListOfObrazac5_pom(List<ObrazacIODTO> dtos,
+                                                     Obrazac5_pom_zb obrIOSaved,
+                                                     List<ZakljucniListDetails> zakListDetails) throws Exception {
 
         Integer mysql = obrIOSaved.getGEN_MYSQL();
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
         Integer kvartal = obrIOSaved.getKOJI_KVARTAL();
-        var jbbk = obrIOSaved.getJBBK_IND_KOR();
+        Integer jbbk = obrIOSaved.getJBBK_IND_KOR();
         String oznakaGlave = glavaSviService.findGlava(jbbk);
 
         List<Obrazac5_pom> obrazacList =
@@ -50,6 +54,15 @@ public class ObrazacIODetailService {
             obrazac.setOZNAKAGLAVE(oznakaGlave);
             obrazac.setUNOSIO(obrIOSaved.getPOSLAO_NAM());
         });
-        obrazac5_pomRepository.saveAll(obrazacList);
+        this.compareIoDetailsWithZakListDetails(obrazacList,zakListDetails);
+       return obrazac5_pomRepository.saveAll(obrazacList);
+    }
+
+    public void compareIoDetailsWithZakListDetails(List<Obrazac5_pom> details, List<ZakljucniListDetails> stavke) throws Exception {
+        if(false) {
+            //TODO
+            throw new Exception("Podaci sa dokumenta koji pokusavate \nda ucitate ne slazu se\n" +
+                    "sa podacima sa vec ucitanog Zakljucnog lista!");
+        }
     }
 }

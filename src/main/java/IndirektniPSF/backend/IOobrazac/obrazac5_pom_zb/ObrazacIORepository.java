@@ -15,7 +15,7 @@ public interface ObrazacIORepository extends JpaRepository<Obrazac5_pom_zb, Inte
             nativeQuery = true)
     Optional<Integer> getLastVersionValue(Integer jbbk, Integer kvartal);
 
-    @Query(value = "SELECT * FROM obrazac5_pom_zb WHERE JBBK_IND_KOR = :jbbkIndKor AND KOJI_KVARTAL = :kojiKvartal ORDER BY VERZIJA DESC", nativeQuery = true)
+    @Query(value = "SELECT * FROM obrazac5_pom_zb WHERE JBBK_IND_KOR = :jbbkIndKor AND KOJI_KVARTAL = :kojiKvartal ORDER BY VERZIJA DESC LIMIT 1", nativeQuery = true)
     Optional<Obrazac5_pom_zb> findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(@Param("jbbkIndKor") Integer jbbkIndKor, @Param("kojiKvartal") Integer kojiKvartal);
 
 

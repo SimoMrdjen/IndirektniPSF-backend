@@ -20,8 +20,8 @@ public class ZakljucniListDetails {
     @Column(nullable = false)
     private Integer GEN_INTERBASE = 0;
 
-    //  @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-//  @JoinColumn(name="GEN_MYSQL")
+    @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinColumn(name="GEN_MYSQL")
     @Column(nullable = false)
     private Integer GEN_MYSQL = 0;
 

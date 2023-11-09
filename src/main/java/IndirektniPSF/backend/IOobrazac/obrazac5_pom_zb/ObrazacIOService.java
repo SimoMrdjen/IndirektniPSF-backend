@@ -5,24 +5,21 @@ import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom.ObrazacIODetailService;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom.ObrazacIOMapper;
 import IndirektniPSF.backend.excel.ExcelService;
-import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
-import IndirektniPSF.backend.obrazac5.obrazac.ObrazacMapper;
-import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
 import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.AbParameterService;
-import IndirektniPSF.backend.parameters.ObrazacService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
+import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
+import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
+import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -42,30 +39,36 @@ public class ObrazacIOService extends AbParameterService {
     private final ObrazacZbService obrazacService;
     private StringBuilder responseMessage =  new StringBuilder();
     private final ExcelService excelService;
+//    private final ZakljucniListZbService zakljucniListZbService;
 
     private final ObrazacIOMapper mapper;
+    private final ZakljucniListZbRepository zakljucniRepository;
+
 
 
     @Transactional
-    public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
+    public StringBuilder saveIOFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
+        User user = this.getUser(email);
+        Integer jbbks = this.getJbbksIBK(user);
+        Integer version = checkIfExistValidZListAndFindVersion( jbbks, kvartal);
         responseMessage.delete(0, responseMessage.length());
+        ZakljucniListZb zakList = this.findValidZakList(kvartal, jbbks);
+        Integer sifSekret = user.getZa_sif_sekret();
+        Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
+        Integer today = (int) LocalDate.now().toEpochDay() + 25569;
+
 
         try {
             Integer year = excelService.readCellByIndexes(file.getInputStream(), 2,3);
-            Integer jbbk = excelService.readCellByIndexes(file.getInputStream(), 2,1);
+            Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2,1);
             //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
 
             List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
-            User user = this.getUser(email);
-            Integer sifSekret = user.getZa_sif_sekret();
-            Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
-            Integer today = (int) LocalDate.now().toEpochDay() + 25569;
             //provere
 //        checkDuplicatesKonta(dtos);
-            Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
-            checkJbbks(user, jbbk);
+            checkJbbks(user, jbbkExcel);
 
             Obrazac5_pom_zb obrIO = Obrazac5_pom_zb.builder()
                     .KOJI_KVARTAL(kvartal)
@@ -75,7 +78,7 @@ public class ObrazacIOService extends AbParameterService {
                     .SIF_SEKRET(sifSekret)
                     .RAZDEO(sekretarijat.getRazdeo())
                     .JBBK(sekretarijat.getJED_BROJ_KORISNIKA())
-                    .JBBK_IND_KOR(jbbk)
+                    .JBBK_IND_KOR(jbbkExcel)
                     .SIF_RAC(1)
                     .DINARSKI(1)
                     .STATUS(0)
@@ -102,7 +105,8 @@ public class ObrazacIOService extends AbParameterService {
 
             Obrazac5_pom_zb obrIOSaved = obrazacIOrepository.save(obrIO);
 
-            obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved);
+           var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke());
+            //obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());
             return responseMessage;
 
         } catch (Exception ex) {
@@ -111,9 +115,39 @@ public class ObrazacIOService extends AbParameterService {
         }
     }
 
-    private Integer checkIfExistValidZListAndFindVersion(Integer jbbk, Integer kvartal) {
-        Integer version = obrazacIOrepository.getLastVersionValue(jbbk, kvartal).orElse(0);
-        return version + 1;
+//    public void checkIfExistValidZakList(Integer kvartal, Integer jbbks) throws Exception {
+//
+//        if( !this.findValidZakList(kvartal,jbbks)) {
+//            throw new Exception("Nije moguce ucitati obrazac,\nne postoji vec ucitan" +
+//                    "Zakljucni list. Prvo ucitajte \n Zakljucni list!");
+//        }
+//    }
+
+    private ZakljucniListZb findValidZakList(Integer kvartal, Integer jbbks) throws Exception {
+        Optional<ZakljucniListZb> optionalZb =
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
+
+        if (optionalZb.isEmpty() || optionalZb.get().getRadna() == 0 || optionalZb.get().getSTORNO() == 1) {
+            throw new Exception("Nije moguce ucitati obrazac,\nne postoji vec ucitan" +
+                    "Zakljucni list. Prvo ucitajte \n Zakljucni list!");
+        }
+        return optionalZb.get();
+    }
+
+    private Integer checkIfExistValidZListAndFindVersion(Integer jbbk, Integer kvartal) throws Exception {
+
+        Optional<Obrazac5_pom_zb> optionalZb =
+               obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk , kvartal);
+        if (optionalZb.isEmpty()) {
+            return 1;
+        }
+        Obrazac5_pom_zb zb = optionalZb.get();
+
+        if (zb.getRADNA() == 1 && zb.getSTORNO() == 0 ) {
+            throw new Exception("Za tekući kvartal već postoji učitan \nvažeći Obrazac IO!\nUkoliko zelite da ucitate novu verziju " +
+                    "\nprethodnu morate stornirati!");
+        }
+        return zb.getVERZIJA() + 1;
     }
     @Transactional
     public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {

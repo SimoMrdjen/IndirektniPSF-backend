@@ -22,7 +22,7 @@ public class FileUploadService extends AbParameterService {
     @Value("${upload.path}") // Configure this in your application properties
     private String uploadPath;
 
-    private final ZakljucniListZbService zakljucniListZbService;
+    //private final ZakljucniListZbService zakljucniListZbService;
     //private final ParametersService parameterService;
 
 

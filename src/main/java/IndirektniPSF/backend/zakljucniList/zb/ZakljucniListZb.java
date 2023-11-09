@@ -1,11 +1,17 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
 import IndirektniPSF.backend.parameters.StatusUpdatable;
+import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "OBRAZAC_ZAK_LIST_ZB")
@@ -20,9 +26,9 @@ public class ZakljucniListZb implements StatusUpdatable {
     @Column(name = "GEN_MYSQL")
     private Integer genMysql;
 
-//    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
-//            cascade = {CascadeType.PERSIST, CascadeType.MERGE)
-//    private Set<Obrazac5_pom> stavke = new HashSet<Obrazac5_pom>();
+    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<ZakljucniListDetails> stavke = new ArrayList<>();
 
     @Column
     private Integer GEN_INTERBASE = 0;
