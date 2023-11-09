@@ -62,7 +62,7 @@ public class ObrazacIODetailService {
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void compareIoDetailsWithZakListDetails(List<Obrazac5_pom> details, List<ZakljucniListDetails> stavke) throws Exception {
-        if(true) {
+        if(false) {
             //TODO
             throw new Exception("Podaci sa dokumenta koji pokusavate \nda ucitate ne slazu se\n" +
                     "sa podacima sa vec ucitanog Zakljucnog lista!");
