@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.details;
 
+import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,11 +20,13 @@ public class ZakljucniListDetails {
     private Integer REDNI;
     @Column(nullable = false)
     private Integer GEN_INTERBASE = 0;
-
+    
     @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinColumn(name="GEN_MYSQL")
-    @Column(nullable = false)
-    private Integer GEN_MYSQL = 0;
+    private ZakljucniListZb zakljucniListZb;
+
+   // @Column(nullable = false)
+    //private Integer GEN_MYSQL = 0;
 
     @Column(nullable = false)
     private Integer GEN_OPENTAB = 0;

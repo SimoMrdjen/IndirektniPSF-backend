@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -46,7 +47,7 @@ public class ObrazacIOService extends AbParameterService {
 
 
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveIOFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         User user = this.getUser(email);
