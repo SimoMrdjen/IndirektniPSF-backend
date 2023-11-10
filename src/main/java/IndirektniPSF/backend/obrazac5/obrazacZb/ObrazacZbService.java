@@ -1,5 +1,7 @@
 package IndirektniPSF.backend.obrazac5.obrazacZb;
 
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.ObrazacIORepository;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac.ObrazacMapper;
@@ -34,23 +36,23 @@ public class ObrazacZbService extends AbParameterService {
     private final UserRepository userRepository;
     private StringBuilder responseMessage =  new StringBuilder();
     private final ObrazacMapper mapper;
-
-
+    private final ObrazacIORepository obrazacIOrepository;
 
     @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-        List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
         User user = this.getUser(email);
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         var jbbk = getJbbksIBK(user);
-        //provere
+        Obrazac5_pom_zb validIO = this. findValidIO(kvartal, jbbk);
 //        checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
+
+        List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
         ObrazacZb zb = ObrazacZb.builder()
                 //.gen_interbase(1)
@@ -83,13 +85,25 @@ public class ObrazacZbService extends AbParameterService {
                 .nivo_konsolidacije(0)
                 .build();
 
-        var zbSaved = obrazacZbRepository.save(zb);
+        ObrazacZb zbSaved = obrazacZbRepository.save(zb);
+        var details =  obrazacService.saveDetailsExcel(dtos, zbSaved, validIO.getStavke());
 
-        obrazacService.saveDetailsExcel(dtos, zbSaved);
+//        obrazacService.saveDetailsExcel(dtos, zbSaved);
         return responseMessage;
     }
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    private Obrazac5_pom_zb findValidIO(Integer kvartal, Integer jbbk) throws Exception {
+        Optional<Obrazac5_pom_zb> optionalZb =
+                obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
+
+        if (optionalZb.isEmpty() || optionalZb.get().getRADNA() == 0 || optionalZb.get().getSTORNO() == 1) {
+            throw new Exception("Nije moguce ucitati obrazac,\nne postoji vec ucitan" +
+                    "Obrazac IO. Prvo ucitajte \n Obrazac IO!");
+        }
+        return optionalZb.get();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) {
         var optionalObrazacZb = this.findLastVersionOfObrazacZb(jbbks, kvartal);
         if (optionalObrazacZb.isEmpty()) {

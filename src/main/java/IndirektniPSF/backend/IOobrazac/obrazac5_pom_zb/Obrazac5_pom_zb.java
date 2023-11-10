@@ -1,10 +1,14 @@
 package IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb;
 
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom.Obrazac5_pom;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "obrazac5_pom_zb")
@@ -18,9 +22,9 @@ public class Obrazac5_pom_zb {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Integer GEN_MYSQL;
 
-//    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
-//            cascade = {CascadeType.PERSIST, CascadeType.MERGE)
-//    private Set<Obrazac5_pom> stavke = new HashSet<Obrazac5_pom>();
+    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Obrazac5_pom> stavke = new ArrayList<>();
 
     @Column
     private Integer GEN_INTERBASE;

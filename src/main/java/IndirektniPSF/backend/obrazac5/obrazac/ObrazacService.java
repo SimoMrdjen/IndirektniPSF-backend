@@ -1,6 +1,6 @@
 package IndirektniPSF.backend.obrazac5.obrazac;
 
-import IndirektniPSF.backend.glavaSvi.GlavaSviService;
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom.Obrazac5_pom;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
 import jakarta.transaction.Transactional;
@@ -43,7 +43,7 @@ public class ObrazacService {
     }
 
     @Transactional
-    public List<Obrazac> saveDetailsExcel(List<Obrazac5DTO> dtos, ObrazacZb zb) {
+    public List<Obrazac> saveDetailsExcel(List<Obrazac5DTO> dtos, ObrazacZb zb, List<Obrazac5_pom> stavke) {
         List<Obrazac> obrazacList =
                 dtos.stream()
                         .filter(dto -> dto.getProp2() % 1000 != 0)
