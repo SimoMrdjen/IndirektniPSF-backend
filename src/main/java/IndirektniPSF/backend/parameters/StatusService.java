@@ -4,11 +4,14 @@ import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 @Service
 public   class StatusService {
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public <T extends StatusUpdatable> String raiseStatusDependentOfActuallStatus(
             T entity, User user, JpaRepository repository) {
 

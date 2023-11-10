@@ -15,10 +15,11 @@ import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniDetailsService;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniListMapper;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -45,7 +46,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     private final ObrazacIOService obrazacIoService;
 
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
@@ -113,7 +114,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return true;
     }
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer kvartal, Integer jbbks ) throws Exception {
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
@@ -173,7 +174,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
             }
         }
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String raiseStatus(Integer id, String email) throws Exception {
         User user = this.getUser(email);
 
@@ -194,7 +195,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
  //STORNO
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoZakList(Integer id, String email) throws Exception {
 
         User user = this.getUser(email);
@@ -210,6 +211,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
                 + obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);

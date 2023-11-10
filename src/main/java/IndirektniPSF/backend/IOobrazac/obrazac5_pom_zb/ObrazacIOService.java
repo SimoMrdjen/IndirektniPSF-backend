@@ -15,11 +15,11 @@ import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -150,7 +150,7 @@ public class ObrazacIOService extends AbParameterService {
         }
         return zb.getVERZIJA() + 1;
     }
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
 
         var optionalIO = findLastVersionOfObrIO(user,kvartal);
@@ -169,7 +169,7 @@ public class ObrazacIOService extends AbParameterService {
         return "Obrazac IO je storniran!" + obrazacService.stornoObrAfterObrIO(user, kvartal);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     private String stornoIO(Integer id, String email) {
         var user = this.getUser(email);
         var io = obrazacIOrepository.findById(id).get();

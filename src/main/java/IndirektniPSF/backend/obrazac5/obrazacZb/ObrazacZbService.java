@@ -12,10 +12,11 @@ import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -36,7 +37,7 @@ public class ObrazacZbService extends AbParameterService {
 
 
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
@@ -88,7 +89,7 @@ public class ObrazacZbService extends AbParameterService {
         return responseMessage;
     }
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) {
         var optionalObrazacZb = this.findLastVersionOfObrazacZb(jbbks, kvartal);
         if (optionalObrazacZb.isEmpty()) {
@@ -96,7 +97,7 @@ public class ObrazacZbService extends AbParameterService {
         return optionalObrazacZb.get().getVerzija() + 1;
     }
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoObrAfterObrIO(User user, Integer kvartal) {
 
         Optional<ObrazacZb> optionalObrazacZb = this.findLastVersionOfObrazacZb(user, kvartal);
@@ -112,7 +113,7 @@ public class ObrazacZbService extends AbParameterService {
         return this.stornoObr5(obrazacZb, user);
     }
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     private String stornoObr5(Integer id, String email) {
         User user = this.getUser(email);
         var obrazacZb = obrazacZbRepository.findById(id).get();
@@ -123,7 +124,7 @@ public class ObrazacZbService extends AbParameterService {
         return "Obrazac5 uspesno je storniran";
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     private String stornoObr5(ObrazacZb obrazacZb, User user) {
         obrazacZb.setRadna(0);
         obrazacZb.setStorno(1);

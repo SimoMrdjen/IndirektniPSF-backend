@@ -7,9 +7,10 @@ import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.subkonto.SubkontoService;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class ZakljucniDetailsService {
     private final SubkontoService subkontoService;
     private final GlavaSviService glavaSviService;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ZakljucniListDetails> saveDetailsExcel(List<ZakljucniListDto> dtos, ZakljucniListZb zbSaved) throws Exception {
 
         //provera da li su ucitani samo postojeci 6-cifreni kontoi
@@ -36,6 +37,7 @@ public class ZakljucniDetailsService {
                 .collect(Collectors.toList());
         return zakljucniDetailsRepository.saveAll(details);
     }
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void checkIfKontosAreExisting(List<ZakljucniListDto> dtos) throws Exception {
 
         List<Integer> kontosInKontniPlan = subkontoService.getKontniPlan();
