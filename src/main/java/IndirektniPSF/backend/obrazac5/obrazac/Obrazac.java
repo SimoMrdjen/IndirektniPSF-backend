@@ -22,7 +22,7 @@ public class Obrazac {
 
     @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinColumn(name="gen_mysql")
-    private ObrazacZb obrazac5_pom_zb;
+    private ObrazacZb obrazacZb;
 
 //    @Column(name = "gen_mysql")
 //    private Integer gen_mysql;

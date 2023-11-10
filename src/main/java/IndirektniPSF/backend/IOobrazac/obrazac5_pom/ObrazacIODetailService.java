@@ -29,7 +29,7 @@ public class ObrazacIODetailService {
                                                      Obrazac5_pom_zb obrIOSaved,
                                                      List<ZakljucniListDetails> zakListDetails) throws Exception {
 
-        Integer mysql = obrIOSaved.getGEN_MYSQL();
+        //Integer mysql = obrIOSaved.getGEN_MYSQL();
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
         Integer kvartal = obrIOSaved.getKOJI_KVARTAL();
@@ -43,7 +43,7 @@ public class ObrazacIODetailService {
                 .collect(Collectors.toList());
 
         obrazacList.forEach(obrazac -> {
-            obrazac.setGEN_MYSQL(mysql);
+            obrazac.setObrazac5_pom_zb(obrIOSaved);
             obrazac.setGODINA(godina);
             obrazac.setVERZIJA(verzija);
             obrazac.setKOJI_KVARTAL(kvartal);
