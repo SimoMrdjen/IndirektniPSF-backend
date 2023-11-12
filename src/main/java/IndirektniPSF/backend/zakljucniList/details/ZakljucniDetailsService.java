@@ -28,7 +28,7 @@ public class ZakljucniDetailsService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ZakljucniListDetails> saveDetailsExcel(List<ZakljucniListDto> dtos, ZakljucniListZb zbSaved) throws Exception {
 
-        //provera da li su ucitani samo postojeci 6-cifreni kontoi
+        //TODO include next control before deploying
        // this.checkIfKontosAreExisting(dtos);
         var jbbk = zbSaved.getJbbkIndKor();
         String oznakaGlave = glavaSviService.findGlava(jbbk);

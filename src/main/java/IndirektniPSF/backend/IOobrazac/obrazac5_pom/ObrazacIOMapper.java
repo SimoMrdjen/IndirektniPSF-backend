@@ -1,12 +1,16 @@
 package IndirektniPSF.backend.IOobrazac.obrazac5_pom;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
+import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
+import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 import org.apache.poi.ss.usermodel.*;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -102,5 +106,18 @@ public class ObrazacIOMapper {
             throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
         }
         return dtos;
+    }
+
+    public ObrazacResponse toResponse(Obrazac5_pom_zb zb) {
+        LocalDate date = LocalDate.ofEpochDay(zb.getDATUM_DOK() - 25569);
+        return ObrazacResponse.builder()
+                .id(zb.getGEN_MYSQL())
+                .date(date)
+                .kvartal(zb.getKOJI_KVARTAL())
+                //.year(zb.())
+                .version(zb.getVERZIJA())
+                .status(zb.getSTATUS())
+                .jbbk(zb.getJBBK_IND_KOR())
+                .build();
     }
 }

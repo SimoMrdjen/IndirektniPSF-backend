@@ -45,7 +45,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     private final ObrazacIOService obrazacIoService;
 
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
@@ -130,7 +130,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return zb.getVerzija() + 1;
     }
 // RAISING STATUS
-    public ObrazacResponse findValidObrazacToRaise(String email, Integer status) throws Exception {
+    public List<ObrazacResponse> findValidObrazacToRaise(String email, Integer status) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);
 
@@ -139,7 +139,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
                        .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
         statusService.resolveObrazacAccordingStatus(zb, status);
-        return mapper.toResponse(zb);
+        return List.of(mapper.toResponse(zb));
     }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
@@ -184,7 +184,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
             throw new Exception("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
-        return statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository );
+        return String.valueOf(statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository));
     }
 
     public ZakljucniListZb findZakListById(Integer id) {
@@ -211,14 +211,21 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
+    public List<ObrazacResponse> findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);
         ZakljucniListZb zb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks)
                         .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
-        return mapper.toResponse(zb);
+        this.isObrazacSentToDBK(zb);
+        return List.of(mapper.toResponse(zb));
+    }
+
+    private void isObrazacSentToDBK(ZakljucniListZb zb) throws Exception {
+        if (zb.getSTATUS() >= 20) {
+            throw new Exception("Obrazac je vec poslat vasem DBK-u");
+        }
     }
 
     public void isObrazacStorniran(ZakljucniListZb zb) throws Exception {
@@ -226,4 +233,5 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
             throw  new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
         }
     }
+
 }
