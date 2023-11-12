@@ -10,6 +10,7 @@ import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.AbParameterService;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
@@ -170,7 +171,7 @@ public class ObrazacIOService extends AbParameterService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private String stornoIO(Integer id, String email) {
+    public String stornoIO(Integer id, String email) {
         var user = this.getUser(email);
         var io = obrazacIOrepository.findById(id).get();
             io.setSTORNO(1);
@@ -185,7 +186,22 @@ public class ObrazacIOService extends AbParameterService {
         return obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
     }
 
-  //  @Transactional
+    public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) {
+        return null;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public String stornoObrIOFromUser(Integer id, String email, Integer kvartal) {
+        return null;
+    }
+
+    public ObrazacResponse findValidObrazacToRaise(String email, Integer status) {
+        return null;
+    }
+
+
+
+    //  @Transactional
 //    public Obrazac5_pom_zb saveObrazacIO(List<ObrazacIODTO> dtos, Integer kvartal, Integer year, String email) {
 //
 //        var user = userRepository.findByEmail(email).orElseThrow();

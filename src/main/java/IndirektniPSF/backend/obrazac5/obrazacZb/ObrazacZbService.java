@@ -10,6 +10,8 @@ import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.AbParameterService;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
+import IndirektniPSF.backend.parameters.StatusService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
@@ -20,11 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+//--5--
 @RequiredArgsConstructor
 @Service
 @Component
@@ -37,8 +41,12 @@ public class ObrazacZbService extends AbParameterService {
     private StringBuilder responseMessage =  new StringBuilder();
     private final ObrazacMapper mapper;
     private final ObrazacIORepository obrazacIOrepository;
+    private final StatusService statusService;
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+
+
+    //--5--
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
@@ -86,9 +94,8 @@ public class ObrazacZbService extends AbParameterService {
                 .build();
 
         ObrazacZb zbSaved = obrazacZbRepository.save(zb);
-        var details =  obrazacService.saveDetailsExcel(dtos, zbSaved, validIO.getStavke());
+        var details =  obrazacService.saveDetailsExcel(dtos, zbSaved, validIO);
 
-//        obrazacService.saveDetailsExcel(dtos, zbSaved);
         return responseMessage;
     }
 
@@ -101,6 +108,22 @@ public class ObrazacZbService extends AbParameterService {
                     "Obrazac IO. Prvo ucitajte \n Obrazac IO!");
         }
         return optionalZb.get();
+    }
+
+    private ObrazacResponse findValidObr5ForStorno(String email, Integer kvartal) throws Exception {
+
+        Integer jbbk = this.getJbbksIBK(email);
+        ObrazacZb zb =
+                obrazacZbRepository
+                        .findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(jbbk, kvartal)
+                        .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
+        this.isObrazacStorniran(zb);
+        return mapper.toResponse(zb);
+    }
+    public void isObrazacStorniran(ObrazacZb zb) throws Exception {
+        if (zb.getStorno() == 1) {
+            throw new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -127,8 +150,15 @@ public class ObrazacZbService extends AbParameterService {
         return this.stornoObr5(obrazacZb, user);
     }
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private String stornoObr5(Integer id, String email) {
+    public String stornoObr5FromUser(Integer id, String email, Integer kvartal) {
+      var zbForStorno = obrazacZbRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found obrazacZbRepository"));
+        User user = this.getUser(email);
+       return stornoObr5(zbForStorno, user);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public String stornoObr5(Integer id, String email) {
         User user = this.getUser(email);
         var obrazacZb = obrazacZbRepository.findById(id).get();
         obrazacZb.setRadna(0);
@@ -139,7 +169,7 @@ public class ObrazacZbService extends AbParameterService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private String stornoObr5(ObrazacZb obrazacZb, User user) {
+    public String stornoObr5(ObrazacZb obrazacZb, User user) {
         obrazacZb.setRadna(0);
         obrazacZb.setStorno(1);
         obrazacZb.setStosifrad(user.getSifraradnika());
@@ -154,5 +184,26 @@ public class ObrazacZbService extends AbParameterService {
 
     private  Optional<ObrazacZb> findLastVersionOfObrazacZb(Integer jbbk, Integer kvartal) {
         return obrazacZbRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
+    }
+
+    public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) {
+        return null;
+    }
+
+    public ObrazacResponse findValidObrazacToRaise(String email, Integer status, Integer kvartal) {
+        return null;
+    }
+
+    public String raiseStatus(Integer id, String email) throws Exception {
+        User user = this.getUser(email);
+
+        var zb = obrazacZbRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Obrazac 5  ne postoji!"));
+
+        if (zb.getSTATUS() >= 20 || zb.getStorno() == 1) {
+            throw new Exception("Obrazac 5 ima status veci od 10 \n" +
+                    "ili je vec storniran");
+        }
+        return statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacZbRepository);
     }
 }

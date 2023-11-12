@@ -1,12 +1,15 @@
 package IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb;
 
 import IndirektniPSF.backend.fileUpload.FileUploadService;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/obrazac_io")
@@ -34,6 +37,60 @@ public class ObrazacIOController {
         }
         finally{
             fileUploadService.saveTxtAndExcelFile(email, kvartal,"Obrazac_IO", file, message);
+        }
+    }
+
+    @PutMapping(value = "/status/{id}")
+    public ResponseEntity<?> raiseStatus(@PathVariable(name = "id") Integer id,
+                                         @RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            String result = String.valueOf(obrazacIOService.raiseSt(id, email, kvartal));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping
+    public ResponseEntity<?> getZakList(@RequestParam(name = "status") Integer status,
+                                        @RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            List<ObrazacResponse> result =  List.of(obrazacIOService.findValidObrazacToRaise(email, status));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/storno")
+    public ResponseEntity<?> getZakListZaStorno(@RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            List<ObrazacResponse> result =  List.of(obrazacIOService.findValidObrazacToStorno(email, kvartal));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            // Handle the exception and return an error response with status code 400
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/storno/{id}/")
+    public ResponseEntity<?> stornoZakList(@PathVariable(name = "id") Integer id,
+                                           @RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            String result = String.valueOf(obrazacIOService.stornoObrIOFromUser(id, email, kvartal));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

@@ -3,7 +3,6 @@ package IndirektniPSF.backend.zakljucniList.zb;
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
-import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZbRepository;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
@@ -174,8 +173,8 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
             }
         }
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String raiseStatus(Integer id, String email) throws Exception {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public String raiseStatus(Integer id, String email, Integer kvartal) throws Exception {
         User user = this.getUser(email);
 
         var zb = zakljucniRepository.findById(id)
@@ -196,7 +195,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
  //STORNO
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String stornoZakList(Integer id, String email) throws Exception {
+    public String stornoZakList(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
         var zb = this.findZakListById(id);

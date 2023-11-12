@@ -2,6 +2,7 @@ package IndirektniPSF.backend.obrazac5.obrazacZb;
 
 import IndirektniPSF.backend.fileUpload.FileUploadService;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,9 +40,59 @@ public class ObrazacZbController {
         }
     }
 
+    @PutMapping(value = "/status/{id}")
+    public ResponseEntity<?> raiseStatus(@PathVariable(name = "id") Integer id,
+                                         @RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            String result = String.valueOf(obrazacZbService.raiseStatus(id, email));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping
+    public ResponseEntity<?> getZakList(@RequestParam(name = "status") Integer status,
+                                        @RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            List<ObrazacResponse> result =  List.of(obrazacZbService.findValidObrazacToRaise(email, status, kvartal));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
-    //TODO -add storno put method provide id of obrazac call storno(id, email)
+    @GetMapping(value = "/storno")
+    public ResponseEntity<?> getZakListZaStorno(@RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            List<ObrazacResponse> result =  List.of(obrazacZbService.findValidObrazacToStorno(email, kvartal));
+            return ResponseEntity.ok(result);
+        }
+        catch (Exception e) {
+            // Handle the exception and return an error response with status code 400
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
+    @PutMapping(value = "/storno/{id}/")
+    public ResponseEntity<?> stornoZakList(@PathVariable(name = "id") Integer id,
+                                           @RequestParam(name = "kvartal") Integer kvartal) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        try {
+            String result = String.valueOf(obrazacZbService.stornoObr5FromUser(id, email, kvartal));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 
 //    @PostMapping(value = "/{kvartal}")

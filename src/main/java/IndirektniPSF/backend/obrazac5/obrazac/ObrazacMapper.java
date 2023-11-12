@@ -1,10 +1,14 @@
 package IndirektniPSF.backend.obrazac5.obrazac;
 
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
+import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
+import IndirektniPSF.backend.parameters.ObrazacResponse;
+import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,6 +97,19 @@ public class ObrazacMapper {
         } else {
             return cell.getNumericCellValue(); // Return the cell's value if it is numeric
         }
+    }
+
+    public ObrazacResponse toResponse(ObrazacZb zb) {
+        LocalDate date = LocalDate.ofEpochDay(zb.getDatum_org() - 25569);
+        return ObrazacResponse.builder()
+                .id(zb.getGen_mysql())
+                .date(date)
+                .kvartal(zb.getKoji_kvartal())
+                //.year(zb.())
+                .version(zb.getVerzija())
+                .status(zb.getStatus())
+                .jbbk(zb.getJbbk_ind_kor())
+                .build();
     }
 
 }

@@ -2,6 +2,7 @@ package IndirektniPSF.backend.obrazac5.obrazacZb;
 
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom.Obrazac5_pom;
 import IndirektniPSF.backend.obrazac5.obrazac.Obrazac;
+import IndirektniPSF.backend.parameters.StatusUpdatable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class ObrazacZb {
+public class ObrazacZb implements StatusUpdatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -111,4 +112,24 @@ public class ObrazacZb {
     @Column(name = "nivo_konsolidacije", nullable = false)
     private Integer nivo_konsolidacije;
 
+    @Override
+    public Integer getSTATUS() {
+        return status;
+    }
+
+    @Override
+    public void setSTATUS(Integer status) {
+        this.status = status;
+    }
+
+    @Override
+    public void setPODIGAO_STATUS(Integer sifraradnika) {
+        this.podigao_status = sifraradnika;
+
+    }
+
+    @Override
+    public void setPOSLAO_NAM(Integer sifraradnika) {
+        this.poslao_nam = sifraradnika;
+    }
 }

@@ -1,6 +1,7 @@
 package IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb;
 
 import IndirektniPSF.backend.IOobrazac.obrazac5_pom.Obrazac5_pom;
+import IndirektniPSF.backend.parameters.StatusUpdatable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class Obrazac5_pom_zb {
+public class Obrazac5_pom_zb implements StatusUpdatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

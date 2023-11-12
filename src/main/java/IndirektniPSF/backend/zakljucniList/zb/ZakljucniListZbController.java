@@ -44,11 +44,12 @@ public class ZakljucniListZbController {
     }
 
     @PutMapping(value = "/status/{id}")
-    public ResponseEntity<?> raiseStatus(@PathVariable(name = "id") Integer id) {
+    public ResponseEntity<?> raiseStatus(@PathVariable(name = "id") Integer id,
+                                         @RequestParam(name = "kvartal") Integer kvartal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
-            String result = String.valueOf(zakljucniService.raiseStatus(id, email));
+            String result = String.valueOf(zakljucniService.raiseStatus(id, email, kvartal));
             return ResponseEntity.ok(result);
         }
         catch (Exception e) {
@@ -56,7 +57,8 @@ public class ZakljucniListZbController {
         }
     }
     @GetMapping
-    public ResponseEntity<?> getZakList(@RequestParam(name = "status") Integer status) {
+    public ResponseEntity<?> getZakList(@RequestParam(name = "status") Integer status,
+                                        @RequestParam(name = "kvartal") Integer kvartal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
@@ -68,8 +70,8 @@ public class ZakljucniListZbController {
         }
     }
 
-    @GetMapping(value = "/storno/{kvartal}")
-    public ResponseEntity<?> getZakListZaStorno(@PathVariable(name = "kvartal") Integer kvartal) {
+    @GetMapping(value = "/storno")
+    public ResponseEntity<?> getZakListZaStorno(@RequestParam(name = "kvartal") Integer kvartal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
@@ -83,11 +85,12 @@ public class ZakljucniListZbController {
     }
 
     @PutMapping(value = "/storno/{id}")
-    public ResponseEntity<?> stornoZakList(@PathVariable(name = "id") Integer id) {
+    public ResponseEntity<?> stornoZakList(@PathVariable(name = "id") Integer id,
+                                           @RequestParam(name = "kvartal") Integer kvartal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
-            String result = String.valueOf(zakljucniService.stornoZakList(id, email));
+            String result = String.valueOf(zakljucniService.stornoZakList(id, email, kvartal));
             return ResponseEntity.ok(result);
         }
         catch (Exception e) {

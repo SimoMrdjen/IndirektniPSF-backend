@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 @Service
-public   class StatusService {
+public  class StatusService {
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public <T extends StatusUpdatable> String raiseStatusDependentOfActuallStatus(
@@ -24,7 +24,7 @@ public   class StatusService {
         entity.setSTATUS(status + 10);
         T savedEntity = (T) repository.save(entity);
 
-        return "Entity status is raised to level " + savedEntity.getSTATUS() + "!";
+        return "Status obrasca je podignut na nivo  " + savedEntity.getSTATUS() + "!";
     }
 
     public <T extends StatusUpdatable> void resolveObrazacAccordingStatus(T entity, Integer status) throws Exception {
