@@ -199,6 +199,9 @@ public class ObrazacIOService extends AbParameterService {
         return null;
     }
 
+    public String raiseStatus(Integer id, String email, Integer kvartal) {
+        return null;
+    }
 
 
     //  @Transactional

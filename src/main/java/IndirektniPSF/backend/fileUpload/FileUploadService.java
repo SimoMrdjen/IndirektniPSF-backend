@@ -90,11 +90,19 @@ public class FileUploadService extends AbParameterService {
         return (kvartal == 4 || kvartal == 5) ? (year - 1) : year;
     }
 
-    public void saveTxtAndExcelFile( String email, Integer kvartal, String typeOfObrazac,
-                                    MultipartFile file, String content) {
-
+    public void saveTxtAndExcelFile(String email, Integer kvartal, String typeOfObrazac,
+                                    MultipartFile file, String content, String exceptionMessage) {
         var year = this.findYear(kvartal);
-        this.saveTxtFile(year, email, kvartal, typeOfObrazac, content);
-        this.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+        String finalContent = exceptionMessage == null ? content : exceptionMessage;
+        this.saveTxtFile(year, email, kvartal, typeOfObrazac, finalContent);
+        this.saveExcelFile(year, email, kvartal, typeOfObrazac, file);
     }
+
+//    public void saveTxtAndExcelFile( String email, Integer kvartal, String typeOfObrazac,
+//                                    MultipartFile file, String content) {
+//
+//        var year = this.findYear(kvartal);
+//        this.saveTxtFile(year, email, kvartal, typeOfObrazac, content);
+//        this.saveExcelFile(year, email, kvartal,typeOfObrazac, file);
+//    }
 }

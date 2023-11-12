@@ -107,7 +107,7 @@ public class ObrazacMapper {
                 .kvartal(zb.getKoji_kvartal())
                 //.year(zb.())
                 .version(zb.getVerzija())
-                .status(zb.getStatus())
+                .status(zb.getSTATUS())
                 .jbbk(zb.getJbbk_ind_kor())
                 .build();
     }
