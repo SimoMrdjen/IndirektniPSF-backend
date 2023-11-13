@@ -5,7 +5,6 @@ target/
 #added
 # Ignore application properties
 /application.properties
-
 # Exclude specific target directories but not all
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -39,5 +38,5 @@ build/
 .vscode/
 
 # Exclude specific application properties for environments
-/application-dev.properties
+
 
