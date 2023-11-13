@@ -2,6 +2,7 @@
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
+#added
 # Ignore application properties
 /application.properties
 
