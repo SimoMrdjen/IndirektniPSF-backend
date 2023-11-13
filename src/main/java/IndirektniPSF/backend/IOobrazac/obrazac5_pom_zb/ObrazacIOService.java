@@ -153,7 +153,7 @@ public class ObrazacIOService extends AbParameterService {
         }
         return zb.getVERZIJA() + 1;
     }
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
 
         var optionalIO = findLastVersionOfObrIO(user,kvartal);
