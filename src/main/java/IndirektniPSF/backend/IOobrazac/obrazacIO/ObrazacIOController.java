@@ -1,23 +1,26 @@
-package IndirektniPSF.backend.obrazac5.obrazacZb;
+package IndirektniPSF.backend.IOobrazac.obrazacIO;
 
 import IndirektniPSF.backend.fileUpload.FileUploadService;
 import IndirektniPSF.backend.parameters.ObrazacResponse;
 import IndirektniPSF.backend.security.auth.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/obrazac_zb")
+@RequestMapping(value = "/api/obrazac_io")
 @RequiredArgsConstructor
-public class ObrazacZbController {
+public class ObrazacIOController {
 
-    private final ObrazacZbService obrazacZbService;
+    private final ObrazacIOService obrazacIOService;
     private final FileUploadService fileUploadService;
     private final AuthenticationService authenticationService;
+
 
     @PostMapping(value = "/{kvartal}")
     public ResponseEntity<String> addZakljucniFromExcel(@RequestBody MultipartFile file,
@@ -25,16 +28,15 @@ public class ObrazacZbController {
 
         String email = authenticationService.getAuthenticatedUserEmail();
         String message = null;
-
         try {
-            message = String.valueOf(obrazacZbService.saveZakljucniFromExcel(file, kvartal, email));
+            message = String.valueOf(obrazacIOService.saveIOFromExcel(file, kvartal, email));
         }
         catch (Exception e) {
             message = e.getMessage();
             throw e;
         }
         finally{
-            fileUploadService.saveTxtAndExcelFile(email, kvartal,"Obrazac_5", file, message, null);
+            fileUploadService.saveTxtAndExcelFile(email, kvartal,"Obrazac_IO", file, message, null);
         }
         return ResponseEntity.ok(message);
     }
@@ -44,32 +46,28 @@ public class ObrazacZbController {
                                          @RequestParam(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            String result = String.valueOf(obrazacZbService.raiseStatus(id, email));
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(obrazacIOService.raiseStatus(id, email, kvartal));
     }
     @GetMapping
     public ResponseEntity<List<ObrazacResponse>> getZakList(@RequestParam(name = "status") Integer status,
-                                        @RequestParam(name = "kvartal") Integer kvartal) {
+                                        @RequestParam(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            List<ObrazacResponse> result =  List.of(obrazacZbService.findValidObrazacToRaise(email, status, kvartal));
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(obrazacIOService.findValidObrazacToRaise(email, status, kvartal));
     }
 
     @GetMapping(value = "/storno")
-    public ResponseEntity<List<ObrazacResponse>> getZakListZaStorno(@RequestParam(name = "kvartal") Integer kvartal) {
+    public ResponseEntity<List<ObrazacResponse>> getZakListZaStorno(@RequestParam(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            List<ObrazacResponse> result =  List.of(obrazacZbService.findValidObrazacToStorno(email, kvartal));
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(obrazacIOService.findValidObrazacToStorno(email, kvartal));
     }
 
-    @PutMapping(value = "/storno/{id}/")
+    @PutMapping(value = "/storno/{id}")
     public ResponseEntity<String> stornoZakList(@PathVariable(name = "id") Integer id,
-                                           @RequestParam(name = "kvartal") Integer kvartal) {
+                                           @RequestParam(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            String result = String.valueOf(obrazacZbService.stornoObr5FromUser(id, email, kvartal));
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(obrazacIOService.stornoObrIOFromUser(id, email, kvartal));
     }
 }

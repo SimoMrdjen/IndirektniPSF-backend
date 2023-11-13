@@ -1,21 +1,19 @@
-package IndirektniPSF.backend.obrazac5.obrazacZb;
+package IndirektniPSF.backend.obrazac5.obrazac5;
 
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.ObrazacIORepository;
-import IndirektniPSF.backend.excel.ExcelService;
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIORepository;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
-import IndirektniPSF.backend.obrazac5.obrazac.ObrazacMapper;
-import IndirektniPSF.backend.obrazac5.obrazac.ObrazacService;
+import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5Mapper;
+import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5DetailsService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.AbParameterService;
+import IndirektniPSF.backend.parameters.ObrazacChecker;
 import IndirektniPSF.backend.parameters.ObrazacResponse;
 import IndirektniPSF.backend.parameters.StatusService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
-import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
-import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -32,14 +30,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ObrazacZbService extends AbParameterService {
-    private final ObrazacZbRepository obrazacZbRepository;
+public class Obrazac5Service extends AbParameterService implements ObrazacChecker {
+    private final Obrazac5Repository obrazacRepository;
     private final SekretarijarService sekretarijarService;
-    private final ObrazacService obrazacService;
+    private final Obrazac5DetailsService obrazac5DetailsService;
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
     private StringBuilder responseMessage =  new StringBuilder();
-    private final ObrazacMapper mapper;
+    private final Obrazac5Mapper mapper;
     private final ObrazacIORepository obrazacIOrepository;
     private final StatusService statusService;
 
@@ -56,13 +54,13 @@ public class ObrazacZbService extends AbParameterService {
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         var jbbk = getJbbksIBK(user);
-        Obrazac5_pom_zb validIO = this. findValidIO(kvartal, jbbk);
+        ObrazacIO validIO = this. findValidIO(kvartal, jbbk);
 //        checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
 
         List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
-        ObrazacZb zb = ObrazacZb.builder()
+        Obrazac5 zb = Obrazac5.builder()
                 //.gen_interbase(1)
                 .koji_kvartal(kvartal)
                 .tip_obrazca(5)
@@ -93,14 +91,14 @@ public class ObrazacZbService extends AbParameterService {
                 .nivo_konsolidacije(0)
                 .build();
 
-        ObrazacZb zbSaved = obrazacZbRepository.save(zb);
-        var details =  obrazacService.saveDetailsExcel(dtos, zbSaved, validIO);
+        Obrazac5 zbSaved = obrazacRepository.save(zb);
+        var details =  obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
 
         return responseMessage;
     }
 
-    private Obrazac5_pom_zb findValidIO(Integer kvartal, Integer jbbk) throws Exception {
-        Optional<Obrazac5_pom_zb> optionalZb =
+    private ObrazacIO findValidIO(Integer kvartal, Integer jbbk) throws Exception {
+        Optional<ObrazacIO> optionalZb =
                 obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
 
         if (optionalZb.isEmpty() || optionalZb.get().getRADNA() == 0 || optionalZb.get().getSTORNO() == 1) {
@@ -113,18 +111,18 @@ public class ObrazacZbService extends AbParameterService {
     private ObrazacResponse findValidObr5ForStorno(String email, Integer kvartal) throws Exception {
 
         Integer jbbk = this.getJbbksIBK(email);
-        ObrazacZb zb =
-                obrazacZbRepository
+        Obrazac5 zb =
+                obrazacRepository
                         .findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(jbbk, kvartal)
                         .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
         return mapper.toResponse(zb);
     }
-    public void isObrazacStorniran(ObrazacZb zb) throws Exception {
-        if (zb.getStorno() == 1) {
-            throw new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
-        }
-    }
+//    public void isObrazacStorniran(Obrazac5 zb) throws Exception {
+//        if (zb.getStorno() == 1) {
+//            throw new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
+//        }
+//    }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) {
@@ -134,10 +132,10 @@ public class ObrazacZbService extends AbParameterService {
         return optionalObrazacZb.get().getVerzija() + 1;
     }
 
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoObrAfterObrIO(User user, Integer kvartal) {
 
-        Optional<ObrazacZb> optionalObrazacZb = this.findLastVersionOfObrazacZb(user, kvartal);
+        Optional<Obrazac5> optionalObrazacZb = this.findLastVersionOfObrazacZb(user, kvartal);
 
         if (optionalObrazacZb.isEmpty())
             return "";
@@ -151,8 +149,8 @@ public class ObrazacZbService extends AbParameterService {
     }
 
     public String stornoObr5FromUser(Integer id, String email, Integer kvartal) {
-      var zbForStorno = obrazacZbRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found obrazacZbRepository"));
+      var zbForStorno = obrazacRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
         User user = this.getUser(email);
        return stornoObr5(zbForStorno, user);
     }
@@ -160,50 +158,68 @@ public class ObrazacZbService extends AbParameterService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoObr5(Integer id, String email) {
         User user = this.getUser(email);
-        var obrazacZb = obrazacZbRepository.findById(id).get();
+        var obrazacZb = obrazacRepository.findById(id).get();
         obrazacZb.setRadna(0);
         obrazacZb.setStorno(1);
         obrazacZb.setStosifrad(user.getSifraradnika());
-        obrazacZbRepository.save(obrazacZb);
+        obrazacRepository.save(obrazacZb);
         return "Obrazac5 uspesno je storniran";
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String stornoObr5(ObrazacZb obrazacZb, User user) {
-        obrazacZb.setRadna(0);
-        obrazacZb.setStorno(1);
-        obrazacZb.setStosifrad(user.getSifraradnika());
-        obrazacZbRepository.save(obrazacZb);
+    public String stornoObr5(Obrazac5 obrazac5, User user) {
+        obrazac5.setRadna(0);
+        obrazac5.setStorno(1);
+        obrazac5.setStosifrad(user.getSifraradnika());
+        obrazacRepository.save(obrazac5);
         return "Obrazac5 uspesno je storniran";
     }
 
-    private  Optional<ObrazacZb> findLastVersionOfObrazacZb(User user, Integer kvartal) {
+    private  Optional<Obrazac5> findLastVersionOfObrazacZb(User user, Integer kvartal) {
         var jbbk = this.getJbbksIBK(user);
-        return obrazacZbRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
+        return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
-    private  Optional<ObrazacZb> findLastVersionOfObrazacZb(Integer jbbk, Integer kvartal) {
-        return obrazacZbRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
+    private  Optional<Obrazac5> findLastVersionOfObrazacZb(Integer jbbk, Integer kvartal) {
+        return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
-    public ObrazacResponse findValidObrazacToStorno(String email, Integer kvartal) {
-        return null;
+    private  Optional<Obrazac5> findLastVersionOfObrazacZb(String email, Integer kvartal) {
+
+        var jbbk = this.getJbbksIBK(email);
+        return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
-    public ObrazacResponse findValidObrazacToRaise(String email, Integer status, Integer kvartal) {
-        return null;
+    public List<ObrazacResponse> findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
+
+        Obrazac5 zb = findLastVersionOfObrazacZb(email, kvartal)
+                .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
+        isObrazacSentToDBK(zb);
+        return List.of(mapper.toResponse(zb));
+    }
+
+    public List<ObrazacResponse> findValidObrazacToRaise(String email, Integer status, Integer kvartal) throws Exception {
+        //TODO implement logic
+        Obrazac5 zb = findLastVersionOfObrazacZb(email, kvartal)
+                .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
+        isObrazacStorniran(zb);
+        statusService.resolveObrazacAccordingStatus(zb, status);
+        return List.of(mapper.toResponse(zb));
     }
 
     public String raiseStatus(Integer id, String email) throws Exception {
+
         User user = this.getUser(email);
-
-        var zb = obrazacZbRepository.findById(id)
+        var zb = obrazacRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Obrazac 5  ne postoji!"));
-
-        if (zb.getSTATUS() >= 20 || zb.getStorno() == 1) {
-            throw new Exception("Obrazac 5 ima status veci od 10 \n" +
-                    "ili je vec storniran");
-        }
-        return statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacZbRepository);
+        isObrazacSentToDBK(zb);
+        isObrazacStorniran(zb);
+        return statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacRepository);
     }
+//    private void isObrazacSentToDBK(Obrazac5 zb) throws Exception {
+//
+//        if (zb.getSTATUS() >= 20) {
+//            throw new Exception("Obrazac je vec poslat vasem DBK-u");
+//        }
+//    }
 }

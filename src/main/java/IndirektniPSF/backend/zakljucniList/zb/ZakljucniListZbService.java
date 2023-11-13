@@ -1,6 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.ObrazacIOService;
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;

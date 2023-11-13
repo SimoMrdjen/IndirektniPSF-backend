@@ -1,7 +1,6 @@
-package IndirektniPSF.backend.obrazac5.obrazacZb;
+package IndirektniPSF.backend.obrazac5.obrazac5;
 
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom.Obrazac5_pom;
-import IndirektniPSF.backend.obrazac5.obrazac.Obrazac;
+import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5details;
 import IndirektniPSF.backend.parameters.StatusUpdatable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class ObrazacZb implements StatusUpdatable {
+public class Obrazac5 implements StatusUpdatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +25,7 @@ public class ObrazacZb implements StatusUpdatable {
 
     @OneToMany(mappedBy = "redni", fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Obrazac> stavke = new ArrayList<>();
+    private List<Obrazac5details> stavke = new ArrayList<>();
 
     @Column(name = "gen_interbase")
     private Integer gen_interbase;
@@ -131,5 +130,10 @@ public class ObrazacZb implements StatusUpdatable {
     @Override
     public void setPOSLAO_NAM(Integer sifraradnika) {
         this.poslao_nam = sifraradnika;
+    }
+
+    @Override
+    public Integer getSTORNO() {
+        return this.storno;
     }
 }

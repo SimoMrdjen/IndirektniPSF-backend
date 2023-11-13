@@ -1,6 +1,6 @@
-package IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb;
+package IndirektniPSF.backend.IOobrazac.obrazacIO;
 
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom.Obrazac5_pom;
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.parameters.StatusUpdatable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class Obrazac5_pom_zb implements StatusUpdatable {
+public class ObrazacIO implements StatusUpdatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +25,7 @@ public class Obrazac5_pom_zb implements StatusUpdatable {
 
     @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Obrazac5_pom> stavke = new ArrayList<>();
+    private List<ObrazacIODetails> stavke = new ArrayList<>();
 
     @Column
     private Integer GEN_INTERBASE;

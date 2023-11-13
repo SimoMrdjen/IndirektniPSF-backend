@@ -1,29 +1,20 @@
-package IndirektniPSF.backend.IOobrazac.obrazac5_pom;
+package IndirektniPSF.backend.IOobrazac.obrazacIODetails;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
-import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
-import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.parameters.ObrazacResponse;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
-import org.apache.poi.ss.usermodel.*;
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import java.io.IOException;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class ObrazacIOMapper {
 
-    public  Obrazac5_pom mapDtoToEntity(ObrazacIODTO obrazacIODTO) {
+    public ObrazacIODetails mapDtoToEntity(ObrazacIODTO obrazacIODTO) {
 
         Integer konto = obrazacIODTO.getProp3();
         Double dugg =
@@ -35,7 +26,7 @@ public class ObrazacIOMapper {
         Double potrazuje =
                 (konto < 400000 && konto > 699999) ? obrazacIODTO.getProp7() : 0;
         return
-        Obrazac5_pom.builder()
+        ObrazacIODetails.builder()
                 .RED_BROJ_AKT(obrazacIODTO.getProp1())
                 .FUNK_KLAS(obrazacIODTO.getProp2())
                 .SIN_KONTO(konto / 100)
@@ -108,7 +99,7 @@ public class ObrazacIOMapper {
         return dtos;
     }
 
-    public ObrazacResponse toResponse(Obrazac5_pom_zb zb) {
+    public ObrazacResponse toResponse(ObrazacIO zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDATUM_DOK() - 25569);
         return ObrazacResponse.builder()
                 .id(zb.getGEN_MYSQL())

@@ -1,6 +1,6 @@
-package IndirektniPSF.backend.IOobrazac.obrazac5_pom;
+package IndirektniPSF.backend.IOobrazac.obrazacIODetails;
 
-import IndirektniPSF.backend.IOobrazac.obrazac5_pom_zb.Obrazac5_pom_zb;
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class Obrazac5_pom {
+public class ObrazacIODetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +21,7 @@ public class Obrazac5_pom {
 
     @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinColumn(name="GEN_MYSQL")
-    private Obrazac5_pom_zb obrazac5_pom_zb;
+    private ObrazacIO obrazacIO;
 
 //    @Column(nullable = false)
 //    private Integer GEN_MYSQL;

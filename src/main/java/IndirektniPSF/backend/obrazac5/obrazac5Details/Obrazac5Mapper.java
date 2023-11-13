@@ -1,9 +1,8 @@
-package IndirektniPSF.backend.obrazac5.obrazac;
+package IndirektniPSF.backend.obrazac5.obrazac5Details;
 
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
-import IndirektniPSF.backend.obrazac5.obrazacZb.ObrazacZb;
+import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.parameters.ObrazacResponse;
-import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Component;
 
@@ -13,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ObrazacMapper {
-    public Obrazac mapDtoToEntity(Obrazac5DTO dto) {
+public class Obrazac5Mapper {
+    public Obrazac5details mapDtoToEntity(Obrazac5DTO dto) {
         var konto = (dto.getProp2() != null ? dto.getProp2() : 0);
-        return Obrazac.builder()
+        return Obrazac5details.builder()
                 .verzija(1)
                 .koji_kvartal(0)
                 .sif_rac(1)
@@ -99,7 +98,7 @@ public class ObrazacMapper {
         }
     }
 
-    public ObrazacResponse toResponse(ObrazacZb zb) {
+    public ObrazacResponse toResponse(Obrazac5 zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDatum_org() - 25569);
         return ObrazacResponse.builder()
                 .id(zb.getGen_mysql())
