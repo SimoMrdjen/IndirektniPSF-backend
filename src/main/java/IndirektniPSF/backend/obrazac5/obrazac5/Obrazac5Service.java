@@ -141,7 +141,7 @@ public class Obrazac5Service extends AbParameterService implements ObrazacChecke
             return "";
 
         var obrazacZb = optionalObrazacZb.get();
-        if (obrazacZb.getRadna() == 0 || obrazacZb.getStorno() == 1)
+        if (obrazacZb.getRadna() == 0 || obrazacZb.getSTORNO() == 1)
             return "";
 
         obrazacZb.setOpisstorno("Storniran prethodni dokument!");

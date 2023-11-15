@@ -2,6 +2,7 @@ package IndirektniPSF.backend.zakljucniList.zb;
 
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
+import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
@@ -96,9 +97,9 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return responseMessage;
     }
 
-    private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) {
+    private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) throws ObrazacException {
         if(kvartal != excelKvartal) {
-            throw new IllegalArgumentException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
+            throw new ObrazacException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
         }
         this.checkIfKvartalIsForValidPeriod(kvartal, year);
     }
@@ -124,7 +125,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         ZakljucniListZb zb = optionalZb.get();
 
         if (zb.getRadna() == 1 && zb.getSTORNO() == 0 ) {
-            throw new Exception("Za tekući kvartal već postoji učitan \nvažeći ZaključniList!\nUkoliko zelite da ucitate novu verziju " +
+            throw new ObrazacException("Za tekući kvartal već postoji učitan \nvažeći ZaključniList!\nUkoliko zelite da ucitate novu verziju " +
                     "\nprethodnu morate stornirati!");
         }
         return zb.getVerzija() + 1;
@@ -136,7 +137,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
         ZakljucniListZb zb =
                zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks)
-                       .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
+                       .orElseThrow(() -> new ObrazacException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
         statusService.resolveObrazacAccordingStatus(zb, status);
         return List.of(mapper.toResponse(zb));
@@ -165,7 +166,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
             if (isKontrolaActive) {
                 if (!duplicates.isEmpty() && validError) {
-                    throw new Exception("Imate duplirana konta: " + duplicates);
+                    throw new ObrazacException("Imate duplirana konta: " + duplicates);
                 }
                 else if (!duplicates.isEmpty() && !validError) {
                     responseMessage.append("Imate duplirana konta: " + duplicates);
@@ -181,7 +182,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
 
         if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new Exception("Zakljucni list ima status veci od 10 \n" +
+            throw new ObrazacException("Zakljucni list ima status veci od 10 \n" +
                     "ili je vec storniran");
         }
         return String.valueOf(statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository));
@@ -224,13 +225,13 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
     private void isObrazacSentToDBK(ZakljucniListZb zb) throws Exception {
         if (zb.getSTATUS() >= 20) {
-            throw new Exception("Obrazac je vec poslat vasem DBK-u");
+            throw new ObrazacException("Obrazac je vec poslat vasem DBK-u");
         }
     }
 
     public void isObrazacStorniran(ZakljucniListZb zb) throws Exception {
         if( zb.getSTORNO() == 1) {
-            throw  new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
+            throw  new ObrazacException("Obrazac je storniran , \n`morate ucitati novu verziju!");
         }
     }
 
