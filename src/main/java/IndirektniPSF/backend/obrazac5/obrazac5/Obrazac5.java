@@ -58,7 +58,7 @@ public class Obrazac5 implements StatusUpdatable {
     private Integer poslato_o;
 
     @Column(name = "radna", nullable = false)
-    private Integer radna;
+    private Integer RADNA;
 
     @Column(name = "povuceno", nullable = false)
     private Integer povuceno;

@@ -5,8 +5,6 @@ import IndirektniPSF.backend.parameters.ObrazacResponse;
 import IndirektniPSF.backend.security.auth.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,7 +27,7 @@ public class ObrazacIOController {
         String email = authenticationService.getAuthenticatedUserEmail();
         String message = null;
         try {
-            message = String.valueOf(obrazacIOService.saveIOFromExcel(file, kvartal, email));
+            message = String.valueOf(obrazacIOService.saveObrazacFromExcel(file, kvartal, email));
         }
         catch (Exception e) {
             message = e.getMessage();

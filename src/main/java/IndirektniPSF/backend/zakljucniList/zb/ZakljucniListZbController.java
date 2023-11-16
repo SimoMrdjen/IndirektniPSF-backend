@@ -29,7 +29,7 @@ public class ZakljucniListZbController {
         String email = authenticationService.getAuthenticatedUserEmail();
         String message = null;
         try {
-            message = String.valueOf(zakljucniService.saveZakljucniFromExcel(file, kvartal, email));
+            message = String.valueOf(zakljucniService.saveObrazacFromExcel(file, kvartal, email));
         } catch (Exception e) {
             message = e.getMessage();
             throw e;
@@ -53,7 +53,7 @@ public class ZakljucniListZbController {
 
         String email = authenticationService.getAuthenticatedUserEmail();
             return ResponseEntity
-                    .ok(zakljucniService.findValidObrazacToRaise(email, status));
+                    .ok(zakljucniService.findValidObrazacToRaise(email, status, kvartal));
     }
 
     @GetMapping(value = "/storno")

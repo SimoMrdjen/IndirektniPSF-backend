@@ -27,6 +27,7 @@ public  class StatusService {
         return "Status obrasca je podignut na nivo  " + savedEntity.getSTATUS() + "!";
     }
 
+    //resolve if sttus is for odobravanje, overavanje or poslat DBK-u
     public <T extends StatusUpdatable> void resolveObrazacAccordingStatus(T entity, Integer status) throws Exception {
 
         var actualStatus = entity.getSTATUS();

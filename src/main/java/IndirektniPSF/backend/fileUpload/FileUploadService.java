@@ -1,8 +1,6 @@
 package IndirektniPSF.backend.fileUpload;
 
 import IndirektniPSF.backend.parameters.AbParameterService;
-import IndirektniPSF.backend.security.user.User;
-import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

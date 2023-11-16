@@ -7,9 +7,7 @@ import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
-import IndirektniPSF.backend.parameters.AbParameterService;
-import IndirektniPSF.backend.parameters.ObrazacResponse;
-import IndirektniPSF.backend.parameters.StatusService;
+import IndirektniPSF.backend.parameters.*;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
@@ -31,7 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ZakljucniListZbService extends AbParameterService implements IZakListService {
+public class ZakljucniListZbService extends AbParameterService implements IfObrazacChecker, IfObrazacService {
 
     private final ZakljucniListZbRepository zakljucniRepository;
     private final SekretarijarService sekretarijarService;
@@ -47,7 +45,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
+    public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
         Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
@@ -97,50 +95,31 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         return responseMessage;
     }
 
-    private void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) throws ObrazacException {
-        if(kvartal != excelKvartal) {
-            throw new ObrazacException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
-        }
-        this.checkIfKvartalIsForValidPeriod(kvartal, year);
-    }
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception {
 
-    public boolean checkIfExistValidZakList(Integer kvartal, Integer jbbks) {
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
-
-        if (optionalZb.isEmpty() || optionalZb.get().getRadna() == 0 || optionalZb.get().getSTORNO() == 1) {
-            return false;
-        }
-        return true;
-    }
-
-    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Integer checkIfExistValidZListAndFindVersion(Integer kvartal, Integer jbbks ) throws Exception {
-        Optional<ZakljucniListZb> optionalZb =
-                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
-
         if (optionalZb.isEmpty()) {
             return 1;
         }
         ZakljucniListZb zb = optionalZb.get();
-
-        if (zb.getRadna() == 1 && zb.getSTORNO() == 0 ) {
-            throw new ObrazacException("Za tekući kvartal već postoji učitan \nvažeći ZaključniList!\nUkoliko zelite da ucitate novu verziju " +
-                    "\nprethodnu morate stornirati!");
-        }
+        checkIfExistValidObrazacYet(zb);
         return zb.getVerzija() + 1;
     }
-// RAISING STATUS
-    public List<ObrazacResponse> findValidObrazacToRaise(String email, Integer status) throws Exception {
+
+    public List<ObrazacResponse> findValidObrazacToRaise(String email, Integer status, Integer kvartal) throws Exception {
 
         var jbbks = this.getJbbksIBK(email);
-
-        ZakljucniListZb zb =
-               zakljucniRepository.findFirstByJbbkIndKorOrderByGenMysqlDesc( jbbks)
-                       .orElseThrow(() -> new ObrazacException("Ne postoji ucitan dokument!"));
+        ZakljucniListZb zb = findLastObrazacForKvartal(jbbks, kvartal);
         this.isObrazacStorniran(zb);
         statusService.resolveObrazacAccordingStatus(zb, status);
         return List.of(mapper.toResponse(zb));
+    }
+    public ZakljucniListZb findLastObrazacForKvartal(Integer jbbks, Integer kvartal) throws ObrazacException {
+      return
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks)
+                        .orElseThrow(() -> new ObrazacException("Ne postoji ucitan dokument!"));
     }
 
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
@@ -176,15 +155,11 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String raiseStatus(Integer id, String email, Integer kvartal) throws Exception {
-        User user = this.getUser(email);
 
+        User user = this.getUser(email);
         var zb = zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
-
-        if (zb.getSTATUS() >= 20 || zb.getSTORNO() == 1) {
-            throw new ObrazacException("Zakljucni list ima status veci od 10 \n" +
-                    "ili je vec storniran");
-        }
+        checkStatusAndStorno(zb);
         return String.valueOf(statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository));
     }
 
@@ -207,7 +182,7 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         //TODO dodati opis storno
         zb.setOPISSTORNO("Naknadno");
         zakljucniRepository.save(zb);
-        return "Zakljucni list je storniran!"
+        return "Zakljucni list je storniran!\n"
                 + obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());
     }
 
@@ -222,17 +197,4 @@ public class ZakljucniListZbService extends AbParameterService implements IZakLi
         this.isObrazacSentToDBK(zb);
         return List.of(mapper.toResponse(zb));
     }
-
-    private void isObrazacSentToDBK(ZakljucniListZb zb) throws Exception {
-        if (zb.getSTATUS() >= 20) {
-            throw new ObrazacException("Obrazac je vec poslat vasem DBK-u");
-        }
-    }
-
-    public void isObrazacStorniran(ZakljucniListZb zb) throws Exception {
-        if( zb.getSTORNO() == 1) {
-            throw  new ObrazacException("Obrazac je storniran , \n`morate ucitati novu verziju!");
-        }
-    }
-
 }

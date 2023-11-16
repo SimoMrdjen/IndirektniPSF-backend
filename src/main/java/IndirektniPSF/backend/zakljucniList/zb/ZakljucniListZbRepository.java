@@ -6,7 +6,5 @@ import java.util.Optional;
 
 public interface ZakljucniListZbRepository extends JpaRepository<ZakljucniListZb, Integer> {
     Optional<ZakljucniListZb> findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( Integer kvartal, Integer jbbks);
-
-Optional<ZakljucniListZb> findFirstByJbbkIndKorOrderByGenMysqlDesc(Integer jbbks);
-
+    
 }

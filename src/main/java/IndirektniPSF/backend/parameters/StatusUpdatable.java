@@ -7,4 +7,6 @@ public interface StatusUpdatable {
     void setPOSLAO_NAM(Integer sifraradnika);
 
     Integer getSTORNO();
+
+    Integer getRADNA();
 }

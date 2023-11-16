@@ -27,7 +27,7 @@ public class Obrazac5Controller {
         String message = null;
 
         try {
-            message = String.valueOf(obrazac5Service.saveZakljucniFromExcel(file, kvartal, email));
+            message = String.valueOf(obrazac5Service.saveObrazacFromExcel(file, kvartal, email));
         }
         catch (Exception e) {
             message = e.getMessage();

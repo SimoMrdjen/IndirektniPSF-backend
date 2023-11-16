@@ -8,10 +8,7 @@ import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5DetailsService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
-import IndirektniPSF.backend.parameters.AbParameterService;
-import IndirektniPSF.backend.parameters.ObrazacChecker;
-import IndirektniPSF.backend.parameters.ObrazacResponse;
-import IndirektniPSF.backend.parameters.StatusService;
+import IndirektniPSF.backend.parameters.*;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Component
-public class Obrazac5Service extends AbParameterService implements ObrazacChecker {
+public class Obrazac5Service extends AbParameterService implements IfObrazacChecker, IfObrazacService {
     private final Obrazac5Repository obrazacRepository;
     private final SekretarijarService sekretarijarService;
     private final Obrazac5DetailsService obrazac5DetailsService;
@@ -45,7 +42,7 @@ public class Obrazac5Service extends AbParameterService implements ObrazacChecke
 
     //--5--
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public StringBuilder saveZakljucniFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
+    public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
 
@@ -71,7 +68,7 @@ public class Obrazac5Service extends AbParameterService implements ObrazacChecke
                 .dinarski(1)
                 .status(0)
                 .poslato_o(0)
-                .radna(1)
+                .RADNA(1)
                 .povuceno(0)
                 .konacno(0)
                 .poslao_nam(user.getSifraradnika())
@@ -141,7 +138,7 @@ public class Obrazac5Service extends AbParameterService implements ObrazacChecke
             return "";
 
         var obrazacZb = optionalObrazacZb.get();
-        if (obrazacZb.getRadna() == 0 || obrazacZb.getSTORNO() == 1)
+        if (obrazacZb.getRADNA() == 0 || obrazacZb.getSTORNO() == 1)
             return "";
 
         obrazacZb.setOpisstorno("Storniran prethodni dokument!");
@@ -159,7 +156,7 @@ public class Obrazac5Service extends AbParameterService implements ObrazacChecke
     public String stornoObr5(Integer id, String email) {
         User user = this.getUser(email);
         var obrazacZb = obrazacRepository.findById(id).get();
-        obrazacZb.setRadna(0);
+        obrazacZb.setRADNA(0);
         obrazacZb.setStorno(1);
         obrazacZb.setStosifrad(user.getSifraradnika());
         obrazacRepository.save(obrazacZb);
@@ -168,7 +165,7 @@ public class Obrazac5Service extends AbParameterService implements ObrazacChecke
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoObr5(Obrazac5 obrazac5, User user) {
-        obrazac5.setRadna(0);
+        obrazac5.setRADNA(0);
         obrazac5.setStorno(1);
         obrazac5.setStosifrad(user.getSifraradnika());
         obrazacRepository.save(obrazac5);
