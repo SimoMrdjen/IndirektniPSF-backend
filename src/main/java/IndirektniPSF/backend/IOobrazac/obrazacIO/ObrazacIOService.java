@@ -30,7 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ObrazacIOService extends AbParameterService implements IfObrazacChecker, IfObrazacService {
+public class ObrazacIOService extends AbParameterService implements IfObrazacChecker, IfObrazacService<ObrazacIO> {
 
     private final ObrazacIORepository obrazacIOrepository;
     private final SekretarijarService sekretarijarService;
@@ -51,7 +51,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
         User user = this.getUser(email);
         Integer jbbks = this.getJbbksIBK(user);
-        Integer version = checkIfExistValidZListAndFindVersion( jbbks, kvartal);
+        Integer version = checkIfExistValidObrazacIOAndFindVersion( jbbks, kvartal);
         responseMessage.delete(0, responseMessage.length());
         ZakljucniListZb zakList = this.findValidZakList(kvartal, jbbks);
         Integer sifSekret = user.getZa_sif_sekret();
@@ -122,7 +122,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         return optionalZb.get();
     }
 
-    private Integer checkIfExistValidZListAndFindVersion(Integer jbbk, Integer kvartal) throws Exception {
+    private Integer checkIfExistValidObrazacIOAndFindVersion(Integer jbbk, Integer kvartal) throws Exception {
 
         Optional<ObrazacIO> optionalZb =
                obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk , kvartal);
@@ -182,8 +182,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public String stornoObrIOFromUser(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-        var zb = obrazacIOrepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
+       var zb =  findObrazacById(id);
         this.checkStatusAndStorno(zb);
         zb.setSTORNO(1);
         zb.setRADNA(0);
@@ -204,10 +203,15 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public String raiseStatus(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-        var zb = obrazacIOrepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
+        var zb = findObrazacById(id);
         this.checkStatusAndStorno(zb);
         return String.valueOf(statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacIOrepository));
+    }
+
+    public ObrazacIO findObrazacById(Integer id) throws Exception {
+        return
+                 obrazacIOrepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
     }
 
 }

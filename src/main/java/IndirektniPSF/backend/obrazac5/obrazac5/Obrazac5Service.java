@@ -2,6 +2,7 @@ package IndirektniPSF.backend.obrazac5.obrazac5;
 
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIORepository;
+import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5Mapper;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5DetailsService;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Component
-public class Obrazac5Service extends AbParameterService implements IfObrazacChecker, IfObrazacService {
+public class Obrazac5Service extends AbParameterService implements IfObrazacChecker, IfObrazacService<Obrazac5> {
     private final Obrazac5Repository obrazacRepository;
     private final SekretarijarService sekretarijarService;
     private final Obrazac5DetailsService obrazac5DetailsService;
@@ -46,14 +46,17 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
         responseMessage.delete(0, responseMessage.length());
 
+
+
         User user = this.getUser(email);
+        var jbbk = getJbbksIBK(user);
+
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-        var jbbk = getJbbksIBK(user);
         ObrazacIO validIO = this. findValidIO(kvartal, jbbk);
 //        checkDuplicatesKonta(dtos);
-        Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
+        Integer version = checkIfExistValidObrazac5AndFindVersion( jbbk, kvartal);
 
         List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
@@ -94,6 +97,13 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         return responseMessage;
     }
 
+    @Override
+    public Obrazac5 findObrazacById(Integer id) {
+
+       return obrazacRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Obrazac 5  ne postoji!"));
+    }
+
     private ObrazacIO findValidIO(Integer kvartal, Integer jbbk) throws Exception {
         Optional<ObrazacIO> optionalZb =
                 obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
@@ -115,24 +125,22 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         this.isObrazacStorniran(zb);
         return mapper.toResponse(zb);
     }
-//    public void isObrazacStorniran(Obrazac5 zb) throws Exception {
-//        if (zb.getStorno() == 1) {
-//            throw new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
-//        }
-//    }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) {
-        var optionalObrazacZb = this.findLastVersionOfObrazacZb(jbbks, kvartal);
+    public Integer checkIfExistValidObrazac5AndFindVersion(Integer jbbks, Integer kvartal) throws ObrazacException {
+        var optionalObrazacZb =
+                this.findLastVersionOfObrazac5Zb(jbbks, kvartal);
         if (optionalObrazacZb.isEmpty()) {
         return 1;}
-        return optionalObrazacZb.get().getVerzija() + 1;
+        Obrazac5 zb = optionalObrazacZb.get();
+        checkIfExistValidObrazacYet(zb);
+        return zb.getVerzija() + 1;
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoObrAfterObrIO(User user, Integer kvartal) {
 
-        Optional<Obrazac5> optionalObrazacZb = this.findLastVersionOfObrazacZb(user, kvartal);
+        Optional<Obrazac5> optionalObrazacZb = this.findLastVersionOfObrazac5Zb(user, kvartal);
 
         if (optionalObrazacZb.isEmpty())
             return "";
@@ -146,8 +154,8 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     }
 
     public String stornoObr5FromUser(Integer id, String email, Integer kvartal) {
-      var zbForStorno = obrazacRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
+
+      var zbForStorno = findObrazacById(id);
         User user = this.getUser(email);
        return stornoObr5(zbForStorno, user);
     }
@@ -165,6 +173,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoObr5(Obrazac5 obrazac5, User user) {
+
         obrazac5.setRADNA(0);
         obrazac5.setStorno(1);
         obrazac5.setStosifrad(user.getSifraradnika());
@@ -172,16 +181,16 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         return "Obrazac5 uspesno je storniran";
     }
 
-    private  Optional<Obrazac5> findLastVersionOfObrazacZb(User user, Integer kvartal) {
+    private  Optional<Obrazac5> findLastVersionOfObrazac5Zb(User user, Integer kvartal) {
         var jbbk = this.getJbbksIBK(user);
         return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
-    private  Optional<Obrazac5> findLastVersionOfObrazacZb(Integer jbbk, Integer kvartal) {
+    private  Optional<Obrazac5> findLastVersionOfObrazac5Zb(Integer jbbk, Integer kvartal) {
         return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
-    private  Optional<Obrazac5> findLastVersionOfObrazacZb(String email, Integer kvartal) {
+    private  Optional<Obrazac5> findLastVersionOfObrazac5Zb(String email, Integer kvartal) {
 
         var jbbk = this.getJbbksIBK(email);
         return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
@@ -189,7 +198,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     public List<ObrazacResponse> findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
 
-        Obrazac5 zb = findLastVersionOfObrazacZb(email, kvartal)
+        Obrazac5 zb = findLastVersionOfObrazac5Zb(email, kvartal)
                 .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         isObrazacSentToDBK(zb);
         return List.of(mapper.toResponse(zb));
@@ -197,7 +206,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     public List<ObrazacResponse> findValidObrazacToRaise(String email, Integer status, Integer kvartal) throws Exception {
         //TODO implement logic
-        Obrazac5 zb = findLastVersionOfObrazacZb(email, kvartal)
+        Obrazac5 zb = findLastVersionOfObrazac5Zb(email, kvartal)
                 .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         isObrazacStorniran(zb);
         statusService.resolveObrazacAccordingStatus(zb, status);
@@ -207,16 +216,9 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     public String raiseStatus(Integer id, String email) throws Exception {
 
         User user = this.getUser(email);
-        var zb = obrazacRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Obrazac 5  ne postoji!"));
-        isObrazacSentToDBK(zb);
-        isObrazacStorniran(zb);
+        var zb = findObrazacById(id);
+        this.checkStatusAndStorno(zb);
         return statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacRepository);
     }
-//    private void isObrazacSentToDBK(Obrazac5 zb) throws Exception {
-//
-//        if (zb.getSTATUS() >= 20) {
-//            throw new Exception("Obrazac je vec poslat vasem DBK-u");
-//        }
-//    }
+
 }

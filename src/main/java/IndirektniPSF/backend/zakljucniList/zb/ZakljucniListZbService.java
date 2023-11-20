@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ZakljucniListZbService extends AbParameterService implements IfObrazacChecker, IfObrazacService {
+public class ZakljucniListZbService extends AbParameterService implements IfObrazacChecker, IfObrazacService<ZakljucniListZb> {
 
     private final ZakljucniListZbRepository zakljucniRepository;
     private final SekretarijarService sekretarijarService;
@@ -163,7 +163,8 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return String.valueOf(statusService.raiseStatusDependentOfActuallStatus(zb, user, zakljucniRepository));
     }
 
-    public ZakljucniListZb findZakListById(Integer id) {
+    @Override
+    public ZakljucniListZb findObrazacById(Integer id) {
         return   zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
     }
@@ -174,7 +175,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     public String stornoZakList(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-        var zb = this.findZakListById(id);
+        var zb = this.findObrazacById(id);
         this.checkStatusAndStorno(zb);
         zb.setSTORNO(1);
         zb.setRadna(0);
