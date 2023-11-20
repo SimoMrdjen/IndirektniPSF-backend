@@ -115,7 +115,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
 
-        if (optionalZb.isEmpty() || optionalZb.get().getRadna() == 0 || optionalZb.get().getSTORNO() == 1) {
+        if (optionalZb.isEmpty() || optionalZb.get().getRADNA() == 0 || optionalZb.get().getSTORNO() == 1) {
             throw new Exception("Nije moguce ucitati obrazac,\nne postoji vec ucitan" +
                     "Zakljucni list. Prvo ucitajte \n Zakljucni list!");
         }

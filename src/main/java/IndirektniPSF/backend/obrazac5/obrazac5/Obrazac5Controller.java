@@ -61,7 +61,7 @@ public class Obrazac5Controller {
             return ResponseEntity.ok(obrazac5Service.findValidObrazacToStorno(email, kvartal));
     }
 
-    @PutMapping(value = "/storno/{id}/")
+    @PutMapping(value = "/storno/{id}")
     public ResponseEntity<String> stornoZakList(@PathVariable(name = "id") Integer id,
                                            @RequestParam(name = "kvartal") Integer kvartal) {
 

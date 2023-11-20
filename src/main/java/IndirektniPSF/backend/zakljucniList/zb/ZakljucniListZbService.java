@@ -61,7 +61,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         //provere
         checkDuplicatesKonta(dtos);
-        Integer version = checkIfExistValidZListAndFindVersion(kvartal, jbbk);
+        Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
         checkJbbks(user, jbbk);
 
         var zb =
@@ -95,7 +95,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return responseMessage;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+  @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception {
 
         Optional<ZakljucniListZb> optionalZb =
@@ -178,7 +178,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         var zb = this.findObrazacById(id);
         this.checkStatusAndStorno(zb);
         zb.setSTORNO(1);
-        zb.setRadna(0);
+        zb.setRADNA(0);
         zb.setSTOSIFRAD(user.getSifraradnika());
         //TODO dodati opis storno
         zb.setOPISSTORNO("Naknadno");

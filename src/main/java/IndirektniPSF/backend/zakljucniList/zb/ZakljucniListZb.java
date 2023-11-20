@@ -9,9 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "OBRAZAC_ZAK_LIST_ZB")
@@ -118,5 +116,12 @@ public class ZakljucniListZb implements StatusUpdatable {
 
     private String OPISSTORNO;
 
+    public Integer getRADNA() {
+        return this.radna;
+    }
+
+    public void setRADNA(Integer radna) {
+        this.radna = radna;
+    }
 
 }
