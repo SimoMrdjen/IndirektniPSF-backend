@@ -18,6 +18,7 @@ import java.util.List;
 @Data
 @Builder
 public class Obrazac5 implements StatusUpdatable {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

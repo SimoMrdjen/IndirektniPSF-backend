@@ -19,6 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "ind_lozinka")
 public class User implements UserDetails {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Id
     private Integer sifraradnika;

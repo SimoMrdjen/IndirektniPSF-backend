@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class ObrazacIODetails {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

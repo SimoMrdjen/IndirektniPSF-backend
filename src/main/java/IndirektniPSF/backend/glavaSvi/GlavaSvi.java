@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 @Table(name = "GLAVASVI")
 public class GlavaSvi {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Column(name = "SIFRAGLAVE")
     private Integer sifraGlave;
