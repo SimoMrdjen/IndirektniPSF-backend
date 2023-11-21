@@ -1,9 +1,11 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
+import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
@@ -113,6 +115,18 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         var jbbks = this.getJbbksIBK(email);
         ZakljucniListZb zb = findLastObrazacForKvartal(jbbks, kvartal);
         this.isObrazacStorniran(zb);
+        //check next
+        ObrazacIO obrazacIO =
+                obrazacIoService.findLastOptionalIOForKvartal(email, kvartal)
+                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
+                                "jer ne postoji ucitan Obrazac IO.\n" +
+                                "Morate prethodno ucitati Obrazac IO!"));
+
+        if (obrazacIO.getSTORNO() == 1) {
+            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac IO storniran.\n" +
+                    " Morate prethodno ucitati Obrazac IO!!");
+        }
+        statusService.resolveObrazacAccordingNextObrazac(zb, obrazacIO);
         statusService.resolveObrazacAccordingStatus(zb, status);
         return List.of(mapper.toResponse(zb));
     }

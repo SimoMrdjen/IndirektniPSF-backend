@@ -186,7 +186,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
-    private  Optional<Obrazac5> findLastVersionOfObrazac5Zb(Integer jbbk, Integer kvartal) {
+    public   Optional<Obrazac5> findLastVersionOfObrazac5Zb(Integer jbbk, Integer kvartal) {
         return obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbk);
     }
 
@@ -210,6 +210,9 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         isObrazacStorniran(zb);
         statusService.resolveObrazacAccordingStatus(zb, status);
+        // check previous
+        var obrazacIO = findValidIO(kvartal, getJbbksIBK(email));
+        statusService.resolveObrazacAccordingPreviousObrazac(zb, obrazacIO);
         return List.of(mapper.toResponse(zb));
     }
 

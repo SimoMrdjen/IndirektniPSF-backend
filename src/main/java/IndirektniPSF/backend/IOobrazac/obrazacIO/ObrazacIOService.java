@@ -5,6 +5,8 @@ import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailService;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIOMapper;
 import IndirektniPSF.backend.excel.ExcelService;
+import IndirektniPSF.backend.exceptions.ObrazacException;
+import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5Service;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
@@ -15,6 +17,7 @@ import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.sl.draw.geom.GuideIf;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -43,6 +46,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 //    private final ZakljucniListZbService zakljucniListZbService;
     private final ObrazacIOMapper mapper;
     private final ZakljucniListZbRepository zakljucniRepository;
+
     private final StatusService statusService;
 
 
@@ -193,10 +197,27 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
     public List<ObrazacResponse> findValidObrazacToRaise(String email,Integer status, Integer kvartal) throws Exception {
 
+        Integer jbbks = getJbbksIBK(email);
         ObrazacIO zb = findLastOptionalIOForKvartal(email, kvartal)
                 .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         this.isObrazacStorniran(zb);
+
         statusService.resolveObrazacAccordingStatus(zb, status);
+        //check next
+        Obrazac5 obrazac5 =
+                obrazac5Service.findLastVersionOfObrazac5Zb(jbbks, kvartal)
+                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
+                                "jer ne postoji ucitan Obrazac 5.\n" +
+                                "Morate prethodno ucitati Obrazac 5!"));
+
+        if (obrazac5.getSTORNO() == 1) {
+            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac 5 storniran.\n" +
+                    " Morate prethodno ucitati Obrazac 5!!");
+        }
+        statusService.resolveObrazacAccordingNextObrazac(zb, obrazac5);
+        // check previous
+        var zakList = this.findValidZakList(kvartal, jbbks);
+        statusService.resolveObrazacAccordingPreviousObrazac(zb, zakList);
         return List.of(mapper.toResponse(zb));
     }
 
