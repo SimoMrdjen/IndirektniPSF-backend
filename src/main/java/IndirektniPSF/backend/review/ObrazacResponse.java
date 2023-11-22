@@ -1,5 +1,6 @@
-package IndirektniPSF.backend.parameters;
+package IndirektniPSF.backend.review;
 
+import IndirektniPSF.backend.review.ObrazacType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +30,8 @@ public class ObrazacResponse {
     Integer status;
     @JsonProperty("indirektni")
     Integer indirektni;
+    @JsonProperty("obrazacType")
+    ObrazacType obrazacType;
+    @JsonProperty("storno")
+    ValidOrStorno storno;
 }

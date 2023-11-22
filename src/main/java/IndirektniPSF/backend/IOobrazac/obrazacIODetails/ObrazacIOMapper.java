@@ -2,7 +2,8 @@ package IndirektniPSF.backend.IOobrazac.obrazacIODetails;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
-import IndirektniPSF.backend.parameters.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacResponse;
+import IndirektniPSF.backend.review.ValidOrStorno;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Component;
 
@@ -109,6 +110,7 @@ public class ObrazacIOMapper {
                 .version(zb.getVERZIJA())
                 .status(zb.getSTATUS())
                 .jbbk(zb.getJBBK_IND_KOR())
+                .storno(zb.getSTORNO() == 0 ? ValidOrStorno.VALIDAN : ValidOrStorno.STORNIRAN)
                 .build();
     }
 }

@@ -12,12 +12,13 @@ import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.*;
+import IndirektniPSF.backend.review.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.sl.draw.geom.GuideIf;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -124,6 +125,17 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                     "Zakljucni list. Prvo ucitajte \n Zakljucni list!");
         }
         return optionalZb.get();
+    }
+
+    public ObrazacResponse obrazacIOForResponse(Integer jbbks, Integer kvartal) {
+        Optional<ObrazacIO> optionalObrazacIO =
+                obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbks, kvartal);
+        if (optionalObrazacIO.isPresent()) {
+            ObrazacResponse obrazacResponse = mapper.toResponse(optionalObrazacIO.get());
+            obrazacResponse.setObrazacType(ObrazacType.OBRAZAC_IO);
+            return obrazacResponse;
+        }
+        return null;
     }
 
     private Integer checkIfExistValidObrazacIOAndFindVersion(Integer jbbk, Integer kvartal) throws Exception {

@@ -10,6 +10,8 @@ import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.*;
+import IndirektniPSF.backend.review.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -113,6 +115,19 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                     "Obrazac IO. Prvo ucitajte \n Obrazac IO!");
         }
         return optionalZb.get();
+    }
+
+    public ObrazacResponse obrazac5ForResponse(Integer jbbks, Integer kvartal) {
+        Optional<Obrazac5> optionalObrazac5 =
+                obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(jbbks, kvartal);
+        if (optionalObrazac5.isPresent()) {
+            ObrazacResponse obrazacResponse = mapper.toResponse(optionalObrazac5.get());
+            obrazacResponse.setObrazacType(ObrazacType.OBRAZAC_5);
+            return obrazacResponse;
+        }
+        var response = new ObrazacResponse();
+        response.setObrazacType(ObrazacType.OBRAZAC_5);
+        return response;
     }
 
     private ObrazacResponse findValidObr5ForStorno(String email, Integer kvartal) throws Exception {

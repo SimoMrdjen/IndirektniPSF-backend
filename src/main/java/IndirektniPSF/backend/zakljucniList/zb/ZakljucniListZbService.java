@@ -5,11 +5,13 @@ import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
-import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.*;
+import IndirektniPSF.backend.review.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacType;
+import IndirektniPSF.backend.review.ReviewService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
@@ -135,7 +137,10 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks)
                         .orElseThrow(() -> new ObrazacException("Ne postoji ucitan dokument!"));
     }
-
+    public Optional<ZakljucniListZb> findLastObrazacForKvartalOptional(Integer jbbks, Integer kvartal) {
+        return
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
+    }
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
 
             var validError = obrKontrService.isKontrolaMandatory(9);
@@ -211,5 +216,17 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         this.isObrazacStorniran(zb);
         this.isObrazacSentToDBK(zb);
         return List.of(mapper.toResponse(zb));
+    }
+
+
+    public ObrazacResponse getZakListResponse(Integer jbbks, Integer kvartal) {
+        Optional<ZakljucniListZb> optionalZakljucniListZb =
+                findLastObrazacForKvartalOptional(jbbks, kvartal);
+        if (optionalZakljucniListZb.isPresent()) {
+            ObrazacResponse zakListResponse = mapper.toResponse(optionalZakljucniListZb.get());
+            zakListResponse.setObrazacType(ObrazacType.ZAKLJUCNI_LIST);
+            return zakListResponse;
+        }
+        return null;
     }
 }

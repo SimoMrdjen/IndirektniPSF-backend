@@ -1,7 +1,7 @@
 package IndirektniPSF.backend.IOobrazac.obrazacIO;
 
 import IndirektniPSF.backend.fileUpload.FileUploadService;
-import IndirektniPSF.backend.parameters.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.security.auth.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

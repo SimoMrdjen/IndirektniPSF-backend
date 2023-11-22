@@ -2,7 +2,8 @@ package IndirektniPSF.backend.obrazac5.obrazac5Details;
 
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
-import IndirektniPSF.backend.parameters.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacResponse;
+import IndirektniPSF.backend.review.ValidOrStorno;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Component;
 
@@ -108,6 +109,7 @@ public class Obrazac5Mapper {
                 .version(zb.getVerzija())
                 .status(zb.getSTATUS())
                 .jbbk(zb.getJbbk_ind_kor())
+                .storno(zb.getSTORNO() == 0 ? ValidOrStorno.VALIDAN : ValidOrStorno.STORNIRAN)
                 .build();
     }
 

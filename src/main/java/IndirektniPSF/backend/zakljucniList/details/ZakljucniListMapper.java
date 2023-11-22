@@ -1,6 +1,7 @@
 package IndirektniPSF.backend.zakljucniList.details;
 
-import IndirektniPSF.backend.parameters.ObrazacResponse;
+import IndirektniPSF.backend.review.ObrazacResponse;
+import IndirektniPSF.backend.review.ValidOrStorno;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,6 +24,7 @@ public class ZakljucniListMapper {
                                                String oznakaGlave) {
         Integer konto = Integer
                 .parseInt(dto.getProp1().trim());
+
         return ZakljucniListDetails.builder()
                 //.GEN_MYSQL(zb.getGenMysql())
                 .zakljucniListZb(zb)
@@ -83,6 +85,7 @@ public class ZakljucniListMapper {
 
     public ObrazacResponse toResponse(ZakljucniListZb zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDATUM_DOK() - 25569);
+
         return ObrazacResponse.builder()
                 .id(zb.getGenMysql())
                 .date(date)
@@ -91,6 +94,7 @@ public class ZakljucniListMapper {
                 .version(zb.getVerzija())
                 .status(zb.getSTATUS())
                 .jbbk(zb.getJbbkIndKor())
+                .storno(zb.getSTORNO() == 0 ? ValidOrStorno.VALIDAN : ValidOrStorno.STORNIRAN)
                 .build();
     }
 }
