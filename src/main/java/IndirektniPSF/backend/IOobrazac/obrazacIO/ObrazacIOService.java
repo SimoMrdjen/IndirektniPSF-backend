@@ -16,6 +16,7 @@ import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
+import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import org.webjars.NotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -42,12 +44,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     private final ObrazacIODetailService obrazacIODetailService;
     private final UserRepository userRepository;
     private final Obrazac5Service obrazac5Service;
-    private StringBuilder responseMessage =  new StringBuilder();
+    private StringBuilder responseMessage = new StringBuilder();
     private final ExcelService excelService;
-//    private final ZakljucniListZbService zakljucniListZbService;
     private final ObrazacIOMapper mapper;
     private final ZakljucniListZbRepository zakljucniRepository;
-
     private final StatusService statusService;
 
 
@@ -56,7 +56,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
         User user = this.getUser(email);
         Integer jbbks = this.getJbbksIBK(user);
-        Integer version = checkIfExistValidObrazacIOAndFindVersion( jbbks, kvartal);
+        Integer version = checkIfExistValidObrazacIOAndFindVersion(jbbks, kvartal);
         responseMessage.delete(0, responseMessage.length());
         ZakljucniListZb zakList = this.findValidZakList(kvartal, jbbks);
         Integer sifSekret = user.getZa_sif_sekret();
@@ -65,10 +65,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
 
         try {
-            Integer year = excelService.readCellByIndexes(file.getInputStream(), 2,3);
-            Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2,1);
+            Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
+            Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
 //          chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
-            List<ObrazacIODTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
+            List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 //          checkDuplicatesKonta(dtos);
             checkJbbks(user, jbbkExcel);
 
@@ -107,18 +107,31 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
             ObrazacIO obrIOSaved = obrazacIOrepository.save(obrIO);
 
-           var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke());
+            var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke());
 //           obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
             return responseMessage;
         } catch (Exception ex) {
-            System.out.println( "Exception occurred while processing the file" + ex);
+            System.out.println("Exception occurred while processing the file" + ex);
             throw ex;
         }
     }
 
+    @Override
+    public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) throws Exception {
+
+        var zb = findObrazacById(id, kvartal);
+        List<ObrazacIODTO> details =
+                zb.getStavke().stream()
+                        .map(mapper::toDto)
+                        .collect(Collectors.toList());
+        ObrazacResponse response = mapper.toResponse(zb);
+        response.setObrazacIODTOS(details);
+        return response;
+    }
+
     private ZakljucniListZb findValidZakList(Integer kvartal, Integer jbbks) throws Exception {
         Optional<ZakljucniListZb> optionalZb =
-                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
 
         if (optionalZb.isEmpty() || optionalZb.get().getRADNA() == 0 || optionalZb.get().getSTORNO() == 1) {
             throw new Exception("Nije moguce ucitati obrazac,\nne postoji vec ucitan" +
@@ -135,13 +148,15 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             obrazacResponse.setObrazacType(ObrazacType.OBRAZAC_IO);
             return obrazacResponse;
         }
-        return null;
+        var response = new ObrazacResponse();
+        response.setObrazacType(ObrazacType.OBRAZAC_IO);
+        return response;
     }
 
     private Integer checkIfExistValidObrazacIOAndFindVersion(Integer jbbk, Integer kvartal) throws Exception {
 
         Optional<ObrazacIO> optionalZb =
-               obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk , kvartal);
+                obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
         if (optionalZb.isEmpty()) {
             return 1;
         }
@@ -149,10 +164,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         checkIfExistValidObrazacYet(zb);
         return zb.getVERZIJA() + 1;
     }
+
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoIOAfterStornoZakList(User user, Integer kvartal) throws Exception {
 
-        var optionalIO = findLastOptionalIOForKvartal(user,kvartal);
+        var optionalIO = findLastOptionalIOForKvartal(user, kvartal);
 
         if (optionalIO.isEmpty() || optionalIO.get().getRADNA() == 0 || optionalIO.get().getSTORNO() == 1) {
             return "";
@@ -171,9 +187,9 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public String stornoIO(Integer id, String email) {
         var user = this.getUser(email);
         var io = obrazacIOrepository.findById(id).get();
-            io.setSTORNO(1);
-            io.setRADNA(0);
-            io.setSTOSIFRAD(user.getSifraradnika());
+        io.setSTORNO(1);
+        io.setRADNA(0);
+        io.setSTOSIFRAD(user.getSifraradnika());
         obrazacIOrepository.save(io);
         return "Obrazac IO je storniran!" + obrazac5Service.stornoObrAfterObrIO(user, io.getKOJI_KVARTAL());
     }
@@ -182,10 +198,12 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         var jbbk = this.getJbbksIBK(user);
         return obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
     }
+
     public Optional<ObrazacIO> findLastOptionalIOForKvartal(String email, Integer kvartal) {
         var jbbk = this.getJbbksIBK(email);
         return obrazacIOrepository.findFirstByJbbkIndKorAndKojiKvartalOrderByVerzijaDesc(jbbk, kvartal);
     }
+
     public List<ObrazacResponse> findValidObrazacToStorno(String email, Integer kvartal) throws Exception {
         ObrazacIO zb = findLastOptionalIOForKvartal(email, kvartal)
                 .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
@@ -198,7 +216,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public String stornoObrIOFromUser(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-       var zb =  findObrazacById(id);
+        var zb = findObrazacById(id, kvartal);
         this.checkStatusAndStorno(zb);
         zb.setSTORNO(1);
         zb.setRADNA(0);
@@ -207,7 +225,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         return "Obrazac IO je uspesno storniran!\n" + obrazac5Service.stornoObrAfterObrIO(user, kvartal);
     }
 
-    public List<ObrazacResponse> findValidObrazacToRaise(String email,Integer status, Integer kvartal) throws Exception {
+    public List<ObrazacResponse> findValidObrazacToRaise(String email, Integer status, Integer kvartal) throws Exception {
 
         Integer jbbks = getJbbksIBK(email);
         ObrazacIO zb = findLastOptionalIOForKvartal(email, kvartal)
@@ -236,15 +254,15 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public String raiseStatus(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-        var zb = findObrazacById(id);
+        var zb = findObrazacById(id, kvartal);
         this.checkStatusAndStorno(zb);
         return String.valueOf(statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacIOrepository));
     }
 
-    public ObrazacIO findObrazacById(Integer id) throws Exception {
+    public ObrazacIO findObrazacById(Integer id, Integer kvartal) throws Exception {
         return
-                 obrazacIOrepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
+                obrazacIOrepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
     }
 
 }

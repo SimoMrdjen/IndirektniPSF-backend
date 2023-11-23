@@ -23,7 +23,7 @@ public class ZakljucniListMapper {
                                                ZakljucniListZb zb,
                                                String oznakaGlave) {
         Integer konto = Integer
-                .parseInt(dto.getProp1().trim());
+                .parseInt(dto.getKonto().trim());
 
         return ZakljucniListDetails.builder()
                 //.GEN_MYSQL(zb.getGenMysql())
@@ -43,10 +43,10 @@ public class ZakljucniListMapper {
                 .SIN_KONTO(konto / 100)
                 .KONTO(konto)
                 .RED_BROJ_AKT(0)
-                .DUGUJE_PS(dto.getProp2())
-                .POTRAZUJE_PS(dto.getProp3())
-                .DUGUJE_PR(dto.getProp4())
-                .POTRAZUJE_PR(dto.getProp5())
+                .DUGUJE_PS(dto.getDugujePs())
+                .POTRAZUJE_PS(dto.getPotrazujePs())
+                .DUGUJE_PR(dto.getDugujePr())
+                .POTRAZUJE_PR(dto.getPotrazujePr())
                 .UNOSIO(zb.getPOSLAO_NAM())
                 .build();
     }
@@ -67,11 +67,11 @@ public class ZakljucniListMapper {
                 }
 
                 ZakljucniListDto dto = new ZakljucniListDto();
-                dto.setProp1(row.getCell(0).getStringCellValue());
-                dto.setProp2(row.getCell(1).getNumericCellValue());
-                dto.setProp3(row.getCell(2).getNumericCellValue());
-                dto.setProp4(row.getCell(3).getNumericCellValue());
-                dto.setProp5(row.getCell(4).getNumericCellValue());
+                dto.setKonto(row.getCell(0).getStringCellValue());
+                dto.setDugujePs(row.getCell(1).getNumericCellValue());
+                dto.setPotrazujePs(row.getCell(2).getNumericCellValue());
+                dto.setDugujePr(row.getCell(3).getNumericCellValue());
+                dto.setPotrazujePr(row.getCell(4).getNumericCellValue());
 
                 zakljucniListDtos.add(dto);
                 i++;
@@ -97,4 +97,16 @@ public class ZakljucniListMapper {
                 .storno(zb.getSTORNO() == 0 ? ValidOrStorno.VALIDAN : ValidOrStorno.STORNIRAN)
                 .build();
     }
+
+    public ZakljucniListDto toDto(ZakljucniListDetails zld) {
+
+        return ZakljucniListDto.builder()
+                .konto(String.format("%06d", zld.getKONTO()))
+                .dugujePs(zld.getDUGUJE_PS())
+                .potrazujePs(zld.getPOTRAZUJE_PS())
+                .dugujePr(zld.getDUGUJE_PR())
+                .potrazujePr(zld.getPOTRAZUJE_PR())
+                .build();
+    }
+
 }

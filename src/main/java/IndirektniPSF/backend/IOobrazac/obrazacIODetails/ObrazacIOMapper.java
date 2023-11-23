@@ -15,25 +15,25 @@ import java.util.List;
 @Component
 public class ObrazacIOMapper {
 
-    public ObrazacIODetails mapDtoToEntity(ObrazacIODTO obrazacIODTO) {
+    public ObrazacIODetails toEntity(ObrazacIODTO obrazacIODTO) {
 
-        Integer konto = obrazacIODTO.getProp3();
+        Integer konto = obrazacIODTO.getKonto();
         Double dugg =
-                (konto >= 400000 && konto <= 699999) ? obrazacIODTO.getProp6() : 0;
+                (konto >= 400000 && konto <= 699999) ? obrazacIODTO.getPlan() : 0;
         Double potg =
-                (konto < 400000 && konto > 699999) ? obrazacIODTO.getProp6() : 0;
+                (konto < 400000 && konto > 699999) ? obrazacIODTO.getPlan() : 0;
         Double duguje =
-                (konto >= 400000 && konto <= 699999) ? obrazacIODTO.getProp7() : 0;
+                (konto >= 400000 && konto <= 699999) ? obrazacIODTO.getIzvrsenje() : 0;
         Double potrazuje =
-                (konto < 400000 && konto > 699999) ? obrazacIODTO.getProp7() : 0;
+                (konto < 400000 && konto > 699999) ? obrazacIODTO.getIzvrsenje() : 0;
         return
         ObrazacIODetails.builder()
-                .RED_BROJ_AKT(obrazacIODTO.getProp1())
-                .FUNK_KLAS(obrazacIODTO.getProp2())
+                .RED_BROJ_AKT(obrazacIODTO.getRedBrojAkt())
+                .FUNK_KLAS(obrazacIODTO.getFunkKlas())
                 .SIN_KONTO(konto / 100)
                 .KONTO(konto)
-                .IZVORFIN(obrazacIODTO.getProp4())
-                .IZVORFIN_PRE(obrazacIODTO.getProp5())
+                .IZVORFIN(obrazacIODTO.getIzvorFin())
+                .IZVORFIN_PRE(obrazacIODTO.getIzvorFinPre())
                 .ALINEA(0)
                 .DUGG(dugg)
                 .POTG(potg)
@@ -53,13 +53,13 @@ public class ObrazacIOMapper {
         private void assignStringValue(ObrazacIODTO dto, int columnIndex, String value) {
             switch (columnIndex) {
                 case 1:
-                    dto.setProp2(value);
+                    dto.setFunkKlas(value);
                     break;
                 case 3:
-                    dto.setProp4(value);
+                    dto.setIzvorFin(value);
                     break;
                 case 4:
-                    dto.setProp5(value);
+                    dto.setIzvorFinPre(value);
                     break;
             }
         }
@@ -80,17 +80,17 @@ public class ObrazacIOMapper {
 
                 Cell cell0 = row.getCell(0, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
                 if (cell0 != null && cell0.getCellType() != CellType.BLANK) {
-                    dto.setProp1(Integer.parseInt(formatter.formatCellValue(cell0)));
+                    dto.setRedBrojAkt(Integer.parseInt(formatter.formatCellValue(cell0)));
                 } else {
                     i++;
                     continue;
                 }
-                dto.setProp2(formatter.formatCellValue(row.getCell(1)));
-                dto.setProp3(Integer.parseInt(formatter.formatCellValue(row.getCell(2))));
-                dto.setProp4(formatter.formatCellValue(row.getCell(3)));
-                dto.setProp5(formatter.formatCellValue(row.getCell(4)));
-                dto.setProp6(row.getCell(5).getNumericCellValue());
-                dto.setProp7(row.getCell(6).getNumericCellValue());
+                dto.setFunkKlas(formatter.formatCellValue(row.getCell(1)));
+                dto.setKonto(Integer.parseInt(formatter.formatCellValue(row.getCell(2))));
+                dto.setIzvorFin(formatter.formatCellValue(row.getCell(3)));
+                dto.setIzvorFinPre(formatter.formatCellValue(row.getCell(4)));
+                dto.setPlan(row.getCell(5).getNumericCellValue());
+                dto.setIzvrsenje(row.getCell(6).getNumericCellValue());
                 dtos.add(dto);
                 i++;
             }
@@ -112,5 +112,19 @@ public class ObrazacIOMapper {
                 .jbbk(zb.getJBBK_IND_KOR())
                 .storno(zb.getSTORNO() == 0 ? ValidOrStorno.VALIDAN : ValidOrStorno.STORNIRAN)
                 .build();
+    }
+
+    public ObrazacIODTO toDto(ObrazacIODetails ioDetails) {
+
+        return ObrazacIODTO.builder()
+                .redBrojAkt(ioDetails.getRED_BROJ_AKT())
+                .funkKlas(ioDetails.getFUNK_KLAS())
+                .konto(ioDetails.getKONTO())
+                .izvorFin(ioDetails.getIZVORFIN())
+                .izvorFinPre(ioDetails.getIZVORFIN_PRE())
+                .plan(ioDetails.getDUGG() + ioDetails.getPOTG())
+                .izvrsenje(ioDetails.getDUGUJE() + ioDetails.getPOTRAZUJE())
+                .build();
+
     }
 }

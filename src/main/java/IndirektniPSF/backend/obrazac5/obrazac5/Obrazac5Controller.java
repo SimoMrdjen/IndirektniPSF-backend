@@ -44,7 +44,7 @@ public class Obrazac5Controller {
                                          @RequestParam(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            return ResponseEntity.ok(obrazac5Service.raiseStatus(id, email));
+            return ResponseEntity.ok(obrazac5Service.raiseStatus(id, email, kvartal));
     }
     @GetMapping
     public ResponseEntity<List<ObrazacResponse>> getZakList(@RequestParam(name = "status") Integer status,

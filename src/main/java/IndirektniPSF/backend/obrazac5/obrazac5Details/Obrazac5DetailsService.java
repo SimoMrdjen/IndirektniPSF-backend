@@ -24,7 +24,7 @@ public class Obrazac5DetailsService {
     public List<Obrazac5details> saveDetailsExcel(List<Obrazac5DTO> dtos, Obrazac5 zb, ObrazacIO io) {
         List<Obrazac5details> obrazac5detailsList =
                 dtos.stream()
-                        .filter(dto -> dto.getProp2() % 1000 != 0)
+                        .filter(dto -> dto.getKonto() % 1000 != 0)
                         .map(obrazac5Mapper::mapDtoToEntity)
                         .collect(Collectors.toList());
 

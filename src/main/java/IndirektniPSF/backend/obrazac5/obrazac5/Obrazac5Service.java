@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.obrazac5.obrazac5;
 
+import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIORepository;
 import IndirektniPSF.backend.exceptions.ObrazacException;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 //--5--
 @RequiredArgsConstructor
@@ -100,10 +102,22 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     }
 
     @Override
-    public Obrazac5 findObrazacById(Integer id) {
+    public Obrazac5 findObrazacById(Integer id, Integer kvartal) {
 
        return obrazacRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Obrazac 5  ne postoji!"));
+    }
+
+    @Override
+    public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) {
+        var zb = findObrazacById(id, kvartal);
+        List<Obrazac5DTO> details =
+                zb.getStavke().stream()
+                        .map(mapper::toDto)
+                        .collect(Collectors.toList());
+        ObrazacResponse response = mapper.toResponse(zb);
+        response.setObrazac5DTOS(details);
+        return response;
     }
 
     private ObrazacIO findValidIO(Integer kvartal, Integer jbbk) throws Exception {
@@ -170,7 +184,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     public String stornoObr5FromUser(Integer id, String email, Integer kvartal) {
 
-      var zbForStorno = findObrazacById(id);
+      var zbForStorno = findObrazacById(id, kvartal);
         User user = this.getUser(email);
        return stornoObr5(zbForStorno, user);
     }
@@ -231,10 +245,10 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         return List.of(mapper.toResponse(zb));
     }
 
-    public String raiseStatus(Integer id, String email) throws Exception {
+    public String raiseStatus(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-        var zb = findObrazacById(id);
+        var zb = findObrazacById(id, kvartal);
         this.checkStatusAndStorno(zb);
         return statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacRepository);
     }

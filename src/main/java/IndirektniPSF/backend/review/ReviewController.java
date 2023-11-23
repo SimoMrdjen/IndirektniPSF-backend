@@ -16,11 +16,21 @@ public class ReviewController {
     private final ReviewService reviewService;
 
 
-    @GetMapping(value = "/{kvartal}")
-    public ResponseEntity<List<ObrazacResponse>> getActualObrasci(@PathVariable(name = "kvartal") Integer kvartal) {
+    @GetMapping//(value = "/{kvartal}")
+    public ResponseEntity<List<ObrazacResponse>> getActualObrasci(@RequestParam(name = "kvartal") Integer kvartal) {
 
         String email = authenticationService.getAuthenticatedUserEmail();
         return ResponseEntity
                 .ok(reviewService.getActualObrasci(email, kvartal));
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ObrazacResponse> getActualObrazac(@PathVariable(name = "id") Integer id,
+                                                            @RequestParam(name = "kvartal") Integer kvartal,
+                                                            @RequestParam(name = "typeOfObrazac") String typeOfObrazac) throws Exception {
+
+      //  String email = authenticationService.getAuthenticatedUserEmail();
+        return ResponseEntity
+                .ok(reviewService.getActualObrazacWithDetailsById(typeOfObrazac, id, kvartal));
     }
 }

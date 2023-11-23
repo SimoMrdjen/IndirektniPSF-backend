@@ -11,7 +11,6 @@ import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.*;
 import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ObrazacType;
-import IndirektniPSF.backend.review.ReviewService;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
@@ -40,7 +39,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
     private final ZakljucniDetailsService zakljucniDetailsService;
-    private StringBuilder responseMessage =  new StringBuilder();
+    private StringBuilder responseMessage = new StringBuilder();
     private final ObrKontrService obrKontrService;
     private final ExcelService excelService;
     private final ZakljucniListMapper mapper;
@@ -52,12 +51,12 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3,4);
-        Integer jbbk =  excelService.readCellByIndexes(file.getInputStream(), 2,1);
-        Integer excelKvartal =  excelService.readCellByIndexes(file.getInputStream(), 3,1);
+        Integer year = excelService.readCellByIndexes(file.getInputStream(), 3, 4);
+        Integer jbbk = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
+        Integer excelKvartal = excelService.readCellByIndexes(file.getInputStream(), 3, 1);
         //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
 
-        List<ZakljucniListDto> dtos =mapper.mapExcelToPojo(file.getInputStream());
+        List<ZakljucniListDto> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
         User user = this.getUser(email);
         Integer sifSekret = user.getZa_sif_sekret();
@@ -65,7 +64,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         //provere
         checkDuplicatesKonta(dtos);
-        Integer version = checkIfExistValidZListAndFindVersion( jbbk, kvartal);
+        Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
         checkJbbks(user, jbbk);
 
         var zb =
@@ -99,11 +98,11 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return responseMessage;
     }
 
-  @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception {
 
         Optional<ZakljucniListZb> optionalZb =
-                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
+                zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
         if (optionalZb.isEmpty()) {
             return 1;
         }
@@ -132,23 +131,26 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         statusService.resolveObrazacAccordingStatus(zb, status);
         return List.of(mapper.toResponse(zb));
     }
+
     public ZakljucniListZb findLastObrazacForKvartal(Integer jbbks, Integer kvartal) throws ObrazacException {
-      return
+        return
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks)
                         .orElseThrow(() -> new ObrazacException("Ne postoji ucitan dokument!"));
     }
+
     public Optional<ZakljucniListZb> findLastObrazacForKvartalOptional(Integer jbbks, Integer kvartal) {
         return
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
     }
+
     public void checkDuplicatesKonta(List<ZakljucniListDto> dtos) throws Exception {
 
-            var validError = obrKontrService.isKontrolaMandatory(9);
-            var isKontrolaActive = obrKontrService.isKontrolaActive(9);
+        var validError = obrKontrService.isKontrolaMandatory(9);
+        var isKontrolaActive = obrKontrService.isKontrolaActive(9);
 
         List<String> kontos =
                 dtos.stream()
-                        .map(dto -> dto.getProp1().trim())
+                        .map(dto -> dto.getKonto().trim())
                         .collect(Collectors.toList());
 
         List<String> duplicates = kontos.stream()
@@ -162,15 +164,14 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-            if (isKontrolaActive) {
-                if (!duplicates.isEmpty() && validError) {
-                    throw new ObrazacException("Imate duplirana konta: " + duplicates);
-                }
-                else if (!duplicates.isEmpty() && !validError) {
-                    responseMessage.append("Imate duplirana konta: " + duplicates);
-                }
+        if (isKontrolaActive) {
+            if (!duplicates.isEmpty() && validError) {
+                throw new ObrazacException("Imate duplirana konta: " + duplicates);
+            } else if (!duplicates.isEmpty() && !validError) {
+                responseMessage.append("Imate duplirana konta: " + duplicates);
             }
         }
+    }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String raiseStatus(Integer id, String email, Integer kvartal) throws Exception {
@@ -183,18 +184,19 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     }
 
     @Override
-    public ZakljucniListZb findObrazacById(Integer id) {
-        return   zakljucniRepository.findById(id)
+    public ZakljucniListZb findObrazacById(Integer id, Integer kvartal) {
+
+        return zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
     }
 
- //STORNO
+    //STORNO
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String stornoZakList(Integer id, String email, Integer kvartal) throws Exception {
 
         User user = this.getUser(email);
-        var zb = this.findObrazacById(id);
+        var zb = this.findObrazacById(id, kvartal);
         this.checkStatusAndStorno(zb);
         zb.setSTORNO(1);
         zb.setRADNA(0);
@@ -220,6 +222,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
 
 
     public ObrazacResponse getZakListResponse(Integer jbbks, Integer kvartal) {
+
         Optional<ZakljucniListZb> optionalZakljucniListZb =
                 findLastObrazacForKvartalOptional(jbbks, kvartal);
         if (optionalZakljucniListZb.isPresent()) {
@@ -227,6 +230,20 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
             zakListResponse.setObrazacType(ObrazacType.ZAKLJUCNI_LIST);
             return zakListResponse;
         }
-        return null;
+        var response = new ObrazacResponse();
+        response.setObrazacType(ObrazacType.ZAKLJUCNI_LIST);
+        return response;
+    }
+
+    public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) {
+
+        var zb = findObrazacById(id, kvartal);
+        List<ZakljucniListDto> details =
+                zb.getStavke().stream()
+                        .map(mapper::toDto)
+                        .collect(Collectors.toList());
+        ObrazacResponse response = mapper.toResponse(zb);
+        response.setZakljucniListDtos(details);
+        return response;
     }
 }

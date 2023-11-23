@@ -37,7 +37,7 @@ public class ObrazacIODetailService {
 
         List<ObrazacIODetails> obrazacList =
         dtos.stream()
-                .map(obrazacMapper::mapDtoToEntity)
+                .map(obrazacMapper::toEntity)
                // .map(dto -> obrazacMapper.mapDtoToEntity(dto))
                 .collect(Collectors.toList());
 

@@ -79,16 +79,16 @@ public class ObrazacIODetails {
     private Integer ALINEA;
 
     @Column
-    private Double DUGG;
+    private Double DUGG = 0.0;
 
     @Column
-    private Double POTG;
+    private Double POTG = 0.0;
 
     @Column
-    private Double DUGUJE;
+    private Double DUGUJE = 0.0;
 
     @Column
-    private Double POTRAZUJE;
+    private Double POTRAZUJE = 0.0;
 
     @Column
     private Double REPUBLIKA;
