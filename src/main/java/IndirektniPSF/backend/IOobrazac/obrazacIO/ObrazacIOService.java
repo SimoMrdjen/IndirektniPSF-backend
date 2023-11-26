@@ -135,7 +135,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
         if (optionalZb.isEmpty() || optionalZb.get().getRADNA() == 0 || optionalZb.get().getSTORNO() == 1) {
             throw new Exception("Nije moguce ucitati obrazac,\nne postoji vec ucitan" +
-                    "Zakljucni list. Prvo ucitajte \n Zakljucni list!");
+                    "Zakljucni list.\nPrvo ucitajte Zakljucni list!");
         }
         return optionalZb.get();
     }
@@ -180,7 +180,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         io.setSTOSIFRAD(user.getSifraradnika());
         io.setOPISSTORNO("Storniran prethodni dokument!");
         obrazacIOrepository.save(io);
-        return "Obrazac IO je storniran!" + obrazac5Service.stornoObrAfterObrIO(user, kvartal);
+        return "Obrazac IO je uspesno storniran!\n" + obrazac5Service.stornoObrAfterObrIO(user, kvartal);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -191,7 +191,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         io.setRADNA(0);
         io.setSTOSIFRAD(user.getSifraradnika());
         obrazacIOrepository.save(io);
-        return "Obrazac IO je storniran!" + obrazac5Service.stornoObrAfterObrIO(user, io.getKOJI_KVARTAL());
+        return "Obrazac IO je uspesno storniran!\n" + obrazac5Service.stornoObrAfterObrIO(user, io.getKOJI_KVARTAL());
     }
 
     public Optional<ObrazacIO> findLastOptionalIOForKvartal(User user, Integer kvartal) {

@@ -15,6 +15,7 @@ import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniDetailsService;
+import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniListMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +38,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
 
     private final ZakljucniListZbRepository zakljucniRepository;
     private final SekretarijarService sekretarijarService;
+
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
     private final ZakljucniDetailsService zakljucniDetailsService;
@@ -187,6 +190,8 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     public ZakljucniListZb findObrazacById(Integer id, Integer kvartal) {
 
         return zakljucniRepository.findById(id)
+
+//        return zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
     }
 
@@ -235,15 +240,17 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return response;
     }
 
+    @Transactional
     public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) {
 
-        var zb = findObrazacById(id, kvartal);
-        List<ZakljucniListDto> details =
+        ZakljucniListZb zb = findObrazacById(id, kvartal);
+
+        List<ZakljucniListDto> detailDtos =
                 zb.getStavke().stream()
                         .map(mapper::toDto)
                         .collect(Collectors.toList());
         ObrazacResponse response = mapper.toResponse(zb);
-        response.setZakljucniListDtos(details);
+        response.setZakljucniListDtos(detailDtos);
         return response;
     }
 }

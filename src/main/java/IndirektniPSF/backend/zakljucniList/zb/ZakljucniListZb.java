@@ -9,7 +9,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "OBRAZAC_ZAK_LIST_ZB")
@@ -25,8 +27,8 @@ public class ZakljucniListZb implements StatusUpdatable {
     @Column(name = "GEN_MYSQL")
     private Integer genMysql;
 
-    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "GEN_MYSQL")
     private List<ZakljucniListDetails> stavke = new ArrayList<>();
 
     @Column
@@ -124,5 +126,4 @@ public class ZakljucniListZb implements StatusUpdatable {
     public void setRADNA(Integer radna) {
         this.radna = radna;
     }
-
 }

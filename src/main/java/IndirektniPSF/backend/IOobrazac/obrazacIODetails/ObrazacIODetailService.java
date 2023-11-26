@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -55,7 +56,7 @@ public class ObrazacIODetailService {
             obrazac.setUNOSIO(obrIOSaved.getPOSLAO_NAM());
         });
         var listDetails = obrazacIODetailsRepository.saveAll(obrazacList);
-        this.compareIoDetailsWithZakListDetails(obrazacList,zakListDetails);
+        this.compareIoDetailsWithZakListDetails(obrazacList, (List<ZakljucniListDetails>) zakListDetails);
        return listDetails;
     }
 

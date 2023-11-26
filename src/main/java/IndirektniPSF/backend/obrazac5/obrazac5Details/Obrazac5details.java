@@ -20,12 +20,10 @@ public class Obrazac5details {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer redni;
 
-    @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @JoinColumn(name="gen_mysql")
+    @ManyToOne
+//            ( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+//    @JoinColumn(name="gen_mysql")
     private Obrazac5 obrazac5;
-
-//    @Column(name = "gen_mysql")
-//    private Integer gen_mysql;
 
     @Column(name = "gen_interbase")
     private Integer gen_interbase;

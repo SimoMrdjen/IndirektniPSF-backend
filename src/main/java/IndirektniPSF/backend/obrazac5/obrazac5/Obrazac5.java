@@ -24,8 +24,8 @@ public class Obrazac5 implements StatusUpdatable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer gen_mysql;
 
-    @OneToMany(mappedBy = "redni", fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "gen_mysql")
     private List<Obrazac5details> stavke = new ArrayList<>();
 
     @Column(name = "gen_interbase")

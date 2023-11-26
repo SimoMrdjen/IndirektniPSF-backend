@@ -133,7 +133,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     public ObrazacResponse obrazac5ForResponse(Integer jbbks, Integer kvartal) {
         Optional<Obrazac5> optionalObrazac5 =
-                obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(jbbks, kvartal);
+                obrazacRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( kvartal, jbbks);
         if (optionalObrazac5.isPresent()) {
             ObrazacResponse obrazacResponse = mapper.toResponse(optionalObrazac5.get());
             obrazacResponse.setObrazacType(ObrazacType.OBRAZAC_5);

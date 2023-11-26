@@ -2,16 +2,15 @@ package IndirektniPSF.backend.IOobrazac.obrazacIODetails;
 
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "obrazac5_pom")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+//@Data
+@Getter
+@Setter
 @Builder
 public class ObrazacIODetails {
     //Entity is inherited from existing table/DB , which is used from another desktop app
@@ -20,12 +19,10 @@ public class ObrazacIODetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Integer REDNI;
 
-    @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @JoinColumn(name="GEN_MYSQL")
+    @ManyToOne
+//            ( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+//    @JoinColumn(name="GEN_MYSQL")
     private ObrazacIO obrazacIO;
-
-//    @Column(nullable = false)
-//    private Integer GEN_MYSQL;
 
     @Column
     private Integer GEN_INTERBASE;

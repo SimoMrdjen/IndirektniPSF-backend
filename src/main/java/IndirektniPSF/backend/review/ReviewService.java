@@ -4,6 +4,7 @@ import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5Service;
 import IndirektniPSF.backend.parameters.AbParameterService;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -29,12 +30,12 @@ public class ReviewService extends AbParameterService {
                 obrazac5Service.obrazac5ForResponse(jbbks, kvartal)
         );
     }
-
+@Transactional
     public ObrazacResponse getActualObrazacWithDetailsById(String typeOfObrazac, Integer id, Integer kvartal) throws Exception {
 
         if (typeOfObrazac.equalsIgnoreCase(ObrazacType.ZAKLJUCNI_LIST.name())) {
             return zakljucniListService.getObrazactWithDetailsForResponseById(id, kvartal);
-        } else if (typeOfObrazac.equalsIgnoreCase(ObrazacType.ZAKLJUCNI_LIST.name())) {
+        } else if (typeOfObrazac.equalsIgnoreCase(ObrazacType.OBRAZAC_IO.name())) {
             return obrazacIoService.getObrazactWithDetailsForResponseById(id, kvartal);
         } else {
             return obrazac5Service.getObrazactWithDetailsForResponseById(id, kvartal);

@@ -3,10 +3,7 @@ package IndirektniPSF.backend.IOobrazac.obrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.parameters.StatusUpdatable;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +12,9 @@ import java.util.List;
 @Table(name = "obrazac5_pom_zb")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+//@
+@Getter
+@Setter
 @Builder
 public class ObrazacIO implements StatusUpdatable {
     //Entity is inherited from existing table/DB , which is used from another desktop app
@@ -24,8 +23,8 @@ public class ObrazacIO implements StatusUpdatable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Integer GEN_MYSQL;
 
-    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "GEN_MYSQL")
     private List<ObrazacIODetails> stavke = new ArrayList<>();
 
     @Column

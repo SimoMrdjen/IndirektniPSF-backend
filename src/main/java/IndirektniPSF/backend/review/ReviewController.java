@@ -29,7 +29,6 @@ public class ReviewController {
                                                             @RequestParam(name = "kvartal") Integer kvartal,
                                                             @RequestParam(name = "typeOfObrazac") String typeOfObrazac) throws Exception {
 
-      //  String email = authenticationService.getAuthenticatedUserEmail();
         return ResponseEntity
                 .ok(reviewService.getActualObrazacWithDetailsById(typeOfObrazac, id, kvartal));
     }

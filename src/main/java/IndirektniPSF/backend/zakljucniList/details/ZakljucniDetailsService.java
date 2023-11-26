@@ -53,6 +53,4 @@ public class ZakljucniDetailsService {
             throw new Exception("U Zakljucnom listu postoje konta koja nisu \ndeo Kontnog plana: " + nonExistingKontosString);
         }
     }
-
-
 }
