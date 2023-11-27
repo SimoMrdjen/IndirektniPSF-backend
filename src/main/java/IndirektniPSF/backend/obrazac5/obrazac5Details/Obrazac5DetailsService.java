@@ -25,8 +25,9 @@ public class Obrazac5DetailsService {
         List<Obrazac5details> obrazac5detailsList =
                 dtos.stream()
                         .filter(dto -> dto.getKonto() % 1000 != 0)
+                        .filter(dto -> dto.getPlanPrihoda() != 0 || dto.getIzvrsenje() != 0)//TODO check if it is mandatory
                         .map(obrazac5Mapper::mapDtoToEntity)
-                        .collect(Collectors.toList());
+                        .toList();
 
         obrazac5detailsList
                 .forEach(obrazac5details -> {

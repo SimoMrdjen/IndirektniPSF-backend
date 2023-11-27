@@ -22,7 +22,7 @@ public class Obrazac5details {
 
     @ManyToOne
 //            ( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-//    @JoinColumn(name="gen_mysql")
+    @JoinColumn(name="gen_mysql")
     private Obrazac5 obrazac5;
 
     @Column(name = "gen_interbase")

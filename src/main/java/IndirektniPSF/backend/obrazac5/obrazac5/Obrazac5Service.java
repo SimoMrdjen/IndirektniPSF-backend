@@ -117,6 +117,8 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                         .collect(Collectors.toList());
         ObrazacResponse response = mapper.toResponse(zb);
         response.setObrazac5DTOS(details);
+        response.setObrazacType(ObrazacType.OBRAZAC_5);
+
         return response;
     }
 

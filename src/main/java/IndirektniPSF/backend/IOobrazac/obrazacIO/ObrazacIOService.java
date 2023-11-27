@@ -126,6 +126,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                         .collect(Collectors.toList());
         ObrazacResponse response = mapper.toResponse(zb);
         response.setObrazacIODTOS(details);
+        response.setObrazacType(ObrazacType.OBRAZAC_IO);
         return response;
     }
 

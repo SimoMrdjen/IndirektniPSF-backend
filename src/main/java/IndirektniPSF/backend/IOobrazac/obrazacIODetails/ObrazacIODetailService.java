@@ -29,7 +29,6 @@ public class ObrazacIODetailService {
                                                          ObrazacIO obrIOSaved,
                                                          List<ZakljucniListDetails> zakListDetails) throws Exception {
 
-        //Integer mysql = obrIOSaved.getGEN_MYSQL();
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
         Integer kvartal = obrIOSaved.getKOJI_KVARTAL();

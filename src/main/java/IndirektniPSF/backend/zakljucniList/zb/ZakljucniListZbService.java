@@ -251,6 +251,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                         .collect(Collectors.toList());
         ObrazacResponse response = mapper.toResponse(zb);
         response.setZakljucniListDtos(detailDtos);
+        response.setObrazacType(ObrazacType.ZAKLJUCNI_LIST);
         return response;
     }
 }

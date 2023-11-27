@@ -24,7 +24,7 @@ public class ZakljucniListDetails {
     
 
     @ManyToOne
-//    @JoinColumn(name = "gen_mysql")
+    @JoinColumn(name = "gen_mysql")
     private ZakljucniListZb zakljucniListZb;
 
     @Column(nullable = false)

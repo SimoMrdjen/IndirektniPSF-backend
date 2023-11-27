@@ -21,7 +21,7 @@ public class ObrazacIODetails {
 
     @ManyToOne
 //            ( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-//    @JoinColumn(name="GEN_MYSQL")
+    @JoinColumn(name="GEN_MYSQL")
     private ObrazacIO obrazacIO;
 
     @Column
