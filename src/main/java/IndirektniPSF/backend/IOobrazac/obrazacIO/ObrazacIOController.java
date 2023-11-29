@@ -63,9 +63,10 @@ public class ObrazacIOController {
 
     @PutMapping(value = "/storno/{id}")
     public ResponseEntity<String> stornoZakList(@PathVariable(name = "id") Integer id,
-                                           @RequestParam(name = "kvartal") Integer kvartal) throws Exception {
+                                           @RequestParam(name = "kvartal") Integer kvartal,
+                                                @RequestParam(name = "opis") String opis) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            return ResponseEntity.ok(obrazacIOService.stornoObrIOFromUser(id, email, kvartal));
+            return ResponseEntity.ok(obrazacIOService.stornoObrIOFromUser(id, email, kvartal, opis));
     }
 }

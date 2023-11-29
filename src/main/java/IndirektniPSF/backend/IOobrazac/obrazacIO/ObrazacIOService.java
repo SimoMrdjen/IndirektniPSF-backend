@@ -16,7 +16,6 @@ import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
-import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import lombok.RequiredArgsConstructor;
@@ -214,7 +213,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String stornoObrIOFromUser(Integer id, String email, Integer kvartal) throws Exception {
+    public String stornoObrIOFromUser(Integer id, String email, Integer kvartal, String opis) throws Exception {
 
         User user = this.getUser(email);
         var zb = findObrazacById(id, kvartal);
@@ -222,7 +221,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         zb.setSTORNO(1);
         zb.setRADNA(0);
         zb.setSTOSIFRAD(user.getSifraradnika());
-        zb.setOPISSTORNO("Naknadno");        //TODO dodati opis storno
+       zb.setOPISSTORNO(opis);//TODO dodati opis storno
+        obrazacIOrepository.save(zb);
         return "Obrazac IO je uspesno storniran!\n" + obrazac5Service.stornoObrAfterObrIO(user, kvartal);
     }
 

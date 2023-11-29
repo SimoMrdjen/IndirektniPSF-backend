@@ -66,9 +66,10 @@ public class ZakljucniListZbController {
 
     @PutMapping(value = "/storno/{id}")
     public ResponseEntity<String> stornoZakList(@PathVariable(name = "id") Integer id,
-                                           @RequestParam(name = "kvartal") Integer kvartal) throws Exception {
+                                                @RequestParam(name = "kvartal") Integer kvartal,
+                                                @RequestParam(name = "opis") String opis) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            return ResponseEntity.ok(zakljucniService.stornoZakList(id, email, kvartal));
+            return ResponseEntity.ok(zakljucniService.stornoZakList(id, email, kvartal, opis));
     }
 }

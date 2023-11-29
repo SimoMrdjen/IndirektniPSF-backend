@@ -15,7 +15,6 @@ import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniDetailsService;
-import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniListMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -198,7 +196,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     //STORNO
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String stornoZakList(Integer id, String email, Integer kvartal) throws Exception {
+    public String stornoZakList(Integer id, String email, Integer kvartal, String opis) throws Exception {
 
         User user = this.getUser(email);
         var zb = this.findObrazacById(id, kvartal);
@@ -207,7 +205,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         zb.setRADNA(0);
         zb.setSTOSIFRAD(user.getSifraradnika());
         //TODO dodati opis storno
-        zb.setOPISSTORNO("Naknadno");
+        zb.setOPISSTORNO(opis);
         zakljucniRepository.save(zb);
         return "Zakljucni list je storniran!\n"
                 + obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());

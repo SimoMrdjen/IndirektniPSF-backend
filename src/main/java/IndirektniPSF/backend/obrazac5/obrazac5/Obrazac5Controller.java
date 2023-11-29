@@ -63,9 +63,10 @@ public class Obrazac5Controller {
 
     @PutMapping(value = "/storno/{id}")
     public ResponseEntity<String> stornoZakList(@PathVariable(name = "id") Integer id,
-                                           @RequestParam(name = "kvartal") Integer kvartal) {
+                                           @RequestParam(name = "kvartal") Integer kvartal,
+                                                @RequestParam(name = "opis") String opis) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
-            return ResponseEntity.ok(obrazac5Service.stornoObr5FromUser(id, email, kvartal));
+            return ResponseEntity.ok(obrazac5Service.stornoObr5FromUser(id, email, kvartal, opis));
     }
 }

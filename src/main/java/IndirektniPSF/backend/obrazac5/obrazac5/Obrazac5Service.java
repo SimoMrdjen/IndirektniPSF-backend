@@ -180,15 +180,15 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         if (obrazacZb.getRADNA() == 0 || obrazacZb.getSTORNO() == 1)
             return "";
 
-        obrazacZb.setOpisstorno("Storniran prethodni dokument!");
-        return this.stornoObr5(obrazacZb, user);
+//        obrazacZb.setOpisstorno("Storniran prethodni dokument!");
+        return this.stornoObr5(obrazacZb, user,"Storniran prethodni dokument!");
     }
 
-    public String stornoObr5FromUser(Integer id, String email, Integer kvartal) {
+    public String stornoObr5FromUser(Integer id, String email, Integer kvartal, String opis) {
 
       var zbForStorno = findObrazacById(id, kvartal);
         User user = this.getUser(email);
-       return stornoObr5(zbForStorno, user);
+       return stornoObr5(zbForStorno, user, opis);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -198,16 +198,19 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         obrazacZb.setRADNA(0);
         obrazacZb.setStorno(1);
         obrazacZb.setStosifrad(user.getSifraradnika());
+        //obrazacZb.setOpisstorno(opis);
+
         obrazacRepository.save(obrazacZb);
         return "Obrazac5 uspesno je storniran";
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String stornoObr5(Obrazac5 obrazac5, User user) {
+    public String stornoObr5(Obrazac5 obrazac5, User user, String opis) {
 
         obrazac5.setRADNA(0);
         obrazac5.setStorno(1);
         obrazac5.setStosifrad(user.getSifraradnika());
+        obrazac5.setOpisstorno(opis);
         obrazacRepository.save(obrazac5);
         return "Obrazac5 uspesno je storniran";
     }
