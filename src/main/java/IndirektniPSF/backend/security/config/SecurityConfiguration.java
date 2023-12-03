@@ -19,9 +19,11 @@ import static IndirektniPSF.backend.security.user.Role.USER;
 
 
 @Configuration
-@EnableWebSecurity
+
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@EnableWebSecurity(debug = true)
+
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -34,9 +36,12 @@ public class SecurityConfiguration {
         http
                 .csrf()
                 .disable()
-                .cors()
-                .and()
+//                .cors()
+//                .and()
                 .authorizeHttpRequests()
+                .requestMatchers(
+                        "/a", "/static/favicon.ico", "/static/index.html", "/static/**", "/manifest.json", "/APV.png", "/logo192.png")
+                .permitAll()
                 .requestMatchers(
                         "/api/v1/auth/**",
                         "/login",
@@ -49,9 +54,9 @@ public class SecurityConfiguration {
                         "/configuration/security",
                         "/swagger-ui/**",
                         "/webjars/**",
-                        "/swagger-ui.html",
-                        "/", "/static/**", "/index.html", "/favicon.ico",
-                        "/manifest.json", "/APV.png", "/logo192.png"
+                        "/swagger-ui.html"
+//                        "/", "/static/**", "/index.html", "/favicon.ico",
+//                        "/manifest.json", "/APV.png", "/logo192.png"
                 )
                 .permitAll()
 
@@ -64,6 +69,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/v1/users/**").hasRole(ADMIN.name())
                 .anyRequest()
                 .authenticated()
+
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
