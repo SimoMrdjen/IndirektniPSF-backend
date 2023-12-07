@@ -7,8 +7,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class RouteForwardingController {
 
 //    @RequestMapping(value = "/{path:^(?!.*\\..*$).*$}/**")
-    @RequestMapping(value = "/**/{path:[^\\.]*}")
-    public String forward() {
+//    @RequestMapping(value = "/**{path:[^\\.]*}")
+//    public String forward() {
+//        return "forward:/";
+//    }
+
+    @RequestMapping("/")
+    public String forwardRoot() {
         return "forward:/index.html";
     }
 }

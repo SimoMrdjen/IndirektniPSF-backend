@@ -22,7 +22,7 @@ import static IndirektniPSF.backend.security.user.Role.USER;
 
 @RequiredArgsConstructor
 @EnableMethodSecurity
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity//(debug = true)
 
 public class SecurityConfiguration {
 
@@ -39,22 +39,26 @@ public class SecurityConfiguration {
 //                .cors()
 //                .and()
                 .authorizeHttpRequests()
+//                .requestMatchers(
+//                        "/", "/static/favicon.ico", "/static/index.html",
+//                        "/static/**", "/manifest.json", "/APV.png", "/logo192.png")
                 .requestMatchers(
-                        "/a", "/static/favicon.ico", "/static/index.html", "/static/**", "/manifest.json", "/APV.png", "/logo192.png")
+                        "/**", "/favicon.ico", "/index.html", "/static/**", "/manifest.json", "/APV.png", "/logo192.png"
+                        )
                 .permitAll()
                 .requestMatchers(
                         "/api/v1/auth/**",
-                        "/login",
-                        "/v2/api-docs",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/swagger-resources",
-                        "/swagger-resources/**",
-                        "/configuration/ui",
-                        "/configuration/security",
-                        "/swagger-ui/**",
-                        "/webjars/**",
-                        "/swagger-ui.html"
+                        "/login"
+//                        "/v2/api-docs",
+//                        "/v3/api-docs",
+//                        "/v3/api-docs/**",
+//                        "/swagger-resources",
+//                        "/swagger-resources/**",
+//                        "/configuration/ui",
+//                        "/configuration/security",
+//                        "/swagger-ui/**",
+//                        "/webjars/**",
+//                        "/swagger-ui.html"
 //                        "/", "/static/**", "/index.html", "/favicon.ico",
 //                        "/manifest.json", "/APV.png", "/logo192.png"
                 )
@@ -79,7 +83,7 @@ public class SecurityConfiguration {
 //                .permitAll() // Allow access to the login page for everyone
 //                .and()
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class) // Add this line
+//                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class) // Add this line
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout()
                 .logoutUrl("/api/v1/auth/logout")
