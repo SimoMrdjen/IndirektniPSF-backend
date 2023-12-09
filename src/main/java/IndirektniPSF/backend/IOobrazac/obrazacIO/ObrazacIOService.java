@@ -27,8 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -63,13 +62,14 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
 
 
-        try {
+//        try {
             Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
             Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
 //          chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
             List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 //          checkDuplicatesKonta(dtos);
             checkJbbks(user, jbbkExcel);
+            checkForDuplicatesStandKlasif(dtos);
 
             ObrazacIO obrIO = ObrazacIO.builder()
                     .KOJI_KVARTAL(kvartal)
@@ -109,11 +109,48 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke());
 //           obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
             return responseMessage;
-        } catch (Exception ex) {
-            System.out.println("Exception occurred while processing the file" + ex);
-            throw ex;
-        }
+//        } catch (Exception ex) {
+//            System.out.println("Exception occurred while processing the file" + ex);
+//            throw ex;
+//        }
     }
+
+    public void checkForDuplicatesStandKlasif(List<ObrazacIODTO> list) throws ObrazacException {
+        Map<String, List<ObrazacIODTO>> duplicatesMap = new HashMap<>();
+
+        for (ObrazacIODTO item : list) {
+            String key = getKeyForDuplicateCheck(item);
+            if (duplicatesMap.containsKey(key)) {
+                duplicatesMap.get(key).add(item);
+            } else {
+                List<ObrazacIODTO> itemsWithSameKey = new ArrayList<>();
+                itemsWithSameKey.add(item);
+                duplicatesMap.put(key, itemsWithSameKey);
+            }
+        }
+
+        for (Map.Entry<String, List<ObrazacIODTO>> entry : duplicatesMap.entrySet()) {
+            List<ObrazacIODTO> duplicateItems = entry.getValue();
+            if (duplicateItems.size() > 1) {
+                StringBuilder errorMessage = new StringBuilder("Postoje redovi sa identicnom stand. klasifikacijom :\n");
+                for (ObrazacIODTO duplicateItem : duplicateItems) {
+                    errorMessage.append("Programska aktivnost: ").append(duplicateItem.getRedBrojAkt()).append("\n");
+                    errorMessage.append("Funkc. klasifikacija: ").append(duplicateItem.getFunkKlas()).append("\n");
+                    errorMessage.append("Konto: ").append(duplicateItem.getKonto()).append("\n");
+                    errorMessage.append("Izvor finansiranja: ").append(duplicateItem.getIzvorFin()).append("\n");
+                }
+                throw new ObrazacException(errorMessage.toString());
+            }
+        }
+
+
+    }
+
+    private String getKeyForDuplicateCheck(ObrazacIODTO item) {
+        return item.getRedBrojAkt() + "_" + item.getFunkKlas() + "_" + item.getKonto() + "_" + item.getIzvorFin();
+    }
+
+
 
     @Override
     public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) throws Exception {

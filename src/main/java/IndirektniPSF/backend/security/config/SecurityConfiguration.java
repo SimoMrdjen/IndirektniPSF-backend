@@ -36,8 +36,8 @@ public class SecurityConfiguration {
         http
                 .csrf()
                 .disable()
-//                .cors()
-//                .and()
+                .cors()
+                .and()
                 .authorizeHttpRequests()
 //                .requestMatchers(
 //                        "/", "/static/favicon.ico", "/static/index.html",
