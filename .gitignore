@@ -1,10 +1,15 @@
-HELP.md
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
+
+#added
+# Ignore application properties
+src/main/resources/application.properties
+# Exclude specific target directories but not all
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+### STS (Spring Tool Suite) ###
 .apt_generated
 .classpath
 .factorypath
@@ -14,7 +19,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -31,4 +36,7 @@ build/
 
 ### VS Code ###
 .vscode/
-/application.properties
+
+# Exclude specific application properties for environments
+
+

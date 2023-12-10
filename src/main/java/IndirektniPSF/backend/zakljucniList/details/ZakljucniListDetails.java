@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class ZakljucniListDetails {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,12 +22,10 @@ public class ZakljucniListDetails {
     @Column(nullable = false)
     private Integer GEN_INTERBASE = 0;
     
-    @ManyToOne( cascade={CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @JoinColumn(name="GEN_MYSQL")
-    private ZakljucniListZb zakljucniListZb;
 
-   // @Column(nullable = false)
-    //private Integer GEN_MYSQL = 0;
+    @ManyToOne
+    @JoinColumn(name = "gen_mysql")
+    private ZakljucniListZb zakljucniListZb;
 
     @Column(nullable = false)
     private Integer GEN_OPENTAB = 0;

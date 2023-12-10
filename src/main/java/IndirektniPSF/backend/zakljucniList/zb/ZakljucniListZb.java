@@ -20,14 +20,15 @@ import java.util.Set;
 @Data
 @Builder
 public class ZakljucniListZb implements StatusUpdatable {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "GEN_MYSQL")
     private Integer genMysql;
 
-    @OneToMany(mappedBy = "REDNI", fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "GEN_MYSQL")
     private List<ZakljucniListDetails> stavke = new ArrayList<>();
 
     @Column
@@ -118,5 +119,11 @@ public class ZakljucniListZb implements StatusUpdatable {
 
     private String OPISSTORNO;
 
+    public Integer getRADNA() {
+        return this.radna;
+    }
 
+    public void setRADNA(Integer radna) {
+        this.radna = radna;
+    }
 }

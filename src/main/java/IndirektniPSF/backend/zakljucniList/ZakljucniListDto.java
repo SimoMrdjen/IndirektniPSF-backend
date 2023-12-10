@@ -1,17 +1,19 @@
 package IndirektniPSF.backend.zakljucniList;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ZakljucniListDto {
-    private String prop1;
-    private Double prop2 = 0.0;
-    private Double prop3 = 0.0;
-    private Double prop4 = 0.0;
-    private Double prop5 = 0.0;
-    private Double prop6;
-    private Double prop7;
-    private Double prop8;
-
+    private String konto;
+    private Double dugujePs = 0.0;
+    private Double potrazujePs = 0.0;
+    private Double dugujePr = 0.0;
+    private Double potrazujePr = 0.0;
 }
 

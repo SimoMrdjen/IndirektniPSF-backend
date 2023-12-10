@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class Sekretarijat {
+    //Entity is inherited from existing table/DB , which is used from another desktop app
 
     @Id
     private Integer sif_sekret;

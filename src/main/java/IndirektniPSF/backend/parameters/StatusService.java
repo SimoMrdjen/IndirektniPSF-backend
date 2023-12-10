@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.parameters;
 
+import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +28,7 @@ public  class StatusService {
         return "Status obrasca je podignut na nivo  " + savedEntity.getSTATUS() + "!";
     }
 
+    //resolve if sttus is for odobravanje, overavanje or poslat DBK-u
     public <T extends StatusUpdatable> void resolveObrazacAccordingStatus(T entity, Integer status) throws Exception {
 
         var actualStatus = entity.getSTATUS();
@@ -39,5 +41,19 @@ public  class StatusService {
         }
     }
 
+    public <Actual extends StatusUpdatable, Next extends StatusUpdatable> void resolveObrazacAccordingNextObrazac(Actual actual, Next next) throws Exception {
 
-}
+        if (actual.getSTATUS() > next.getSTATUS()) {
+            throw new ObrazacException("Ne postoji obrazac kojem mozete podici status\n" +
+                    "Morate prethodno izjednaciti status narednog dokumenta !");
+        }
+    }
+
+    public <Actual extends StatusUpdatable, Previous extends StatusUpdatable> void resolveObrazacAccordingPreviousObrazac(Actual actual, Previous previous) throws Exception {
+
+        if (actual.getSTATUS() == previous.getSTATUS()) {
+            throw new ObrazacException("Ne postoji obrazac kojem mozete podici status\n" +
+                    "Morate prethodno podici status prethodnog dokumenta !");
+        }
+    }
+    }

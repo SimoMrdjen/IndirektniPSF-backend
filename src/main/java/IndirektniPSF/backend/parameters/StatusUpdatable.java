@@ -5,4 +5,8 @@ public interface StatusUpdatable {
     void setSTATUS(Integer status);
     void setPODIGAO_STATUS(Integer sifraradnika);
     void setPOSLAO_NAM(Integer sifraradnika);
+
+    Integer getSTORNO();
+
+    Integer getRADNA();
 }

@@ -59,6 +59,8 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/obrazac_zb/**").hasAnyRole(ADMIN.name(), USER.name())
                 .requestMatchers("/api/obrazac_io/**").hasAnyRole(ADMIN.name(), USER.name())
                 .requestMatchers("/api/zakljucni_list/**").hasAnyRole(ADMIN.name(), USER.name())
+                .requestMatchers("/api/review/**").hasAnyRole(ADMIN.name(), USER.name())
+
                 .requestMatchers("/api/v1/users/**").hasRole(ADMIN.name())
                 .anyRequest()
                 .authenticated()

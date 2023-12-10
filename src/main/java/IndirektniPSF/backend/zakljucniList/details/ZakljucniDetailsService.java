@@ -1,9 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.details;
 
-import IndirektniPSF.backend.glavaSvi.GlavaSvi;
-import IndirektniPSF.backend.glavaSvi.GlavaSviRepository;
 import IndirektniPSF.backend.glavaSvi.GlavaSviService;
-import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.subkonto.SubkontoService;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
@@ -13,7 +10,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +24,7 @@ public class ZakljucniDetailsService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ZakljucniListDetails> saveDetailsExcel(List<ZakljucniListDto> dtos, ZakljucniListZb zbSaved) throws Exception {
 
-        //provera da li su ucitani samo postojeci 6-cifreni kontoi
+        //TODO include next control before deploying
        // this.checkIfKontosAreExisting(dtos);
         var jbbk = zbSaved.getJbbkIndKor();
         String oznakaGlave = glavaSviService.findGlava(jbbk);
@@ -42,7 +38,7 @@ public class ZakljucniDetailsService {
 
         List<Integer> kontosInKontniPlan = subkontoService.getKontniPlan();
         List<Integer> nonExistingKontos = dtos.stream()
-                .map(ZakljucniListDto::getProp1)
+                .map(ZakljucniListDto::getKonto)
                 .map(kon -> kon.trim())
                 .map(Integer::parseInt)
                 .filter((k) -> !kontosInKontniPlan.contains(k))
@@ -57,6 +53,4 @@ public class ZakljucniDetailsService {
             throw new Exception("U Zakljucnom listu postoje konta koja nisu \ndeo Kontnog plana: " + nonExistingKontosString);
         }
     }
-
-
 }
