@@ -67,7 +67,6 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
 //          chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
             List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
-//          checkDuplicatesKonta(dtos);
             checkJbbks(user, jbbkExcel);
             checkForDuplicatesStandKlasif(dtos);
 
@@ -116,33 +115,37 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     }
 
     public void checkForDuplicatesStandKlasif(List<ObrazacIODTO> list) throws ObrazacException {
-        Map<String, List<ObrazacIODTO>> duplicatesMap = new HashMap<>();
-
-        for (ObrazacIODTO item : list) {
-            String key = getKeyForDuplicateCheck(item);
-            if (duplicatesMap.containsKey(key)) {
-                duplicatesMap.get(key).add(item);
-            } else {
-                List<ObrazacIODTO> itemsWithSameKey = new ArrayList<>();
-                itemsWithSameKey.add(item);
-                duplicatesMap.put(key, itemsWithSameKey);
-            }
+//        Map<String, List<ObrazacIODTO>> duplicatesMap = new HashMap<>();
+//
+//        for (ObrazacIODTO item : list) {
+//            String key = getKeyForDuplicateCheck(item);
+//            if (duplicatesMap.containsKey(key)) {
+//                duplicatesMap.get(key).add(item);
+//            } else {
+//                List<ObrazacIODTO> itemsWithSameKey = new ArrayList<>();
+//                itemsWithSameKey.add(item);
+//                duplicatesMap.put(key, itemsWithSameKey);
+//            }
+//        }
+//
+//        for (Map.Entry<String, List<ObrazacIODTO>> entry : duplicatesMap.entrySet()) {
+//            List<ObrazacIODTO> duplicateItems = entry.getValue();
+//            if (duplicateItems.size() > 1) {
+//                StringBuilder errorMessage = new StringBuilder("Postoje redovi sa identicnom stand. klasifikacijom :\n");
+//                for (ObrazacIODTO duplicateItem : duplicateItems) {
+//                    errorMessage.append("Programska aktivnost: ").append(duplicateItem.getRedBrojAkt()).append("\n");
+//                    errorMessage.append("Funkc. klasifikacija: ").append(duplicateItem.getFunkKlas()).append("\n");
+//                    errorMessage.append("Konto: ").append(duplicateItem.getKonto()).append("\n");
+//                    errorMessage.append("Izvor finansiranja: ").append(duplicateItem.getIzvorFin()).append("\n");
+//                }
+//                throw new ObrazacException(errorMessage.toString());
+//            }
+//        }
+        Set<ObrazacIODTO> set =
+                list.stream().collect(Collectors.toSet());
+        if (set.size() < list.size()) {
+                            throw new ObrazacException("Ima dupliranih stand klas!");
         }
-
-        for (Map.Entry<String, List<ObrazacIODTO>> entry : duplicatesMap.entrySet()) {
-            List<ObrazacIODTO> duplicateItems = entry.getValue();
-            if (duplicateItems.size() > 1) {
-                StringBuilder errorMessage = new StringBuilder("Postoje redovi sa identicnom stand. klasifikacijom :\n");
-                for (ObrazacIODTO duplicateItem : duplicateItems) {
-                    errorMessage.append("Programska aktivnost: ").append(duplicateItem.getRedBrojAkt()).append("\n");
-                    errorMessage.append("Funkc. klasifikacija: ").append(duplicateItem.getFunkKlas()).append("\n");
-                    errorMessage.append("Konto: ").append(duplicateItem.getKonto()).append("\n");
-                    errorMessage.append("Izvor finansiranja: ").append(duplicateItem.getIzvorFin()).append("\n");
-                }
-                throw new ObrazacException(errorMessage.toString());
-            }
-        }
-
 
     }
 

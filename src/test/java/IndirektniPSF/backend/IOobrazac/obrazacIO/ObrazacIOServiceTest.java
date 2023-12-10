@@ -36,6 +36,15 @@ class ObrazacIOServiceTest {
                 new ObrazacIODTO(2, "A", 100, "X", "X",10.0, 3.0)
         );
 
-         assertThrows(ObrazacException.class,() -> service.checkForDuplicatesStandKlasif(obrazacList));
+        var listSize =obrazacList.size();
+        var setSize = obrazacList.stream().collect(Collectors.toSet()).size();
+        var listSize2 =obrazacList.size();
+
+        System.out.println("setSize = " + setSize);
+        System.out.println("listSize = " + listSize);
+        System.out.println("listSize2 = " + listSize2);
+
+
+        assertThrows(ObrazacException.class,() -> service.checkForDuplicatesStandKlasif(obrazacList));
     }
 }

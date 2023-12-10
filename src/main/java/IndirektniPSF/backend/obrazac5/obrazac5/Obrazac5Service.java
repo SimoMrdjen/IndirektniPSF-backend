@@ -235,6 +235,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         Obrazac5 zb = findLastVersionOfObrazac5Zb(email, kvartal)
                 .orElseThrow(() -> new IllegalArgumentException("Ne postoji ucitan dokument!"));
         isObrazacSentToDBK(zb);
+        isObrazacStorniran(zb);
         return List.of(mapper.toResponse(zb));
     }
 

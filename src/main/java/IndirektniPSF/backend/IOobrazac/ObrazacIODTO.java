@@ -33,6 +33,6 @@ public class ObrazacIODTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(redBrojAkt, funkKlas, konto, izvorFin, plan, izvrsenje);
+        return Objects.hash(redBrojAkt, funkKlas, konto, izvorFin);
     }
 }

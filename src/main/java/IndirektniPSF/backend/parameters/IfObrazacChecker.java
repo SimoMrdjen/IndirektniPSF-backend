@@ -17,7 +17,7 @@ public interface IfObrazacChecker {
     default <T extends StatusUpdatable> void isObrazacStorniran(T zb) throws Exception {
 
          if (zb.getSTORNO() == 1) {
-            throw new Exception("Obrazac je storniran , \n`morate ucitati novu verziju!");
+            throw new Exception("Obrazac je storniran,\nmorate ucitati novu verziju!");
         }
     }
 
@@ -39,36 +39,37 @@ public interface IfObrazacChecker {
         LocalDate currentDate = LocalDate.now();
         Month currentMonth = currentDate.getMonth();
         int currentYear = currentDate.getYear();
+        String message = "Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!";
 
         if (kvartal == 1 &&
                 !(currentMonth == Month.APRIL
                         && currentDate.getDayOfMonth() >= 1
                         && currentDate.getDayOfMonth() <= 20
                         && currentYear == year)) {
-            throw new IllegalArgumentException("Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!");
+            throw new IllegalArgumentException(message);
         } else if (kvartal == 2 &&
                 !(currentMonth == Month.JULY
                         && currentDate.getDayOfMonth() >= 1
                         && currentDate.getDayOfMonth() <= 20
                         && currentYear == year)) {
-            throw new IllegalArgumentException("Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!");
+            throw new IllegalArgumentException(message);
         } else if (kvartal == 3 &&
                 !(currentMonth == Month.OCTOBER
                         && currentDate.getDayOfMonth() >= 1
                         && currentDate.getDayOfMonth() <= 20
                         && currentYear == year)) {
-            throw new IllegalArgumentException("Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!");
+            throw new IllegalArgumentException(message);
         } else if (kvartal == 4 &&
                 !(currentMonth == Month.JANUARY
                         && currentDate.getDayOfMonth() >= 1
                         && currentDate.getDayOfMonth() <= 20
                         && (currentYear - 1) == year)) {
-            throw new IllegalArgumentException("Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!");
+            throw new IllegalArgumentException(message);
         } else if (kvartal == 5) {
             if (!((currentMonth.getValue() >= Month.JANUARY.getValue()
                     && currentMonth.getValue() <= Month.MAY.getValue())
                     && (currentYear - 1) == year)) {
-                throw new IllegalArgumentException("Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!");
+                throw new IllegalArgumentException(message);
             }
         }
     }
