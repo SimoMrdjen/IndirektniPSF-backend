@@ -28,15 +28,16 @@ public interface IfObrazacChecker {
     }
     default void chekIfKvartalIsCorrect(Integer kvartal, Integer excelKvartal, Integer year) throws ObrazacException {
 
+        LocalDate currentDate = LocalDate.now();
          if(kvartal != excelKvartal) {
             throw new ObrazacException("Odabrani kvartal i kvartal u dokumentu nisu identicni!");
         }
-        this.checkIfKvartalIsForValidPeriod(kvartal, year);
+        this.checkIfKvartalIsForValidPeriod(kvartal, year, currentDate);
     }
 
-    default void checkIfKvartalIsForValidPeriod(Integer kvartal, Integer year) {
+    default void checkIfKvartalIsForValidPeriod(Integer kvartal, Integer year, LocalDate currentDate) {
 
-        LocalDate currentDate = LocalDate.now();
+//        LocalDate currentDate = LocalDate.now();
         Month currentMonth = currentDate.getMonth();
         int currentYear = currentDate.getYear();
         String message = "Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!";
@@ -72,6 +73,15 @@ public interface IfObrazacChecker {
                 throw new IllegalArgumentException(message);
             }
         }
+    }
+
+    default LocalDate getLastDayOfKvartal(Integer kvaratl) {
+
+        Integer year = LocalDate.now().getYear();
+        if (kvaratl == 1) return LocalDate.of(year, 3, 31);
+        if (kvaratl == 2) return LocalDate.of(year, 6, 30);
+        if (kvaratl == 3) return LocalDate.of(year, 9, 30);
+        return LocalDate.of(year - 1, 12, 31);
     }
 
     default <T extends StatusUpdatable> void checkIfExistValidObrazacYet(T t) throws ObrazacException {

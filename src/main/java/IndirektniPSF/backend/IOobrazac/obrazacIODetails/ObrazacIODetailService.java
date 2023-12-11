@@ -21,19 +21,18 @@ public class ObrazacIODetailService {
 
     private final ObrazacIOMapper obrazacMapper;
     private final ObrazacIODetailsRepository obrazacIODetailsRepository;
-    private final GlavaSviService glavaSviService;
 
 
     @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ObrazacIODetails> saveListOfObrazac5_pom(List<ObrazacIODTO> dtos,
                                                          ObrazacIO obrIOSaved,
-                                                         List<ZakljucniListDetails> zakListDetails) throws Exception {
+                                                         List<ZakljucniListDetails> zakListDetails,
+                                                         String oznakaGlave) throws Exception {
 
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
         Integer kvartal = obrIOSaved.getKOJI_KVARTAL();
         Integer jbbk = obrIOSaved.getJBBK_IND_KOR();
-        String oznakaGlave = glavaSviService.findGlava(jbbk);
 
         List<ObrazacIODetails> obrazacList =
         dtos.stream()

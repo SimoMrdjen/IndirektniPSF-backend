@@ -4,8 +4,10 @@ package IndirektniPSF.backend.IOobrazac.obrazacIO;
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailService;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIOMapper;
+import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
+import IndirektniPSF.backend.glavaSvi.GlavaSviService;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5Service;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
@@ -47,30 +49,35 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     private final ObrazacIOMapper mapper;
     private final ZakljucniListZbRepository zakljucniRepository;
     private final StatusService statusService;
+    private final GlavaSviService glavaSviService;
 
+    private final ArhbudzetService arhbudzetService;
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
+        //INITILIZATION
+        responseMessage.delete(0, responseMessage.length());
         User user = this.getUser(email);
         Integer jbbks = this.getJbbksIBK(user);
+        String oznakaGlave = glavaSviService.findGlava(jbbks);
         Integer version = checkIfExistValidObrazacIOAndFindVersion(jbbks, kvartal);
-        responseMessage.delete(0, responseMessage.length());
         ZakljucniListZb zakList = this.findValidZakList(kvartal, jbbks);
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-
-
 //        try {
-            Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
-            Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
-//          chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
-            List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
-            checkJbbks(user, jbbkExcel);
-            checkForDuplicatesStandKlasif(dtos);
+        Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
+        Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
+        List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
-            ObrazacIO obrIO = ObrazacIO.builder()
+        //VARIOUS CHECKS
+      chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
+        checkJbbks(user, jbbkExcel);
+        checkForDuplicatesStandKlasif(dtos);
+
+        //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
+        ObrazacIO obrIO = ObrazacIO.builder()
                     .KOJI_KVARTAL(kvartal)
                     .GODINA(year)
                     .VERZIJA(version)
@@ -105,9 +112,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
             ObrazacIO obrIOSaved = obrazacIOrepository.save(obrIO);
 
-            var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke());
+            var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke(), oznakaGlave);
 //           obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
             return responseMessage;
+
+
 //        } catch (Exception ex) {
 //            System.out.println("Exception occurred while processing the file" + ex);
 //            throw ex;
@@ -144,16 +153,31 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         Set<ObrazacIODTO> set =
                 list.stream().collect(Collectors.toSet());
         if (set.size() < list.size()) {
-                            throw new ObrazacException("Ima dupliranih stand klas!");
+                            throw new ObrazacException("Imate dupliranih standardnih klasifikacija!");
         }
-
     }
 
     private String getKeyForDuplicateCheck(ObrazacIODTO item) {
         return item.getRedBrojAkt() + "_" + item.getFunkKlas() + "_" + item.getKonto() + "_" + item.getIzvorFin();
     }
 
+    private void checkSumOfPrenetihSredsAgainstKonto791111(User user, Integer jbbks, Integer glava,
+                                                           Integer kvartal, List<ObrazacIODTO> dtos) throws ObrazacException {
+        var sifSekr = user.getZa_sif_sekret();
+        LocalDate date = getLastDayOfKvartal(kvartal);
+        var sumOfPrenetihSreds = arhbudzetService.sumDugujeForCriteria(sifSekr, date, glava, jbbks);
+        //TODO if plan is right value, or change it with correct property
+        Double sum791111 = dtos.stream()
+                .filter(dto -> dto.getKonto() == 791111)
+                .map(dto -> dto.getPlan())
+                .mapToDouble(Double::doubleValue)
+                .sum();
 
+        if ( false ) { //TODO add logic to if clause sumOfPrenetihSreds != sum791111
+            throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
+                                       "sa iznosom na kontu 791111 u Excel obrascu");
+        }
+    }
 
     @Override
     public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) throws Exception {
