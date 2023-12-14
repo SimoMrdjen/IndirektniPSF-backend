@@ -164,7 +164,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     private void checkSumOfPrenetihSredsAgainstKonto791111(User user, Integer jbbks, Integer glava,
                                                            Integer kvartal, List<ObrazacIODTO> dtos) throws ObrazacException {
         var sifSekr = user.getZa_sif_sekret();
-        LocalDate date = getLastDayOfKvartal(kvartal);
+        Double date = (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
         var sumOfPrenetihSreds = arhbudzetService.sumDugujeForCriteria(sifSekr, date, glava, jbbks);
         //TODO if plan is right value, or change it with correct property
         Double sum791111 = dtos.stream()

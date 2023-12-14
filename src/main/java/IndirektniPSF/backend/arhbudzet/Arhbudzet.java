@@ -11,30 +11,35 @@ import java.time.LocalDate;
 @Data
 public class Arhbudzet {
     @Id
-    @Column(name = "field1")
-    private Integer field1;
+    @Column(name = "SIF_RAC")
+    private Integer sifRac;
 
     @Id
-    @Column(name = "field2")
-    private String field2;
+    @Column(name = "BRNALOGA")
+    private String brNaloga;
 
     @Id
-    @Column(name = "field3")
-    private Long field3;
+    @Column(name = "STAVKANAL")
+    private Long stavkaNal;
 
+    @Column(name = "DUGUJE")
     private Double duguje;
 
-    @Column(name = "sif_sekre")
+    @Column(name = "SIF_SEKRET")
     private Integer sifSekr;
 
-    @Column(name = "sin_konto")
+    @Column(name = "SIN_KONTO")
     private Integer sinKonto;
 
-    private LocalDate datum;
+    @Column(name = "DATUM")
+    private Double datum;
+//    @Column(name = "DATUM")
+//    private LocalDate datum;//DATUM
 
+    @Column(name = "OZNAKAGLAVE")
     private Integer oznakaGlave;
 
-    @Column(name = "jbbk_ind_kor")
+    @Column(name = "JBBK_IND_KOR")
     private Integer jbbkIndKor;
 
     @ManyToOne

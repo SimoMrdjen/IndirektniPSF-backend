@@ -7,9 +7,8 @@ import java.io.Serializable;
 @Data
 public class ArhbudzetId implements Serializable {
 
-    private Integer field1;
-
-    private String field2;
-    private Long field3;
+    private Integer sifRac;
+    private String brNaloga;
+    private Long stavkaNal;
 
 }
