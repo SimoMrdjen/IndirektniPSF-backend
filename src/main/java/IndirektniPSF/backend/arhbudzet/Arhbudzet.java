@@ -44,7 +44,11 @@ public class Arhbudzet {
 
     @ManyToOne
     @JoinColumn(name = "izvorId")
-    private Izvor izvor;
+    private Izvor izvorFin;
 
+    @Column(name = "red_broj_akt")
+    private Integer redBrojAkt;
 
+    @Column(name = "funk_klas")
+    private Integer funkKlas;
 }
