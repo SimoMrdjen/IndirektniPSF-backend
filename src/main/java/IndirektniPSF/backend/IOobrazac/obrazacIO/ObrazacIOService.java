@@ -169,11 +169,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         //TODO if plan is right value, or change it with correct property
         Double sum791111 = dtos.stream()
                 .filter(dto -> dto.getKonto() == 791111)
-                .map(dto -> dto.getPlan())
+                .map(dto -> dto.getIzvrsenje())
                 .mapToDouble(Double::doubleValue)
                 .sum();
 
-        if ( false ) { //TODO add logic to if clause sumOfPrenetihSreds != sum791111
+        if (false){//TODO sumOfPrenetihSreds != sum791111 ) {
             throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
                                        "sa iznosom na kontu 791111 u Excel obrascu");
         }

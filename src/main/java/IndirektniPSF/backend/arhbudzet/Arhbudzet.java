@@ -43,8 +43,6 @@ public class Arhbudzet {
     private Integer jbbkIndKor;
 
     @ManyToOne
-    @JoinColumn(name = "izvorId")
+    @JoinColumn(name = "IZVORFIN")
     private Izvor izvor;
-
-
 }

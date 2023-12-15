@@ -12,7 +12,7 @@ public class Izvor {
 
     @Id
     @GeneratedValue
-    private Long izvorId;
+    private String IZVORFIN;
 
     private String kakva;
 
