@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Entity
 @IdClass(ArhbudzetId.class)
 @Data
+//@Table(name = "ARHBUDZET")
 public class Arhbudzet {
     @Id
     @Column(name = "SIF_RAC")
@@ -37,14 +38,14 @@ public class Arhbudzet {
 //    private LocalDate datum;//DATUM
 
     @Column(name = "OZNAKAGLAVE")
-    private Integer oznakaGlave;
+    private String oznakaGlave;
 
     @Column(name = "JBBK_IND_KOR")
     private Integer jbbkIndKor;
 
     @ManyToOne
-    @JoinColumn(name = "izvorId")
-    private Izvor izvorFin;
+    @JoinColumn(name = "IZVORFIN")
+    private Izvor izvor;
 
     @Column(name = "red_broj_akt")
     private Integer redBrojAkt;

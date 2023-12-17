@@ -90,4 +90,9 @@ public interface IfObrazacChecker {
                     "\nprethodnu morate stornirati!");
         }
     }
+
+    default boolean areEqual(double a, double b) {
+        return Math.abs(a - b) < 0.001;
+    }
+
 }
