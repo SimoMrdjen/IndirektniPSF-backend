@@ -72,9 +72,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
         //VARIOUS CHECKS
-      chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
+        //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
+        responseMessage
+                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         ObrazacIO obrIO = ObrazacIO.builder()
@@ -124,48 +126,48 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     }
 
     public void checkForDuplicatesStandKlasif(List<ObrazacIODTO> list) throws ObrazacException {
-//        Map<String, List<ObrazacIODTO>> duplicatesMap = new HashMap<>();
-//
-//        for (ObrazacIODTO item : list) {
-//            String key = getKeyForDuplicateCheck(item);
-//            if (duplicatesMap.containsKey(key)) {
-//                duplicatesMap.get(key).add(item);
-//            } else {
-//                List<ObrazacIODTO> itemsWithSameKey = new ArrayList<>();
-//                itemsWithSameKey.add(item);
-//                duplicatesMap.put(key, itemsWithSameKey);
-//            }
-//        }
-//
-//        for (Map.Entry<String, List<ObrazacIODTO>> entry : duplicatesMap.entrySet()) {
-//            List<ObrazacIODTO> duplicateItems = entry.getValue();
-//            if (duplicateItems.size() > 1) {
-//                StringBuilder errorMessage = new StringBuilder("Postoje redovi sa identicnom stand. klasifikacijom :\n");
-//                for (ObrazacIODTO duplicateItem : duplicateItems) {
-//                    errorMessage.append("Programska aktivnost: ").append(duplicateItem.getRedBrojAkt()).append("\n");
-//                    errorMessage.append("Funkc. klasifikacija: ").append(duplicateItem.getFunkKlas()).append("\n");
-//                    errorMessage.append("Konto: ").append(duplicateItem.getKonto()).append("\n");
-//                    errorMessage.append("Izvor finansiranja: ").append(duplicateItem.getIzvorFin()).append("\n");
-//                }
-//                throw new ObrazacException(errorMessage.toString());
-//            }
-//        }
-        Set<ObrazacIODTO> set =
-                list.stream().collect(Collectors.toSet());
-        if (set.size() < list.size()) {
-                            throw new ObrazacException("Imate dupliranih standardnih klasifikacija!");
+        Map<String, List<ObrazacIODTO>> duplicatesMap = new HashMap<>();
+
+        for (ObrazacIODTO item : list) {
+            String key = getKeyForDuplicateCheck(item);
+            if (duplicatesMap.containsKey(key)) {
+                duplicatesMap.get(key).add(item);
+            } else {
+                List<ObrazacIODTO> itemsWithSameKey = new ArrayList<>();
+                itemsWithSameKey.add(item);
+                duplicatesMap.put(key, itemsWithSameKey);
+            }
         }
+
+        for (Map.Entry<String, List<ObrazacIODTO>> entry : duplicatesMap.entrySet()) {
+            List<ObrazacIODTO> duplicateItems = entry.getValue();
+            if (duplicateItems.size() > 1) {
+                StringBuilder errorMessage = new StringBuilder("Postoje redovi sa identicnom stand. klasifikacijom :\n");
+                for (ObrazacIODTO duplicateItem : duplicateItems) {
+                    errorMessage.append("Programska aktivnost: ").append(duplicateItem.getRedBrojAkt()).append("\n");
+                    errorMessage.append("Funkc. klasifikacija: ").append(duplicateItem.getFunkKlas()).append("\n");
+                    errorMessage.append("Konto: ").append(duplicateItem.getKonto()).append("\n");
+                    errorMessage.append("Izvor finansiranja: ").append(duplicateItem.getIzvorFin()).append("\n");
+                }
+                throw new ObrazacException(errorMessage.toString());
+            }
+        }
+//        Set<ObrazacIODTO> set =
+//                list.stream().collect(Collectors.toSet());
+//        if (set.size() < list.size()) {
+//                            throw new ObrazacException("Imate dupliranih standardnih klasifikacija!");
+//        }
     }
 
     private String getKeyForDuplicateCheck(ObrazacIODTO item) {
         return item.getRedBrojAkt() + "_" + item.getFunkKlas() + "_" + item.getKonto() + "_" + item.getIzvorFin();
     }
 
-    private void checkSumOfPrenetihSredsAgainstKonto791111(User user, Integer jbbks, Integer glava,
+    private String checkSumOfPrenetihSredsAgainstKonto791111(User user, Integer jbbks, String glava,
                                                            Integer kvartal, List<ObrazacIODTO> dtos) throws ObrazacException {
         var sifSekr = user.getZa_sif_sekret();
         Double date = (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
-        var sumOfPrenetihSreds = arhbudzetService.sumDugujeForCriteria(sifSekr, date, glava, jbbks);
+        var sumOfPrenetihSreds = arhbudzetService.sumUplataIzBudzetaForIndKor(sifSekr, date, glava, jbbks);
         //TODO if plan is right value, or change it with correct property
         Double sum791111 = dtos.stream()
                 .filter(dto -> dto.getKonto() == 791111)
@@ -173,10 +175,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 .mapToDouble(Double::doubleValue)
                 .sum();
 
-        if (false){//TODO sumOfPrenetihSreds != sum791111 ) {
-            throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
-                                       "sa iznosom na kontu 791111 u Excel obrascu");
-        }
+        if (!areEqual(sumOfPrenetihSreds, sum791111)) {
+                throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
+                        "sa iznosom na kontu 791111 u Excel obrascu");
+            }
+        return "";
     }
 
     @Override
