@@ -26,7 +26,7 @@ public class ZakljucniDetailsService {
 
 
         //TODO include next control before deploying
-        //this.checkIfKontosAreExisting(dtos);
+        this.checkIfKontosAreExisting(dtos);
         var jbbk = zbSaved.getJbbkIndKor();
         String oznakaGlave = glavaSviService.findGlava(jbbk);
         List<ZakljucniListDetails> details = dtos.stream()

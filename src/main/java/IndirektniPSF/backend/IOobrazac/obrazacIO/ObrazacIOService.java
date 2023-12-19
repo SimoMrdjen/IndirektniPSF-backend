@@ -4,6 +4,7 @@ package IndirektniPSF.backend.IOobrazac.obrazacIO;
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailService;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIOMapper;
+import IndirektniPSF.backend.arhbudzet.Arhbudzet;
 import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
@@ -331,6 +332,32 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         return
                 obrazacIOrepository.findById(id)
                         .orElseThrow(() -> new NotFoundException("Ne postoji obrazac!"));
+    }
+
+    public String checkIfStandKlasifFromExcelExistInFinPlana(List<ObrazacIODTO> dtos,
+                                                             Integer jbbkInd,
+                                                             Integer kvartal) {
+
+        List<Arhbudzet> arh = arhbudzetService.findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(jbbkInd, kvartal);
+        List<ObrazacIODTO> dtosFromArh = arh.stream()
+                .map(mapper::toDtoFromArh)
+                .toList();
+
+        var messageForExcel = checkIfStandKlasifFromExcelExistInFinPlana(dtos, dtosFromArh);
+        var messageForPlan = checkIfStandKlasifFromFinPlanalExistInExcel(dtos, dtosFromArh);
+
+    }
+
+    private String checkIfStandKlasifFromFinPlanalExistInExcel(List<ObrazacIODTO> dtos,
+                                                               List<ObrazacIODTO> dtosFromArh) {
+
+        return "";
+    }
+
+    public String checkIfStandKlasifFromExcelExistInFinPlana(List<ObrazacIODTO> dtos,
+                                                             List<ObrazacIODTO> arh) {
+
+        return "";
     }
 
 }

@@ -2,13 +2,17 @@ package IndirektniPSF.backend.arhbudzet;
 
 import IndirektniPSF.backend.izvor.Izvor;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Entity
 @IdClass(ArhbudzetId.class)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 //@Table(name = "ARHBUDZET")
 public class Arhbudzet {
     @Id
@@ -52,4 +56,23 @@ public class Arhbudzet {
 
     @Column(name = "funk_klas")
     private Integer funkKlas;
+
+    @Column(name = "vrstapromene")
+    private Integer vrstaPromene;
+
+    @Override
+    public String toString() {
+        return "Stand.klasif. :\n" +
+                "sin.konto: " + sinKonto +
+                ", izvor: " + izvor.getIZVORFIN() +
+                ", program-akt: " + redBrojAkt +
+                ", funk.klasif: " + funkKlas + ".";
+    }
+
+    public Arhbudzet(Integer sinKonto, Izvor izvor, Integer redBrojAkt, Integer funkKlas) {
+        this.sinKonto = sinKonto;
+        this.izvor = izvor;
+        this.redBrojAkt = redBrojAkt;
+        this.funkKlas = funkKlas;
+    }
 }

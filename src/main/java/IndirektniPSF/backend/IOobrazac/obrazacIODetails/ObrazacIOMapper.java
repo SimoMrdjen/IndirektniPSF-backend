@@ -2,6 +2,7 @@ package IndirektniPSF.backend.IOobrazac.obrazacIODetails;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
+import IndirektniPSF.backend.arhbudzet.Arhbudzet;
 import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ValidOrStorno;
 import org.apache.poi.ss.usermodel.*;
@@ -127,4 +128,14 @@ public class ObrazacIOMapper {
                 .build();
 
     }
+
+    public ObrazacIODTO toDtoFromArh(Arhbudzet arhbudzet) {
+        return ObrazacIODTO.builder()
+                .redBrojAkt(arhbudzet.getRedBrojAkt())
+                .funkKlas(arhbudzet.getFunkKlas().toString())
+                .konto(arhbudzet.getSinKonto())
+                .izvorFin(arhbudzet.getIzvor().getIZVORFIN())
+                .build();
+    }
+
 }

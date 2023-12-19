@@ -84,6 +84,11 @@ public interface IfObrazacChecker {
         return LocalDate.of(year - 1, 12, 31);
     }
 
+    default Double getLastDayOfKvartalAsDouble(Integer kvartal) {
+        return (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
+
+    }
+
     default <T extends StatusUpdatable> void checkIfExistValidObrazacYet(T t) throws ObrazacException {
         if (t.getRADNA() == 1 && t.getSTORNO() == 0 ) {
             throw new ObrazacException("Za tekući kvartal već postoji učitan \nvažeći brazac!\nUkoliko zelite da ucitate novu verziju " +

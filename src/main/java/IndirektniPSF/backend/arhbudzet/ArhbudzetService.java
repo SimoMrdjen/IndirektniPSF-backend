@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 @Component
@@ -15,5 +17,10 @@ public class ArhbudzetService implements IfObrazacChecker {
     public  Double sumUplataIzBudzetaForIndKor(Integer sifSekr, Double date, String glava, Integer jbbk) {
 
         return repository.sumUplataIzBudzetaForIndKor(sifSekr, date, jbbk);
+    }
+
+    public List<Arhbudzet> findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(Integer jbbkInd, Integer kvartal) {
+        Double datum = getLastDayOfKvartalAsDouble(kvartal);
+        return repository.findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(jbbkInd, datum);
     }
 }
