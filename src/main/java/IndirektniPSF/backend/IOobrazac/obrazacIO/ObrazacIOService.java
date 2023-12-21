@@ -78,6 +78,9 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         checkForDuplicatesStandKlasif(dtos);
         responseMessage
                 .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
+        responseMessage
+                .append(checkIfStandKlasifFromExcelExistInFinPlana(dtos,jbbks,kvartal));
+        checkIfPlanAndIzvrsenjeAreZero(dtos);
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         ObrazacIO obrIO = ObrazacIO.builder()
@@ -124,6 +127,19 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 //            System.out.println("Exception occurred while processing the file" + ex);
 //            throw ex;
 //        }
+    }
+
+    public void checkIfPlanAndIzvrsenjeAreZero(List<ObrazacIODTO> dtos) throws ObrazacException {
+        List<ObrazacIODTO> planAndIzvrsenjeAreZero =
+                dtos.stream()
+                        .filter(dto -> dto.getIzvrsenje() == 0 && dto.getPlan() == 0)
+                        .toList();
+        if(!planAndIzvrsenjeAreZero.isEmpty()) {
+            throw new ObrazacException("Imate stavku gde su izvrsenje i plan 0!" +
+                    planAndIzvrsenjeAreZero.stream()
+                            .map(ObrazacIODTO::toString)
+                            .collect(Collectors.joining("\n")));
+        }
     }
 
     public void checkForDuplicatesStandKlasif(List<ObrazacIODTO> list) throws ObrazacException {
@@ -336,28 +352,47 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
     public String checkIfStandKlasifFromExcelExistInFinPlana(List<ObrazacIODTO> dtos,
                                                              Integer jbbkInd,
-                                                             Integer kvartal) {
+                                                             Integer kvartal) throws ObrazacException {
 
         List<Arhbudzet> arh = arhbudzetService.findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(jbbkInd, kvartal);
         List<ObrazacIODTO> dtosFromArh = arh.stream()
                 .map(mapper::toDtoFromArh)
                 .toList();
+        dtos.forEach(dto -> dto.setKonto(dto.getKonto()/100));
 
-        var messageForExcel = checkIfStandKlasifFromExcelExistInFinPlana(dtos, dtosFromArh);
-        var messageForPlan = checkIfStandKlasifFromFinPlanalExistInExcel(dtos, dtosFromArh);
+        var messageForExcel = checkIfStandKlasifBetweenExcenAndFinPlan(dtos, dtosFromArh);
+        if (messageForExcel.length() > 0) {
+            messageForExcel =  "Imate u obrascu standardne klasifikacije \nkoje ne postoje u fin.planu!\n "
+                             + messageForExcel;
+        }
+        var messageForPlan = "";//checkIfStandKlasifBetweenExcenAndFinPlan( dtosFromArh,dtos);
+        if (messageForExcel.length() > 0) {
+            messageForPlan =  "Imate u fin.planu standardne klasifikacije \nkoje ne postoje u obrascu!\n "
+                              +  messageForPlan;
+        }
 
+        boolean clauseForCheckingInExcelStandKlas = false;//zuta greska
+        boolean clauseForCheckingInFinPlanStandKlas = false;//crvena greska
+
+        if (clauseForCheckingInExcelStandKlas && messageForExcel.length() > 0) {
+            throw new ObrazacException(messageForExcel);
+        }
+        if (clauseForCheckingInFinPlanStandKlas && messageForPlan.length() > 0) {
+            throw new ObrazacException(messageForPlan);
+        }
+        return messageForExcel + messageForPlan;
     }
 
-    private String checkIfStandKlasifFromFinPlanalExistInExcel(List<ObrazacIODTO> dtos,
-                                                               List<ObrazacIODTO> dtosFromArh) {
+    public String checkIfStandKlasifBetweenExcenAndFinPlan(List<ObrazacIODTO> dtos,
+                                                            List<ObrazacIODTO> dtosFromArh) {
 
-        return "";
+        List<ObrazacIODTO> elementsNotInArh = dtos.stream()
+                .filter(element -> dtosFromArh.stream().noneMatch(arhElement -> arhElement.equals(element)))
+                .toList();
+        return elementsNotInArh.stream()
+                .map(ObrazacIODTO::toString)
+                .collect(Collectors.joining("\n"));
     }
 
-    public String checkIfStandKlasifFromExcelExistInFinPlana(List<ObrazacIODTO> dtos,
-                                                             List<ObrazacIODTO> arh) {
-
-        return "";
-    }
 
 }

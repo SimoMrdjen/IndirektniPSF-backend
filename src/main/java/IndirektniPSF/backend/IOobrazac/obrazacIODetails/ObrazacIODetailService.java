@@ -2,6 +2,7 @@ package IndirektniPSF.backend.IOobrazac.obrazacIODetails;
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
+import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.glavaSvi.GlavaSviService;
 import IndirektniPSF.backend.subkonto.SubkontoService;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
@@ -33,7 +34,7 @@ public class ObrazacIODetailService {
                                                          String oznakaGlave) throws Exception {
 
         //TODO include next control before deploying
-        //this.checkIfKontosAreExisting(dtos)
+        this.checkIfKontosAreExistingExxludingSinKontos(dtos);
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
         Integer kvartal = obrIOSaved.getKOJI_KVARTAL();
@@ -63,6 +64,13 @@ public class ObrazacIODetailService {
        return listDetails;
     }
 
+    public void checkIfKontosAreExistingExxludingSinKontos(List<ObrazacIODTO> dtos) throws Exception {
+        var dtosExcludingSinKontos = dtos.stream()
+                .filter(dto -> dto.getKonto() % 100 != 0)
+                .toList();
+        checkIfKontosAreExisting(dtosExcludingSinKontos);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void compareIoDetailsWithZakListDetails(List<ObrazacIODetails> details, List<ZakljucniListDetails> stavke) throws Exception {
         if(false) {
@@ -73,7 +81,7 @@ public class ObrazacIODetailService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void checkIfKontosAreExisting(List<ObrazacIODTO> dtos) throws Exception {
+    public void checkIfKontosAreExisting(List<ObrazacIODTO> dtos) throws ObrazacException {
 
         List<Integer> kontosInKontniPlan = subkontoService.getKontniPlan();
         List<Integer> nonExistingKontos = dtos.stream()
@@ -89,7 +97,7 @@ public class ObrazacIODetailService {
                 .collect(Collectors.toList());
 
         if (!nonExistingKontos.isEmpty()) {
-            throw new Exception("U obrascu listu postoje konta koja nisu" +
+            throw new ObrazacException("U obrascu listu postoje konta koja nisu" +
                     " \ndeo Kontnog plana: " + nonExistingKontosString);
         }
     }

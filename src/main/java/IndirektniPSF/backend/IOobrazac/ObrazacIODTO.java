@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.IOobrazac;
 
+import IndirektniPSF.backend.izvor.Izvor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,5 +35,14 @@ public class ObrazacIODTO {
     @Override
     public int hashCode() {
         return Objects.hash(redBrojAkt, funkKlas, konto, izvorFin);
+    }
+
+    @Override
+    public String toString() {
+        return "\nStand.klasif. :\n" +
+                "program-akt: " + redBrojAkt +
+                ", sin.konto: " + konto +
+                "\n, izvor: " + izvorFin +
+                ", funk.klasif: " + funkKlas + ".";
     }
 }
