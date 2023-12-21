@@ -5,7 +5,9 @@ import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.arhbudzet.Arhbudzet;
 import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ValidOrStorno;
+import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -64,14 +66,44 @@ public class ObrazacIOMapper {
                     break;
             }
         }
-
+//    public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
+//
+//        List<ObrazacIODTO> dtos = new ArrayList<>();
+//        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+//            Sheet sheet = workbook.getSheetAt(0);
+//            int i = 7; // Start reading from the 6th row
+//
+//            while (true) {
+//                Row row = sheet.getRow(i);
+//
+//                if (row == null || row.getCell(0) == null ||
+//                        row.getCell(0).getStringCellValue().trim().isEmpty()) {
+//                    break; // Stop reading when you find a blank row
+//                }
+//
+//                ObrazacIODTO dto = new ObrazacIODTO();
+//                dto.setRedBrojAkt(Integer.valueOf(row.getCell(0).getStringCellValue()));
+//                dto.setFunkKlas(row.getCell(1).getStringCellValue());
+//                dto.setKonto((int) row.getCell(2).getNumericCellValue());
+//                dto.setIzvorFin(row.getCell(3).getStringCellValue());
+//                dto.setIzvorFinPre(row.getCell(4).getStringCellValue());
+//                dto.setPlan(row.getCell(5).getNumericCellValue());
+//                dto.setIzvrsenje(row.getCell(6).getNumericCellValue());
+//
+//                dtos.add(dto);
+//                i++;
+//            }
+//        } catch (Exception e) {
+//            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani");
+//        }
+//        return dtos;
+//    }
     public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
-
         List<ObrazacIODTO> dtos = new ArrayList<>();
         DataFormatter formatter = new DataFormatter();
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
-        Sheet sheet = workbook.getSheetAt(0);
-        int i = 7;
+            Sheet sheet = workbook.getSheetAt(0);
+            int i = 7;
             while (i <= sheet.getLastRowNum()) {
                 Row row = sheet.getRow(i);
                 if (row == null) {
@@ -87,11 +119,32 @@ public class ObrazacIOMapper {
                     continue;
                 }
                 dto.setFunkKlas(formatter.formatCellValue(row.getCell(1)));
-                dto.setKonto(Integer.parseInt(formatter.formatCellValue(row.getCell(2))));
+
+//                Cell kontoCell = row.getCell(2);
+//                if (kontoCell != null) {
+//                    if (kontoCell.getCellType() == CellType.STRING) {
+//                        dto.setKonto(Integer.parseInt(kontoCell.getStringCellValue()));
+//                    } else if (kontoCell.getCellType() == CellType.NUMERIC) {
+//                        String formattedNumber = String.format("%06d", (int)kontoCell.getNumericCellValue());
+//                        dto.setKonto(Integer.parseInt(formattedNumber));
+//                    }
+//                }
+                dto.setKonto(Integer.valueOf(formatter.formatCellValue(row.getCell(2))));
+
+
                 dto.setIzvorFin(formatter.formatCellValue(row.getCell(3)));
                 dto.setIzvorFinPre(formatter.formatCellValue(row.getCell(4)));
-                dto.setPlan(row.getCell(5).getNumericCellValue());
-                dto.setIzvrsenje(row.getCell(6).getNumericCellValue());
+
+                Cell planCell = row.getCell(5);
+                if (planCell != null && planCell.getCellType() == CellType.NUMERIC) {
+                    dto.setPlan(planCell.getNumericCellValue());
+                }
+
+                Cell izvrsenjeCell = row.getCell(6);
+                if (izvrsenjeCell != null && izvrsenjeCell.getCellType() == CellType.NUMERIC) {
+                    dto.setIzvrsenje(izvrsenjeCell.getNumericCellValue());
+                }
+
                 dtos.add(dto);
                 i++;
             }
@@ -100,6 +153,43 @@ public class ObrazacIOMapper {
         }
         return dtos;
     }
+
+//    public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
+//
+//        List<ObrazacIODTO> dtos = new ArrayList<>();
+//        DataFormatter formatter = new DataFormatter();
+//        try (Workbook workbook = WorkbookFactory.create(inputStream)) {
+//        Sheet sheet = workbook.getSheetAt(0);
+//        int i = 7;
+//            while (i <= sheet.getLastRowNum()) {
+//                Row row = sheet.getRow(i);
+//                if (row == null) {
+//                    break;
+//                }
+//                ObrazacIODTO dto = new ObrazacIODTO();
+//
+//                Cell cell0 = row.getCell(0, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+//                if (cell0 != null && cell0.getCellType() != CellType.BLANK) {
+//                    dto.setRedBrojAkt(Integer.parseInt(formatter.formatCellValue(cell0)));
+//                } else {
+//                    i++;
+//                    continue;
+//                }
+//                dto.setFunkKlas(formatter.formatCellValue(row.getCell(1)));
+////                dto.setKonto(row.getCell(2).getStringCellValue());
+//                dto.setKonto(Integer.parseInt(formatter.formatCellValue(row.getCell(2))));
+//                dto.setIzvorFin(formatter.formatCellValue(row.getCell(3)));
+//                dto.setIzvorFinPre(formatter.formatCellValue(row.getCell(4)));
+//                dto.setPlan(row.getCell(5).getNumericCellValue());
+//                dto.setIzvrsenje(row.getCell(6).getNumericCellValue());
+//                dtos.add(dto);
+//                i++;
+//            }
+//        } catch (Exception e) {
+//            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
+//        }
+//        return dtos;
+//    }
 
     public ObrazacResponse toResponse(ObrazacIO zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDATUM_DOK() - 25569);

@@ -33,7 +33,8 @@ public class ObrazacIODetailService {
                                                          List<ZakljucniListDetails> zakListDetails,
                                                          String oznakaGlave) throws Exception {
 
-        //TODO include next control before deploying
+        dtos.forEach(item -> System.out.println(item.getKonto()));
+
         this.checkIfKontosAreExistingExxludingSinKontos(dtos);
         Integer godina = obrIOSaved.getGODINA();
         Integer verzija = obrIOSaved.getVERZIJA();
@@ -65,6 +66,9 @@ public class ObrazacIODetailService {
     }
 
     public void checkIfKontosAreExistingExxludingSinKontos(List<ObrazacIODTO> dtos) throws Exception {
+
+//        dtos.forEach(item -> System.out.println(item.getKonto()));
+
         var dtosExcludingSinKontos = dtos.stream()
                 .filter(dto -> dto.getKonto() % 100 != 0)
                 .toList();

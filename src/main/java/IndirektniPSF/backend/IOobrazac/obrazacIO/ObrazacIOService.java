@@ -192,6 +192,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 .mapToDouble(Double::doubleValue)
                 .sum();
 
+        System.out.println(String.format("%.2f", sum791111));
+        System.out.println(String.format("%.2f", sumOfPrenetihSreds));
+
+
         if (!areEqual(sumOfPrenetihSreds, sum791111)) {
                 throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
                         "sa iznosom na kontu 791111 u Excel obrascu");
