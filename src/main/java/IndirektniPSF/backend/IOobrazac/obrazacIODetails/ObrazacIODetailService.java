@@ -33,7 +33,6 @@ public class ObrazacIODetailService {
                                                          List<ZakljucniListDetails> zakListDetails,
                                                          String oznakaGlave) throws Exception {
 
-        dtos.forEach(item -> System.out.println(item.getKonto()));
 
         this.checkIfKontosAreExistingExxludingSinKontos(dtos);
         Integer godina = obrIOSaved.getGODINA();
@@ -67,11 +66,11 @@ public class ObrazacIODetailService {
 
     public void checkIfKontosAreExistingExxludingSinKontos(List<ObrazacIODTO> dtos) throws Exception {
 
-//        dtos.forEach(item -> System.out.println(item.getKonto()));
-
         var dtosExcludingSinKontos = dtos.stream()
                 .filter(dto -> dto.getKonto() % 100 != 0)
                 .toList();
+//        System.out.println("From checkIfKontosAreExistingExxludingSinKontos");
+//        dtos.forEach(item -> System.out.println(item.getKonto()));
         checkIfKontosAreExisting(dtosExcludingSinKontos);
     }
 
@@ -88,12 +87,18 @@ public class ObrazacIODetailService {
     public void checkIfKontosAreExisting(List<ObrazacIODTO> dtos) throws ObrazacException {
 
         List<Integer> kontosInKontniPlan = subkontoService.getKontniPlan();
-        List<Integer> nonExistingKontos = dtos.stream()
-                .map(ObrazacIODTO::getKonto)
+        List<Integer> existingKontos = dtos.stream()
+                .map(ObrazacIODTO::getKonto).toList();
+
+        List<Integer> nonExistingKontos = existingKontos.stream()
+//                .map(ObrazacIODTO::getKonto)
 //                .map(kon -> kon.trim())
 //                .map(Integer::parseInt)
                 .filter((k) -> !kontosInKontniPlan.contains(k))
                 .collect(Collectors.toList());
+//
+//        System.out.println("From checkIfKontosAreExisting");
+//        dtos.forEach(dto -> System.out.println(dto.getKonto()));
 
         List<String> nonExistingKontosString =  nonExistingKontos.stream()
                 .map(konto -> Integer.toString(konto))

@@ -71,6 +71,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
         Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
         List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
+        dtos.forEach(item -> System.out.println(item.getKonto()));
 
         //VARIOUS CHECKS
         //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
@@ -362,9 +363,23 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<ObrazacIODTO> dtosFromArh = arh.stream()
                 .map(mapper::toDtoFromArh)
                 .toList();
-        dtos.forEach(dto -> dto.setKonto(dto.getKonto()/100));
 
-        var messageForExcel = checkIfStandKlasifBetweenExcenAndFinPlan(dtos, dtosFromArh);
+        List<ObrazacIODTO> dtosFromExcel = dtos.stream()
+                .map(dto -> {
+                    ObrazacIODTO newDto = new ObrazacIODTO();
+                    newDto.setRedBrojAkt(dto.getRedBrojAkt());
+                    newDto.setFunkKlas(dto.getFunkKlas());
+                    // Apply the division by 100 to the new object
+                    newDto.setKonto(dto.getKonto() / 100);
+                    newDto.setIzvorFin(dto.getIzvorFin());
+                    newDto.setIzvorFinPre(dto.getIzvorFinPre());
+                    newDto.setPlan(dto.getPlan());
+                    newDto.setIzvrsenje(dto.getIzvrsenje());
+                    return newDto;
+                })
+                .collect(Collectors.toList());
+
+        var messageForExcel = checkIfStandKlasifBetweenExcenAndFinPlan(dtosFromExcel, dtosFromArh);
         if (messageForExcel.length() > 0) {
             messageForExcel =  "Imate u obrascu standardne klasifikacije \nkoje ne postoje u fin.planu!\n "
                              + messageForExcel;
