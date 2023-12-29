@@ -154,43 +154,6 @@ public class ObrazacIOMapper {
         return dtos;
     }
 
-//    public List<ObrazacIODTO> mapExcelToPojo(InputStream inputStream) {
-//
-//        List<ObrazacIODTO> dtos = new ArrayList<>();
-//        DataFormatter formatter = new DataFormatter();
-//        try (Workbook workbook = WorkbookFactory.create(inputStream)) {
-//        Sheet sheet = workbook.getSheetAt(0);
-//        int i = 7;
-//            while (i <= sheet.getLastRowNum()) {
-//                Row row = sheet.getRow(i);
-//                if (row == null) {
-//                    break;
-//                }
-//                ObrazacIODTO dto = new ObrazacIODTO();
-//
-//                Cell cell0 = row.getCell(0, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-//                if (cell0 != null && cell0.getCellType() != CellType.BLANK) {
-//                    dto.setRedBrojAkt(Integer.parseInt(formatter.formatCellValue(cell0)));
-//                } else {
-//                    i++;
-//                    continue;
-//                }
-//                dto.setFunkKlas(formatter.formatCellValue(row.getCell(1)));
-////                dto.setKonto(row.getCell(2).getStringCellValue());
-//                dto.setKonto(Integer.parseInt(formatter.formatCellValue(row.getCell(2))));
-//                dto.setIzvorFin(formatter.formatCellValue(row.getCell(3)));
-//                dto.setIzvorFinPre(formatter.formatCellValue(row.getCell(4)));
-//                dto.setPlan(row.getCell(5).getNumericCellValue());
-//                dto.setIzvrsenje(row.getCell(6).getNumericCellValue());
-//                dtos.add(dto);
-//                i++;
-//            }
-//        } catch (Exception e) {
-//            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
-//        }
-//        return dtos;
-//    }
-
     public ObrazacResponse toResponse(ObrazacIO zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDATUM_DOK() - 25569);
         return ObrazacResponse.builder()
@@ -226,6 +189,12 @@ public class ObrazacIOMapper {
                 .konto(arhbudzet.getSinKonto())
                 .izvorFin(arhbudzet.getIzvor().getIZVORFIN())
                 .build();
+    }
+
+    public ObrazacIODTO toDtoFromArhWithPlan(Arhbudzet arh) {
+        var dto = toDtoFromArh(arh);
+        dto.setPlan(arh.getDuguje());
+        return dto;
     }
 
 }
