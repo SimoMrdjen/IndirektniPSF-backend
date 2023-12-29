@@ -9,6 +9,7 @@ import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.glavaSvi.GlavaSviService;
+import IndirektniPSF.backend.krt.StanjeKrtaService;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5Service;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.webjars.NotFoundException;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,6 +55,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     private final GlavaSviService glavaSviService;
 
     private final ArhbudzetService arhbudzetService;
+    private final StanjeKrtaService stanjeKrtaService;
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
@@ -77,11 +80,14 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
-        responseMessage
-                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
+//        responseMessage
+//                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
         responseMessage
                 .append(checkIfStandKlasifFromExcelExistInFinPlana(dtos,jbbks,kvartal));
         checkIfPlanAndIzvrsenjeAreZero(dtos);
+        responseMessage
+                .append(checkSumOnKlasa3(jbbks, file));
+
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         ObrazacIO obrIO = ObrazacIO.builder()
@@ -128,6 +134,20 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 //            System.out.println("Exception occurred while processing the file" + ex);
 //            throw ex;
 //        }
+    }
+
+    private String checkSumOnKlasa3(Integer jbbks,MultipartFile file) throws Exception {
+
+        Double sumFromStanjeKrta = stanjeKrtaService.getTransferedAmountOfBalancesforJbbk(jbbks);
+        Double amountFromExcel = excelService.readCellOfDoubleValueByIndexes(file.getInputStream(), 40, 11);
+        System.out.println("from krt: " + sumFromStanjeKrta);
+        System.out.println("from excel: " + amountFromExcel);
+
+        if (!areEqual(sumFromStanjeKrta,amountFromExcel)) {
+            return "Ne slaže se suma na unetoj klasi 3 \n" +
+                    "sa stanjem na žiro racunima";
+        }
+        return "";
     }
 
     public void checkIfPlanAndIzvrsenjeAreZero(List<ObrazacIODTO> dtos) throws ObrazacException {

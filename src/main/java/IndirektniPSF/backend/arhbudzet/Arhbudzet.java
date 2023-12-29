@@ -60,6 +60,13 @@ public class Arhbudzet {
     @Column(name = "vrstapromene")
     private Integer vrstaPromene;
 
+    @Column(name = "dugg")
+    private Double dugg;
+
+    @Column(name = "duggtbr")
+    private Integer duggtbr;
+
+
     @Override
     public String toString() {
         return "Stand.klasif. :\n" +

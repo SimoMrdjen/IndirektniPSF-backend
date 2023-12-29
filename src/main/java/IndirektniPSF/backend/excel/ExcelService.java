@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.excel;
 
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -78,5 +79,48 @@ public class ExcelService {
         return cellValue;
     }
 
+    public Double readCellOfDoubleValueByIndexes(InputStream inputStream, int rowIndex, int colIndex) throws Exception {
+        Double cellValue = null;
+        try (Workbook workbook = WorkbookFactory.create(inputStream)) { // Automatically determine the format
+            Sheet sheet = workbook.getSheetAt(0);
+            Row row = sheet.getRow(rowIndex);
+
+            if (row != null) {
+                Cell cell = row.getCell(colIndex);
+                if (cell != null) {
+                    switch (cell.getCellType()) {
+                        case NUMERIC:
+                            cellValue = (double) cell.getNumericCellValue();
+                            break;
+                        case STRING:
+                            try {
+                                cellValue = Double.parseDouble(cell.getStringCellValue());
+                            } catch (NumberFormatException e) {
+                                throw new Exception("Cannot convert string to integer in cell (" + rowIndex + "," + colIndex + ")");
+                            }
+                            break;
+                        case BOOLEAN:
+                            cellValue = cell.getBooleanCellValue() ? 1.0 : 0.0;
+                            break;
+                        case FORMULA:
+                            FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+                            cellValue = (double) evaluator.evaluate(cell).getNumberValue();
+                            break;
+                        case BLANK:
+                            throw new Exception("Cell (" + rowIndex + "," + colIndex + ") is blank.");
+                        default:
+                            throw new Exception("Unsupported cell type in (" + rowIndex + "," + colIndex + ")");
+                    }
+                } else {
+                    throw new Exception("Cell (" + rowIndex + "," + colIndex + ") does not exist.");
+                }
+            } else {
+                throw new Exception("Row " + rowIndex + " does not exist.");
+            }
+        } catch (IOException | InvalidFormatException e) {
+            throw new Exception("Error reading Excel file: " + e.getMessage());
+        }
+        return cellValue;
+    }
 
 }

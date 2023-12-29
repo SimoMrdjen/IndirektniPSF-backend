@@ -17,6 +17,7 @@ public class ObrazacIODetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "REDNI")
     private  Integer REDNI;
 
     @ManyToOne
