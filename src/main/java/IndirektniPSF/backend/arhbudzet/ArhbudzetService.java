@@ -23,4 +23,8 @@ public class ArhbudzetService implements IfObrazacChecker {
         Double datum = getLastDayOfKvartalAsDouble(kvartal);
         return repository.findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(jbbkInd, datum);
     }
+
+    List<Arhbudzet> findByJbbkIndKorAndDatumLessThanEqualGroupByFields(Integer jbbkIndKor, Double datum) {
+        return repository.findByJbbkIndKorAndDatumLessThanEqualGroupByFields(jbbkIndKor, datum);
+    }
 }

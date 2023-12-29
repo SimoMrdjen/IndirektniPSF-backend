@@ -33,14 +33,4 @@ public interface ArhbudzetRepository extends JpaRepository<Arhbudzet, ArhbudzetI
             @Param("jbbkIndKor") Integer jbbkIndKor,
             @Param("datum") Double datum);
 
-    // TODO query for finding amount of plan for particular sinkonto
-//    SELECT a.SIN_KONTO, a.RED_BROJ_AKT, a.IZVORFIN, a.FUNK_KLAS,
-//    sum(A.DUGG+a.duggtbr) AS a.duguje
-//    FROM
-//    ARHBUDZET A
-//    WHERE
-//    A.JBBK_IND_KOR = ? AND
-//    A.DATUM <= ?
-//    and (a.SIN_KONTO>3999 and a.SIN_KONTO<7000)
-//    group by  a.SIN_KONTO, a.RED_BROJ_AKT, a.IZVORFIN, a.FUNK_KLAS
 }
