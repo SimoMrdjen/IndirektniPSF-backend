@@ -55,7 +55,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Integer year = excelService.readCellByIndexes(file.getInputStream(), 3, 4);
         Integer jbbk = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
         Integer excelKvartal = excelService.readCellByIndexes(file.getInputStream(), 3, 1);
-        //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
+       // chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
 
         List<ZakljucniListDto> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
