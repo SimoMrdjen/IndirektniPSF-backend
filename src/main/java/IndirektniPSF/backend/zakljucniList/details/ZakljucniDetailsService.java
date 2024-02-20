@@ -21,7 +21,7 @@ public class ZakljucniDetailsService {
     private final SubkontoService subkontoService;
     private final GlavaSviService glavaSviService;
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+   // @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ZakljucniListDetails> saveDetailsExcel(List<ZakljucniListDto> dtos, ZakljucniListZb zbSaved) throws Exception {
 
 
@@ -34,7 +34,7 @@ public class ZakljucniDetailsService {
                 .collect(Collectors.toList());
         return zakljucniDetailsRepository.saveAll(details);
     }
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+   // @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void checkIfKontosAreExisting(List<ZakljucniListDto> dtos) throws Exception {
 
         List<Integer> kontosInKontniPlan = subkontoService.getKontniPlan();

@@ -35,9 +35,9 @@ public  class StatusService {
         if (actualStatus >= 20) {
             throw new Exception("Dokument je vec poslat Vasem DBK-u!");
         } else if(actualStatus == 0 && status == 10) {
-            throw new Exception("Dokument jos nije odobren, \nidite na opciju odobravanje!");
+            throw new Exception("Dokument jos nije overen, \nidite na opciju overavanje!");
         } else if(actualStatus == 10 && status == 0) {
-            throw new Exception("Dokument je vec odobren, \nmozete ici na opciju overavanje!");
+            throw new Exception("Dokument je vec overen, \nmozete ici na opciju odobravanje!");
         }
     }
 

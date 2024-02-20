@@ -99,7 +99,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return responseMessage;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+ //   @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception {
 
         Optional<ZakljucniListZb> optionalZb =
@@ -120,12 +120,12 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         //check next
         ObrazacIO obrazacIO =
                 obrazacIoService.findLastOptionalIOForKvartal(email, kvartal)
-                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
+                        .orElseThrow(() -> new ObrazacException("Nije moguce overavanje obrrasca\n" +
                                 "jer ne postoji ucitan Obrazac IO.\n" +
                                 "Morate prethodno ucitati Obrazac IO!"));
 
         if (obrazacIO.getSTORNO() == 1) {
-            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac IO storniran.\n" +
+            throw new ObrazacException("Nije moguce overavanje obrasca jer je Obrazac IO storniran.\n" +
                     " Morate prethodno ucitati Obrazac IO!!");
         }
         statusService.resolveObrazacAccordingNextObrazac(zb, obrazacIO);
@@ -188,8 +188,6 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     public ZakljucniListZb findObrazacById(Integer id, Integer kvartal) {
 
         return zakljucniRepository.findById(id)
-
-//        return zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
     }
 
@@ -238,7 +236,6 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return response;
     }
 
-    @Transactional
     public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) {
 
         ZakljucniListZb zb = findObrazacById(id, kvartal);
