@@ -2,6 +2,7 @@ package IndirektniPSF.backend.IOobrazac.obrazacIO;
 
 
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
+import IndirektniPSF.backend.IOobrazac.PomObrazac;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailService;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIOMapper;
 import IndirektniPSF.backend.arhbudzet.Arhbudzet;
@@ -20,6 +21,7 @@ import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
+import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +90,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         responseMessage
                 .append(checkSumOnKlasa3(jbbks, file));
 
+        compareIoAndZakljucni(dtos, kvartal, jbbks);
+
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         ObrazacIO obrIO = ObrazacIO.builder()
@@ -134,6 +138,73 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 //            System.out.println("Exception occurred while processing the file" + ex);
 //            throw ex;
 //        }
+    }
+
+    public void compareIoAndZakljucni(List<ObrazacIODTO> dtos, Integer kvartal, Integer jbbks) throws Exception {
+
+        List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks);
+        List<PomObrazac> io = convertIoToPomObrazac(dtos);
+        chekEquality(zak, io);
+    }
+
+    public void chekEquality(List<PomObrazac> zak, List<PomObrazac> io) throws Exception {
+
+        List<PomObrazac> diff = new ArrayList<>(zak);
+        diff.removeAll(io);
+
+        List<PomObrazac> diff2 = new ArrayList<>(io);
+        diff2.removeAll(zak);
+
+        diff.addAll(diff2);
+        Set<PomObrazac> diffSet = new HashSet<>(diff);
+
+        if (!diffSet.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            diffSet.forEach(d -> sb.append(d.getKonto()).append(", "));
+            throw new ObrazacException("Obrazac IO i vec ucitani Zakljucni list \n" +
+                    "se ne slazu u kontima : " + sb);
+        }
+    }
+
+    public List<PomObrazac> convertIoToPomObrazac(List<ObrazacIODTO> dtos) {
+
+        List<ObrazacIODTO> dtosFiltered = dtos.stream().filter(i -> ( i.getKonto() < 700000) && ( i.getKonto() > 400000) )
+                .collect(Collectors.toList());
+
+        List<PomObrazac> pomList = dtosFiltered.stream()
+                .map(i -> {
+                    PomObrazac pom = new PomObrazac();
+                    pom.setKonto(i.getKonto());
+                    pom.setSaldo(i.getIzvrsenje());
+                    return  pom;
+                })
+                .collect(Collectors.toList());
+        return makeListOfPomUniqueKontosAndSumOfSaldo(pomList);
+    }
+
+    public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks) throws Exception {
+
+        List<ZakljucniListDetails> zakljucniListDetailsList = findValidZakList(kvartal,jbbks).getStavke();
+
+        return zakljucniListDetailsList.stream()
+                .map(z -> {
+                    PomObrazac pom = new PomObrazac();
+                        pom.setKonto(z.getKONTO());
+                        pom.setSaldo((z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + ( z.getDUGUJE_PR() - z.getPOTRAZUJE_PR()));
+                        return pom;
+                })
+                .filter(p -> p.getKonto() > 400000 && p.getKonto() < 700000)
+                .collect(Collectors.toList());
+    }
+
+    public List<PomObrazac> makeListOfPomUniqueKontosAndSumOfSaldo(List<PomObrazac> pomList) {
+        return pomList.stream()
+                .collect(Collectors.groupingBy(
+                        PomObrazac::getKonto,
+                        Collectors.summingDouble(PomObrazac::getSaldo)))
+                .entrySet().stream()
+                .map(entry -> new PomObrazac(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 
     private String checkSumOnKlasa3(Integer jbbks,MultipartFile file) throws Exception {
@@ -216,7 +287,6 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         System.out.println(String.format("%.2f", sum791111));
         System.out.println(String.format("%.2f", sumOfPrenetihSreds));
 
-
         if (!areEqual(sumOfPrenetihSreds, sum791111)) {
                 throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
                         "sa iznosom na kontu 791111 u Excel obrascu");
@@ -238,7 +308,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         return response;
     }
 
-    private ZakljucniListZb findValidZakList(Integer kvartal, Integer jbbks) throws Exception {
+    public ZakljucniListZb findValidZakList(Integer kvartal, Integer jbbks) throws Exception {
         Optional<ZakljucniListZb> optionalZb =
                 zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(kvartal, jbbks);
 

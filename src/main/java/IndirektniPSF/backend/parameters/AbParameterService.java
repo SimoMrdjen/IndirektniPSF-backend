@@ -39,7 +39,7 @@ public abstract class AbParameterService {
         var jbbkDb =this.getJbbksIBK(user);
 
         if (!jbbkDb.equals(jbbksExcell)) {
-            throw new Exception("Niste uneli (odabrali) vaš JBKJS!");
+            throw new ObrazacException("Niste uneli (odabrali) vaš JBKJS!");
         }
     }
 
