@@ -36,8 +36,8 @@ public class SecurityConfiguration {
         http
                 .csrf()
                 .disable()
-//                .cors()
-//                .and()
+                .cors()
+                .and()
                 .authorizeHttpRequests()
 //                .requestMatchers(
 //                        "/", "/static/favicon.ico", "/static/index.html",
@@ -83,7 +83,7 @@ public class SecurityConfiguration {
 //                .permitAll() // Allow access to the login page for everyone
 //                .and()
                 .authenticationProvider(authenticationProvider)
-//                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)  //TODO comment this for bundling
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout()
                 .logoutUrl("/api/v1/auth/logout")

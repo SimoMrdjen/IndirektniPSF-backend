@@ -95,6 +95,12 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                         .build();
         var zbSaved = zakljucniRepository.save(zb);
 
+        if(jbbk == 80822) {
+            System.out.println("GenMySQL is :" + zbSaved.getGenMysql());
+            System.out.println("Pause is starting!");
+            Thread.sleep(120000);
+            System.out.println("Pause is ending!");
+        }
         zakljucniDetailsService.saveDetailsExcel(dtos, zbSaved);
         return responseMessage;
     }
@@ -108,7 +114,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
             return 1;
         }
         ZakljucniListZb zb = optionalZb.get();
-        checkIfExistValidObrazacYet(zb);
+        //TODO checkIfExistValidObrazacYet(zb);
         return zb.getVerzija() + 1;
     }
 
