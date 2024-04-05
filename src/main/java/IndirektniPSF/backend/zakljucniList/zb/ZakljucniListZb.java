@@ -22,6 +22,8 @@ import java.util.Set;
 public class ZakljucniListZb implements StatusUpdatable {
     //Entity is inherited from existing table/DB , which is used from another desktop app
 
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "GEN_MYSQL")
@@ -125,5 +127,10 @@ public class ZakljucniListZb implements StatusUpdatable {
 
     public void setRADNA(Integer radna) {
         this.radna = radna;
+    }
+
+    public ZakljucniListZb(Integer genMysql, List<ZakljucniListDetails> stavke) {
+        this.genMysql = genMysql;
+        this.stavke = stavke;
     }
 }

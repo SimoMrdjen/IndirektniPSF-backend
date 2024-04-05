@@ -90,10 +90,10 @@ public interface IfObrazacChecker {
     }
 
     default <T extends StatusUpdatable> void checkIfExistValidObrazacYet(T t) throws ObrazacException {
-//        if (t.getRADNA() == 1 && t.getSTORNO() == 0 ) {
-//            throw new ObrazacException("Za tekući kvartal već postoji učitan \nvažeći brazac!\nUkoliko zelite da ucitate novu verziju " +
-//                    "\nprethodnu morate stornirati!");
-//        }
+        if (t.getRADNA() == 1 && t.getSTORNO() == 0 ) {
+            throw new ObrazacException("Za tekući kvartal već postoji učitan \nvažeći brazac!\nUkoliko zelite da ucitate novu verziju " +
+                    "\nprethodnu morate stornirati!");
+        }
     }
 
     default boolean areEqual(double a, double b) {

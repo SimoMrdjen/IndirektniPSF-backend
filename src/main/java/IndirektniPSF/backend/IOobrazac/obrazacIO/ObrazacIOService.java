@@ -168,8 +168,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
     public List<PomObrazac> convertIoToPomObrazac(List<ObrazacIODTO> dtos) {
 
-        List<ObrazacIODTO> dtosFiltered = dtos.stream().filter(i -> ( i.getKonto() < 700000) && ( i.getKonto() > 400000) )
+        List<ObrazacIODTO> dtosFiltered = dtos.stream()
+                .filter(i -> i.getKonto() > 400000)
+                .filter(i -> i.getKonto() % 100 != 0)
                 .collect(Collectors.toList());
+
 
         List<PomObrazac> pomList = dtosFiltered.stream()
                 .map(i -> {

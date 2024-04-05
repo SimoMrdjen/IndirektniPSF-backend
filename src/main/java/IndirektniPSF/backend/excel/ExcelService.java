@@ -63,7 +63,7 @@ public class ExcelService {
                             cellValue = (int) evaluator.evaluate(cell).getNumberValue();
                             break;
                         case BLANK:
-                            throw new Exception("Cell (" + rowIndex + "," + colIndex + ") is blank.");
+                            throw new Exception("Niste popunili zaglavlje excel dokumenta!");
                         default:
                             throw new Exception("Unsupported cell type in (" + rowIndex + "," + colIndex + ")");
                     }
@@ -107,7 +107,7 @@ public class ExcelService {
                             cellValue = (double) evaluator.evaluate(cell).getNumberValue();
                             break;
                         case BLANK:
-                            throw new Exception("Cell (" + rowIndex + "," + colIndex + ") is blank.");
+                            throw new Exception("Niste popunili zaglavlje excel dokumenta!");
                         default:
                             throw new Exception("Unsupported cell type in (" + rowIndex + "," + colIndex + ")");
                     }
