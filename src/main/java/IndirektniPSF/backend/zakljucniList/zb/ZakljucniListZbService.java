@@ -4,6 +4,8 @@ import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
+import IndirektniPSF.backend.idempotency.Idempotency;
+import IndirektniPSF.backend.idempotency.IdempotencyRepository;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
@@ -27,6 +29,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -46,8 +49,23 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     private final ZakljucniListMapper mapper;
     private final StatusService statusService;
     private final ObrazacIOService obrazacIoService;
+    private final IdempotencyRepository idempotencyRepository;
 
 
+
+    public String processFile(UUID idempotencyKey, MultipartFile file, Integer kvartal, String email) throws Exception {
+        if (idempotencyRepository.existsById(idempotencyKey)) {
+            return "Request already processed.";
+        }
+
+        // Your file processing logic
+        StringBuilder message = saveObrazacFromExcel(file, kvartal, email);
+
+        // Save the idempotency key in the database
+        idempotencyRepository.save(new Idempotency(idempotencyKey, "Processed"));
+
+        return message.toString();
+    }
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
@@ -93,19 +111,29 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                         .STORNO(0)
                         .STOSIFRAD(0)
                         .build();
-        var zbSaved = zakljucniRepository.save(zb);
 
-        if(jbbk == 80822) {
-            System.out.println("GenMySQL is :" + zbSaved.getGenMysql());
-            System.out.println("Pause is starting!");
-            Thread.sleep(120000);
-            System.out.println("Pause is ending!");
+        if (isDoubledRecord(zb)) {
+            return responseMessage;
         }
+        var zbSaved = zakljucniRepository.save(zb);
         zakljucniDetailsService.saveDetailsExcel(dtos, zbSaved);
         return responseMessage;
     }
 
- //   @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    private boolean isDoubledRecord(ZakljucniListZb zb) {
+        Optional<ZakljucniListZb> optionalZb =
+                zakljucniRepository
+                        .findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(
+                                zb.getKojiKvartal(),
+                                zb.getJbbkIndKor()
+                        );
+        if (optionalZb.isPresent() && optionalZb.get().getVerzija() == zb.getVerzija()) {
+               return true;
+        }
+        return false;
+    }
+
+    //   @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception {
 
         Optional<ZakljucniListZb> optionalZb =

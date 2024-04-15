@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
+import java.util.UUID;
 
 
 @RestController
@@ -23,13 +23,14 @@ public class ZakljucniListZbController {
 
 
     @PostMapping(value = "/{kvartal}")
-    public ResponseEntity<String> addZakljucniFromExcel(@RequestBody MultipartFile file,
+    public ResponseEntity<String> addZakljucniFromExcel(@RequestHeader("Idempotency-Key") UUID idempotencyKey,
+                                                        @RequestBody MultipartFile file,
                                                         @PathVariable(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
         String message = null;
         try {
-            message = String.valueOf(zakljucniService.saveObrazacFromExcel(file, kvartal, email));
+            message = String.valueOf(zakljucniService.processFile(idempotencyKey, file, kvartal, email));
         } catch (Exception e) {
             message = e.getMessage();
             throw e;
