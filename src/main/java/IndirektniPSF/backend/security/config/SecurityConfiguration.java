@@ -19,7 +19,6 @@ import static IndirektniPSF.backend.security.user.Role.USER;
 
 
 @Configuration
-
 @RequiredArgsConstructor
 @EnableMethodSecurity
 @EnableWebSecurity//(debug = true)

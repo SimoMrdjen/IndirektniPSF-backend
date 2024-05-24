@@ -23,14 +23,16 @@ public class ZakljucniListZbController {
 
 
     @PostMapping(value = "/{kvartal}")
-    public ResponseEntity<String> addZakljucniFromExcel(@RequestHeader("Idempotency-Key") UUID idempotencyKey,
+    public ResponseEntity<String> addZakljucniFromExcel(//@RequestHeader("Idempotency-Key") UUID idempotencyKey,
                                                         @RequestBody MultipartFile file,
                                                         @PathVariable(name = "kvartal") Integer kvartal) throws Exception {
 
         String email = authenticationService.getAuthenticatedUserEmail();
         String message = null;
         try {
-            message = String.valueOf(zakljucniService.processFile(idempotencyKey, file, kvartal, email));
+            message = String.valueOf(zakljucniService.saveObrazacFromExcel(file, kvartal, email));
+//            message = String.valueOf(zakljucniService.processFile(idempotencyKey,
+//                    file, kvartal, email));
         } catch (Exception e) {
             message = e.getMessage();
             throw e;

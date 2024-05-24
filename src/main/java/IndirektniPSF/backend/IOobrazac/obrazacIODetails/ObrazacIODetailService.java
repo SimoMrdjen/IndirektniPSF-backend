@@ -4,6 +4,8 @@ import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.glavaSvi.GlavaSviService;
+import IndirektniPSF.backend.raspodela.Raspodela;
+import IndirektniPSF.backend.raspodela.RaspodelaService;
 import IndirektniPSF.backend.subkonto.SubkontoService;
 import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
@@ -25,6 +27,7 @@ public class ObrazacIODetailService {
     private final ObrazacIOMapper obrazacMapper;
     private final ObrazacIODetailsRepository obrazacIODetailsRepository;
     private final SubkontoService subkontoService;
+    private final RaspodelaService raspodelaService;
 
 
     @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -45,6 +48,7 @@ public class ObrazacIODetailService {
                 .map(obrazacMapper::toEntity)
                // .map(dto -> obrazacMapper.mapDtoToEntity(dto))
                 .collect(Collectors.toList());
+        List<Raspodela> raspodelaList = raspodelaService.findDistinctByIzvorFinAndIbkIsOne();
 
         obrazacList.forEach(obrazac -> {
             obrazac.setObrazacIO(obrIOSaved);
@@ -58,10 +62,35 @@ public class ObrazacIODetailService {
             obrazac.setRAZDEO(obrIOSaved.getRAZDEO());
             obrazac.setOZNAKAGLAVE(oznakaGlave);
             obrazac.setUNOSIO(obrIOSaved.getPOSLAO_NAM());
+            //TODO add from who is amount
+            this.addFromWhoIsMoney(obrazac, raspodelaList);
         });
         var listDetails = obrazacIODetailsRepository.saveAll(obrazacList);
         this.compareIoDetailsWithZakListDetails(obrazacList, (List<ZakljucniListDetails>) zakListDetails);
        return listDetails;
+    }
+
+    public void addFromWhoIsMoney(ObrazacIODetails obrazac, List<Raspodela> raspodelaList) {
+        raspodelaList.forEach(raspodela -> setPropriateFieldAccordnigIzvor(obrazac, raspodela));
+    }
+
+    public void setPropriateFieldAccordnigIzvor(ObrazacIODetails obrazac, Raspodela raspodela) {
+        if (obrazac.getIZVORFIN().equals( raspodela.getIzvorFin())) {
+            var kolona = raspodela.getKolona();
+            if (kolona == 6) {
+                obrazac.setREPUBLIKA(obrazac.getDUGUJE());
+            } else if (kolona == 7) {
+                obrazac.setPOKRAJINA(obrazac.getDUGUJE());
+            } else if (kolona == 8) {
+                obrazac.setOPSTINA(obrazac.getDUGUJE());
+            } else if (kolona == 9) {
+                obrazac.setDONACIJE(obrazac.getDUGUJE());
+            } else if (kolona == 10) {
+                obrazac.setOOSO(obrazac.getDUGUJE());
+            } else if (kolona == 11) {
+                obrazac.setOSTALI(obrazac.getDUGUJE());
+            }
+        }
     }
 
     public void checkIfKontosAreExistingExxludingSinKontos(List<ObrazacIODTO> dtos) throws Exception {

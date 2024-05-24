@@ -130,7 +130,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             ObrazacIO obrIOSaved = obrazacIOrepository.save(obrIO);
 
             var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke(), oznakaGlave);
-//           obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
+            obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
             return responseMessage;
 
 

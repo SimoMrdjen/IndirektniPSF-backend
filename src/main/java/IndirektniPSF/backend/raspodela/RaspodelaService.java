@@ -13,7 +13,7 @@ public class RaspodelaService {
 
     private final RaspodelaRepository raspodelaRepository;
 
-    public List<Raspodela> findAll() {
-        return raspodelaRepository.findAll();
+    public List<Raspodela> findDistinctByIzvorFinAndIbkIsOne() {
+        return raspodelaRepository.findDistinctByIzvorFinAndIbkIsOne();
     }
 }
