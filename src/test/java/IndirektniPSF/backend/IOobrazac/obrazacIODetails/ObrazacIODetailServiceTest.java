@@ -119,7 +119,5 @@ class ObrazacIODetailServiceTest {
         service.setPropriateFieldAccordnigIzvor(obrazacIODetails1, raspodela1);
         assertEquals(200, obrazacIODetails1.getREPUBLIKA() );
 
-    }
-
-
+     }
     }

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Component
-public class ObrazacIOService extends AbParameterService implements IfObrazacChecker, IfObrazacService<ObrazacIO> {
+public class ObrazacIOService extends AbParameterService implements IfObrazacChecker, IfObrazacService<ObrazacIO>, NumberUtils {
 
     private final ObrazacIORepository obrazacIOrepository;
     private final SekretarijarService sekretarijarService;
@@ -76,11 +76,11 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
         Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
         List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
-        dtos.forEach(item -> System.out.println(item.getKonto()));
+      //  dtos.forEach(item -> System.out.println(item.getKonto()));
 
         //VARIOUS CHECKS
         //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
-        //checkJbbks(user, jbbkExcel);
+        checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
 //        responseMessage
 //                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
@@ -150,13 +150,14 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public void chekEquality(List<PomObrazac> zak, List<PomObrazac> io) throws Exception {
 
         List<PomObrazac> diff = new ArrayList<>(zak);
-        diff.removeAll(io);
+        List<PomObrazac> diff2 =  new ArrayList<>(io);
 
-        List<PomObrazac> diff2 = new ArrayList<>(io);
+        diff.removeAll(io);
         diff2.removeAll(zak);
 
         diff.addAll(diff2);
-        Set<PomObrazac> diffSet = new HashSet<>(diff);
+        List<PomObrazac> diffFiltered = diff.stream().filter(d -> d.getSaldo() != 0.00).collect(Collectors.toList());
+        Set<PomObrazac> diffSet = new HashSet<>(diffFiltered);
 
         if (!diffSet.isEmpty()) {
             StringBuilder sb = new StringBuilder();
@@ -193,10 +194,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 .map(z -> {
                     PomObrazac pom = new PomObrazac();
                         pom.setKonto(z.getKONTO());
-                        pom.setSaldo((z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + ( z.getDUGUJE_PR() - z.getPOTRAZUJE_PR()));
+                        pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + ( z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())));
                         return pom;
                 })
-                .filter(p -> p.getKonto() > 400000 && p.getKonto() < 700000)
+                .filter(p -> p.getKonto() > 400000 )
                 .collect(Collectors.toList());
     }
 
