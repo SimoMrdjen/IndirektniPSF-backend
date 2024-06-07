@@ -10,11 +10,23 @@ import java.util.List;
 @Repository
 public interface ArhbudzetRepository extends JpaRepository<Arhbudzet, ArhbudzetId> {
 
-    @Query("SELECT SUM(a.duguje) FROM Arhbudzet a JOIN a.izvor i WHERE a.sinKonto > 4000 AND a.sinKonto < 7000 " +
-            "AND a.sifSekr = :sifSekr AND a.datum <= :date " +
-            "AND a.jbbkIndKor = :jbbk AND i.kakva = 'budz'")
-    Double sumUplataIzBudzetaForIndKor(Integer sifSekr, Double date,  Integer jbbk);
-
+//    @Query("SELECT SUM(a.duguje) FROM Arhbudzet a JOIN izvor i WHERE a.sinKonto > 4000 AND a.sinKonto < 7000 " +
+//            "AND a.sifSekr = :sifSekr AND a.datum <= :date " +
+//            "AND a.jbbkIndKor = :jbbk AND i.kakva = 'budz'")
+//    Double sumUplataIzBudzetaForIndKor(Integer sifSekr, Double date,  Integer jbbk);
+    @Query(value = "SELECT SUM(a.duguje) " +
+        "FROM Arhbudzet a " +
+        "JOIN izvor i ON a.IZVORFIN = i.IZVORFIN " +
+        "WHERE a.SIN_KONTO > 4000 " +
+        "AND a.SIN_KONTO < 7000 " +
+        "AND a.SIF_SEKRET = :sifSekr " +
+        "AND a.datum <= :date " +
+        "AND a.JBBK_IND_KOR = :jbbk " +
+        "AND i.kakva = 'budz'",
+        nativeQuery = true)
+    Double sumUplataIzBudzetaForIndKor(@Param("sifSekr") Integer sifSekr,
+                                   @Param("date") Double date,
+                                   @Param("jbbk") Integer jbbk);
     @Query("SELECT a FROM Arhbudzet a " +
             "WHERE a.vrstaPromene BETWEEN 500 AND 599 " +
             "AND a.jbbkIndKor = :jbbkIndKor " +

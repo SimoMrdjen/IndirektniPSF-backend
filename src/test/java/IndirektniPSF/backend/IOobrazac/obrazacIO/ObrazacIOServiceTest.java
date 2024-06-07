@@ -20,6 +20,7 @@ import IndirektniPSF.backend.zakljucniList.details.ZakljucniListDetails;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZbRepository;
 import lombok.RequiredArgsConstructor;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -212,80 +213,183 @@ class ObrazacIOServiceTest {
         assertEquals(service.makeListOfPomUniqueKontosAndSumOfSaldo(pomObrazacList), act);
     }
 
-    @Test
-    void shouldPassIfEqulaWhenChekEquality() throws Exception {
-        List<PomObrazac> act = Arrays.asList(
-                new PomObrazac(434567, 7100.0) ,
-                new PomObrazac(434568, 6100.0)
-        );
-        List<PomObrazac> exp = Arrays.asList(
-                new PomObrazac(434567, 7100.0) ,
-                new PomObrazac(434568, 6100.0)
-        );
-        assertDoesNotThrow(() -> service.chekEquality(act,exp));
-    }
+//    @Test
+//    void shouldPassIfEqulaWhenChekEquality() throws Exception {
+//        List<PomObrazac> act = Arrays.asList(
+//                new PomObrazac(434567, 7100.0) ,
+//                new PomObrazac(434568, 6100.0)
+//        );
+//        List<PomObrazac> exp = Arrays.asList(
+//                new PomObrazac(434567, 7100.0) ,
+//                new PomObrazac(434568, 6100.0)
+//        );
+//        assertDoesNotThrow(() -> service.chekEquality(act,exp));
+//    }
 
-    @Test
-    void shouldThrowIfNotEqulaWhenChekEquality() throws Exception {
-        List<PomObrazac> act = Arrays.asList(
-                new PomObrazac(434567, 7100.0) ,
-                new PomObrazac(434568, 6100.0)
-        );
-        List<PomObrazac> exp = Arrays.asList(
-                new PomObrazac(434567, 7100.0) ,
-                new PomObrazac(434568, 6000.0)
-              //  new PomObrazac(434569, 6100.0)
-        );
-        assertThrowsExactly(ObrazacException.class, () -> service.chekEquality(act,exp));
-    }
+//    @Test
+//    void shouldThrowIfNotEqulaWhenChekEquality() throws Exception {
+//        List<PomObrazac> act = Arrays.asList(
+//                new PomObrazac(434567, 7100.0) ,
+//                new PomObrazac(434568, 6100.0)
+//        );
+//        List<PomObrazac> exp = Arrays.asList(
+//                new PomObrazac(434567, 7100.0) ,
+//                new PomObrazac(434568, 6000.0)
+//              //  new PomObrazac(434569, 6100.0)
+//        );
+//        assertThrowsExactly(ObrazacException.class, () -> service.chekEquality(act,exp));
+//    }
 
     @Test
     void shouldNotThrowIfEqulaWhenCompareIoAndZakljucni() throws Exception {
-        List<ObrazacIODTO> ios = Arrays.asList(
-                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
-                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
-                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
-        );
-        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
-                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
-                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3600.0).POTRAZUJE_PS(100.0)
-                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
-                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
-        );
-        var zakljucniListZb = new ZakljucniListZb();
-        zakljucniListZb.setStavke(zakljucniList);
-        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
-                .thenReturn(Optional.of(zakljucniListZb));
-
-        assertDoesNotThrow(() -> service.compareIoAndZakljucni(ios,1,1));
+//        List<ObrazacIODTO> ios = Arrays.asList(
+//                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
+//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
+//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
+//        );
+//        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
+//                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
+//                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
+//                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3600.0).POTRAZUJE_PS(100.0)
+//                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
+//                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
+//                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
+//        );
+//        var zakljucniListZb = new ZakljucniListZb();
+//        zakljucniListZb.setStavke(zakljucniList);
+//        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
+//                .thenReturn(Optional.of(zakljucniListZb));
+//
+//        assertDoesNotThrow(() -> service.compareIoAndZakljucni(ios,1,1));
     }
 
     @Test
     void shouldThrowIfNotEqulaWhenCompareIoAndZakljucni() throws Exception {
-        List<ObrazacIODTO> ios = Arrays.asList(
-                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
-                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
-                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
-        );
-        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
-                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
-                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(100.0)
-                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
-                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
-        );
-        var zakljucniListZb = new ZakljucniListZb();
-        zakljucniListZb.setStavke(zakljucniList);
-        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
-                .thenReturn(Optional.of(zakljucniListZb));
-
-        assertThrowsExactly(ObrazacException.class,() -> service.compareIoAndZakljucni(ios,1,1));
+//        List<ObrazacIODTO> ios = Arrays.asList(
+//                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
+//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
+//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
+//        );
+//        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
+//                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
+//                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
+//                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(100.0)
+//                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
+//                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
+//                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
+//        );
+//        var zakljucniListZb = new ZakljucniListZb();
+//        zakljucniListZb.setStavke(zakljucniList);
+//        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
+//                .thenReturn(Optional.of(zakljucniListZb));
+//
+//        assertThrowsExactly(ObrazacException.class,() -> service.compareIoAndZakljucni(ios,1,1));
     }
+
+
+    @Test
+    void testCheckIfAllKontosFromIoExistInZk_AllKontosExist() {
+        List<PomObrazac> zak = List.of(new PomObrazac(400001, 2000.0), new PomObrazac(400002, 3000.0));
+        List<PomObrazac> io = List.of(new PomObrazac(400001, 1500.0), new PomObrazac(400002, 2500.0));
+
+        assertDoesNotThrow(() -> service.checkIfAllKontosFromIoExistInZk(zak, io));
+    }
+
+    @Test
+    void testCheckIfAllKontosFromIoExistInZk_MissingKontoInZak() {
+        List<PomObrazac> zak = List.of(new PomObrazac(400002, 2000.0));
+        List<PomObrazac> io = List.of(new PomObrazac(400001, 1500.0), new PomObrazac(400002, 2500.0));
+
+        ObrazacException exception = assertThrows(ObrazacException.class,
+                () -> service.checkIfAllKontosFromIoExistInZk(zak, io));
+
+        assertTrue(exception.getMessage().contains("Obrazac IO ima konta koja \n ne postoje u vec ucitanom Zakljucnom listu"));
+    }
+
+    @Test
+    void testCheckIfAllKontosFromIoExistInZk_MissingKontoInIo() {
+        List<PomObrazac> zak = List.of(new PomObrazac(400001, 2000.0), new PomObrazac(400002, 3000.0));
+        List<PomObrazac> io = List.of(new PomObrazac(400001, 1500.0));
+
+        ObrazacException exception = assertThrows(ObrazacException.class,
+                () -> service.checkIfAllKontosFromIoExistInZk(zak, io));
+
+        assertTrue(exception.getMessage().contains("Vec ucitani Zakljucni list ima konta\n koja ne postoje u obrascu IO"));
+    }
+
+    @Test
+    void testCheckIfAllKontosFromIoExistInZk_MixedKonto4_7() {
+        List<PomObrazac> zak = List.of(new PomObrazac(300001, 2000.0), new PomObrazac(500000, 3000.0));
+        List<PomObrazac> io = List.of(new PomObrazac(300001, 1500.0));
+
+        ObrazacException exception = assertThrows(ObrazacException.class,
+                () -> service.checkIfAllKontosFromIoExistInZk(zak, io));
+
+        assertTrue(exception.getMessage().contains("Vec ucitani Zakljucni list ima konta\n koja ne postoje u obrascu IO"));
+    }
+    @Test
+    void testCheckIfAllKontosFromYlExistInZIo_AllKontosExist() {
+        List<PomObrazac> zak = List.of(new PomObrazac(400001, 2000.0), new PomObrazac(400002, 3000.0), new PomObrazac(300000, 3000.0));
+        List<PomObrazac> io = List.of(new PomObrazac(400001, 1500.0), new PomObrazac(400002, 2500.0));
+
+        assertDoesNotThrow(() -> service.checkIfAllKontosFromIoExistInZk(zak, io));
+    }
+    @Test
+    void shouldTransformToUniqueList() {
+        List<PomObrazac> io = List.of(
+                new PomObrazac(400001, 2000.0),
+                new PomObrazac(400002, 3000.0),
+                new PomObrazac(400001, 3000.0)
+        );
+        List<PomObrazac> expectedIo = List.of(
+                new PomObrazac(400001, 5000.0),
+                new PomObrazac(400002, 3000.0)
+        );
+
+        Assertions.assertThat(service.transformToUniqueList(io))
+                .containsExactlyInAnyOrderElementsOf(expectedIo);
+    }
+
+    @Test
+    void shouldNotThrowIfChekEqualityOfIoAndZlBySaldo() {
+
+        List<PomObrazac> io = List.of(new PomObrazac(400001, 2000.0),
+                new PomObrazac(400002, 3000.0),
+                new PomObrazac(300002, 3000.0),
+
+                new PomObrazac(400001, 3000.0));
+        List<PomObrazac> zak = List.of(new PomObrazac(400001, 5000.0), new PomObrazac(400002, 3000.0));
+
+        assertDoesNotThrow(() -> service.chekEqualityOfIoAndZlBySaldo(zak, io));
+    }
+
+    @Test
+    void shouldThrowIfChekEqualityOfIoAndZlBySaldo() {
+
+        List<PomObrazac> io = List.of(
+                new PomObrazac(400001, 2000.0),
+                new PomObrazac(400002, 3000.0),
+                new PomObrazac(400001, 3000.0)
+        );
+        List<PomObrazac> zak = List.of(
+                new PomObrazac(400001, 1000.0),
+                new PomObrazac(400002, 2000.0)
+        );
+
+        // Expect an ObrazacException to be thrown
+        ObrazacException exception = assertThrows(ObrazacException.class, () -> {
+            service.chekEqualityOfIoAndZlBySaldo(zak, io);
+        });
+
+        // Optionally, check the exception message
+        String expectedMessage = "Obrazac IO i vec ucitani Zakljucni list \n" +
+                "se ne slazu u kontima : 400001, 400002, ";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
 }

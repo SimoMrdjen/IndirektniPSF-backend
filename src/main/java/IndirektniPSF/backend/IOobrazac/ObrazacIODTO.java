@@ -19,7 +19,7 @@ public class ObrazacIODTO {
     private String izvorFin;
     private String izvorFinPre;
     private Double plan;
-    private Double izvrsenje;
+    private Double izvrsenje = 0.0;
 
     @Override
     public boolean equals(Object o) {

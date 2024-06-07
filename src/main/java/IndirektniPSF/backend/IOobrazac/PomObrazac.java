@@ -20,7 +20,8 @@ public class PomObrazac {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PomObrazac that = (PomObrazac) o;
-        return Objects.equals(konto, that.konto) &&
+        return Objects.equals(konto, that.konto)
+                &&
                 Objects.equals(saldo, that.saldo);
     }
 

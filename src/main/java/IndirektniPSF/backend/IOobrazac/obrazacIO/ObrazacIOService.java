@@ -82,8 +82,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
-//        responseMessage
-//                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
+        responseMessage
+                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
         responseMessage
                 .append(checkIfStandKlasifFromExcelExistInFinPlana(dtos,jbbks,kvartal));
         checkIfPlanAndIzvrsenjeAreZero(dtos);
@@ -144,16 +144,63 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
         List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks);
         List<PomObrazac> io = convertIoToPomObrazac(dtos);
-        chekEquality(zak, io);
+        checkIfAllKontosFromIoExistInZk(zak,io);
+        chekEqualityOfIoAndZlBySaldo(zak, io);
     }
 
-    public void chekEquality(List<PomObrazac> zak, List<PomObrazac> io) throws Exception {
+    public void checkIfAllKontosFromIoExistInZk(List<PomObrazac> zak, List<PomObrazac> io) throws ObrazacException {
+        List<Integer> zakInt = zak.stream()
+                .map(PomObrazac::getKonto)
+                .collect(Collectors.toList());
 
-        List<PomObrazac> diff = new ArrayList<>(zak);
-        List<PomObrazac> diff2 =  new ArrayList<>(io);
+        List<Integer> ioInt = io.stream()
+                .map(PomObrazac::getKonto)
+                .collect(Collectors.toList());
 
-        diff.removeAll(io);
-        diff2.removeAll(zak);
+        Set<Integer> ioIntSet = new HashSet<>(ioInt);
+        List<Integer> ioIntUnique = new ArrayList<>(ioIntSet);
+
+        ioIntUnique.removeAll(new ArrayList<>(zakInt));
+        if (!ioIntUnique.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            ioIntUnique.forEach(d -> sb.append(d).append(", "));
+            throw new ObrazacException("Obrazac IO ima konta koja \n ne postoje u vec ucitanom Zakljucnom listu: \n" + sb);
+        }
+
+        List<Integer> zakInt4_7 = zakInt.stream().filter(z -> z > 400000 ).collect(Collectors.toList());
+        zakInt4_7.removeAll(new ArrayList<>(ioIntSet));
+        if (!zakInt4_7.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            zakInt4_7.forEach(d -> sb.append(d).append(", "));
+            throw new ObrazacException("Vec ucitani Zakljucni list ima konta\n koja ne postoje u obrascu IO: \n" + sb);
+        }
+    }
+
+    public  List<PomObrazac> transformToUniqueList(List<PomObrazac> zak) {
+        // Group by 'konto' and sum 'saldo'
+        Map<Integer, Double> groupedByKonto = zak.stream()
+                .collect(Collectors.groupingBy(
+                        PomObrazac::getKonto,
+                        Collectors.summingDouble(PomObrazac::getSaldo)
+                ));
+
+        // Map the grouped results to new PomObrazac instances
+        List<PomObrazac> zakUnique = groupedByKonto.entrySet().stream()
+                .map(entry -> new PomObrazac(entry.getKey(), entry.getValue()))
+                .filter(entry -> entry.getKonto() >400000)
+                .collect(Collectors.toList());
+
+        return zakUnique;
+    }
+
+    public void chekEqualityOfIoAndZlBySaldo(List<PomObrazac> zak, List<PomObrazac> io) throws Exception {
+
+        List<PomObrazac> ioUnique = transformToUniqueList(io);
+        List<PomObrazac> diff =  new ArrayList<>(ioUnique);
+        List<PomObrazac> diff2 =  new ArrayList<>(zak);
+
+        diff.removeAll(zak);
+        diff2.removeAll(ioUnique);
 
         diff.addAll(diff2);
         List<PomObrazac> diffFiltered = diff.stream().filter(d -> d.getSaldo() != 0.00).collect(Collectors.toList());
@@ -280,7 +327,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                                                            Integer kvartal, List<ObrazacIODTO> dtos) throws ObrazacException {
         var sifSekr = user.getZa_sif_sekret();
         Double date = (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
-        var sumOfPrenetihSreds = arhbudzetService.sumUplataIzBudzetaForIndKor(sifSekr, date, glava, jbbks);
+        var sumOfPrenetihSreds = arhbudzetService.sumUplataIzBudzetaForIndKor(sifSekr, date,glava, jbbks);
         //TODO if plan is right value, or change it with correct property
         Double sum791111 = dtos.stream()
                 .filter(dto -> dto.getKonto() == 791111)
