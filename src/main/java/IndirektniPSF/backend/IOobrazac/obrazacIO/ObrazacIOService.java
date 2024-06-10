@@ -82,6 +82,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
+        var sum791111 =
         responseMessage
                 .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
         responseMessage
