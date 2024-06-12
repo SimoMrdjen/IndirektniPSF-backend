@@ -144,7 +144,9 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     public void compareIoAndZakljucni(List<ObrazacIODTO> dtos, Integer kvartal, Integer jbbks) throws Exception {
 
         List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks);
-        List<PomObrazac> io = convertIoToPomObrazac(dtos);
+        //List<ObrazacIODTO> dtosFiltered = dtos.stream().filter(entry -> entry.getIzvrsenje() > 0.0).toList();
+        List<PomObrazac> ioRaw = convertIoToPomObrazac(dtos);
+        List<PomObrazac> io = ioRaw.stream().filter(entry -> entry.getSaldo() > 0.0).toList();
         checkIfAllKontosFromIoExistInZk(zak,io);
         chekEqualityOfIoAndZlBySaldo(zak, io);
     }

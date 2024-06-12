@@ -63,51 +63,51 @@ class ObrazacIOServiceTest {
     void tearDown() {
     }
 
-//    @Test
-//    void shouldThrowsWhenCheckForDuplicatesStandKlasif()  {
-//        List<ObrazacIODTO> obrazacList = List.of(
-//                new ObrazacIODTO(1, "A", 100, "X", "X",10.0, 5.0),
-//                new ObrazacIODTO(1, "A", 100, "X", "X",10.0, 3.0),
-//                new ObrazacIODTO(2, "A", 100, "X", "X",10.0, 3.0)
-//        );
-//
-//        var listSize =obrazacList.size();
-//        var setSize = obrazacList.stream().collect(Collectors.toSet()).size();
-//        var listSize2 =obrazacList.size();
-//
-//        System.out.println("setSize = " + setSize);
-//        System.out.println("listSize = " + listSize);
-//        System.out.println("listSize2 = " + listSize2);
-//
-//
-//        assertThrows(ObrazacException.class,() -> service.checkForDuplicatesStandKlasif(obrazacList));
-//    }
-//
-//    @Test
-//    void testcheckIfStandKlasifBetweenExcenAndFinPlan() {
-//
-//        ObrazacIODTO obr1 = new ObrazacIODTO(1, "A", 1001, "X", null, null, null);
-//        ObrazacIODTO obr2 = new ObrazacIODTO(1, "A", 1002, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr3 = new ObrazacIODTO(1, "A", 1003, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr4 = new ObrazacIODTO(1, "A", 1001, "X", "X",10.0, 5.0);
-//        ObrazacIODTO obr5 = new ObrazacIODTO(1, "b", 1002, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr6 = new ObrazacIODTO(2, "A", 1001, "X", "X",10.0, 3.0);
-//
-//        System.out.println(service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
-//                List.of(obr1, obr2, obr3) ));
-//
-//        System.out.println(service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
-//                List.of(obr1, obr6)));
-//
-//        assertEquals(obr6.toString(),service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
-//                List.of(obr1, obr2, obr3) ));
-//
-//        assertEquals("",service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
-//                List.of(obr1, obr6)));
-//
-//        assertEquals(obr5.toString(),service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr5, obr1),
-//                List.of(obr1, obr3, obr6)));
-//    }
+    @Test
+    void shouldThrowsWhenCheckForDuplicatesStandKlasif()  {
+        List<ObrazacIODTO> obrazacList = List.of(
+                new ObrazacIODTO(1, "A", 100, "X", "X",10.0, 5.0),
+                new ObrazacIODTO(1, "A", 100, "X", "X",10.0, 3.0),
+                new ObrazacIODTO(2, "A", 100, "X", "X",10.0, 3.0)
+        );
+
+        var listSize =obrazacList.size();
+        var setSize = obrazacList.stream().collect(Collectors.toSet()).size();
+        var listSize2 =obrazacList.size();
+
+        System.out.println("setSize = " + setSize);
+        System.out.println("listSize = " + listSize);
+        System.out.println("listSize2 = " + listSize2);
+
+
+        assertThrows(ObrazacException.class,() -> service.checkForDuplicatesStandKlasif(obrazacList));
+    }
+
+    @Test
+    void testcheckIfStandKlasifBetweenExcenAndFinPlan() {
+
+        ObrazacIODTO obr1 = new ObrazacIODTO(1, "A", 1001, "X", null, null, null);
+        ObrazacIODTO obr2 = new ObrazacIODTO(1, "A", 1002, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr3 = new ObrazacIODTO(1, "A", 1003, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr4 = new ObrazacIODTO(1, "A", 1001, "X", "X",10.0, 5.0);
+        ObrazacIODTO obr5 = new ObrazacIODTO(1, "b", 1002, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr6 = new ObrazacIODTO(2, "A", 1001, "X", "X",10.0, 3.0);
+
+        System.out.println(service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
+                List.of(obr1, obr2, obr3) ));
+
+        System.out.println(service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
+                List.of(obr1, obr6)));
+
+        assertEquals(obr6.toString(),service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
+                List.of(obr1, obr2, obr3) ));
+
+        assertEquals("",service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr6, obr1),
+                List.of(obr1, obr6)));
+
+        assertEquals(obr5.toString(),service.checkIfStandKlasifBetweenExcenAndFinPlan(List.of(obr5, obr1),
+                List.of(obr1, obr3, obr6)));
+    }
 
 //    @Test
 //   void testcheckIfStandKlasifFromExcelExistInFinPlana() throws ObrazacException {
@@ -134,31 +134,31 @@ class ObrazacIOServiceTest {
 //                3578,2));
 //    }
 
-//    @Test
-//   void  shouldThrowWhencheckIfPlanAndIzvrsenjeAreZero() {
+    @Test
+   void  shouldThrowWhencheckIfPlanAndIzvrsenjeAreZero() {
+
+        ObrazacIODTO obr1 = new ObrazacIODTO(1, "A", 1001, "X", null, 0.0, 0.0);
+        ObrazacIODTO obr2 = new ObrazacIODTO(1, "A", 1002, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr3 = new ObrazacIODTO(1, "A", 1003, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr4 = new ObrazacIODTO(1, "A", 1001, "X", "X",10.0, 5.0);
+        ObrazacIODTO obr5 = new ObrazacIODTO(1, "b", 1002, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr6 = new ObrazacIODTO(2, "A", 1001, "X", "X",10.0, 3.0);
+        var dtos = List.of(obr1, obr2,obr3,obr6);
+        assertThrows(ObrazacException.class, () -> service.checkIfPlanAndIzvrsenjeAreZero(dtos));
+    }
 //
-//        ObrazacIODTO obr1 = new ObrazacIODTO(1, "A", 1001, "X", null, 0.0, 0.0);
-//        ObrazacIODTO obr2 = new ObrazacIODTO(1, "A", 1002, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr3 = new ObrazacIODTO(1, "A", 1003, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr4 = new ObrazacIODTO(1, "A", 1001, "X", "X",10.0, 5.0);
-//        ObrazacIODTO obr5 = new ObrazacIODTO(1, "b", 1002, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr6 = new ObrazacIODTO(2, "A", 1001, "X", "X",10.0, 3.0);
-//        var dtos = List.of(obr1, obr2,obr3,obr6);
-//        assertThrows(ObrazacException.class, () -> service.checkIfPlanAndIzvrsenjeAreZero(dtos));
-//    }
-//
-//    @Test
-//    void  shouldNotThrowWhencheckIfPlanAndIzvrsenjeAreZero() {
-//
-//        ObrazacIODTO obr1 = new ObrazacIODTO(1, "A", 1001, "X", null, 1.0, 1.0);
-//        ObrazacIODTO obr2 = new ObrazacIODTO(1, "A", 1002, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr3 = new ObrazacIODTO(1, "A", 1003, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr4 = new ObrazacIODTO(1, "A", 1001, "X", "X",10.0, 5.0);
-//        ObrazacIODTO obr5 = new ObrazacIODTO(1, "b", 1002, "X", "X",10.0, 3.0);
-//        ObrazacIODTO obr6 = new ObrazacIODTO(2, "A", 1001, "X", "X",10.0, 3.0);
-//        var dtos = List.of(obr1, obr2,obr3,obr6);
-//        assertDoesNotThrow( () -> service.checkIfPlanAndIzvrsenjeAreZero(dtos));
-//    }
+    @Test
+    void  shouldNotThrowWhencheckIfPlanAndIzvrsenjeAreZero() {
+
+        ObrazacIODTO obr1 = new ObrazacIODTO(1, "A", 1001, "X", null, 1.0, 1.0);
+        ObrazacIODTO obr2 = new ObrazacIODTO(1, "A", 1002, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr3 = new ObrazacIODTO(1, "A", 1003, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr4 = new ObrazacIODTO(1, "A", 1001, "X", "X",10.0, 5.0);
+        ObrazacIODTO obr5 = new ObrazacIODTO(1, "b", 1002, "X", "X",10.0, 3.0);
+        ObrazacIODTO obr6 = new ObrazacIODTO(2, "A", 1001, "X", "X",10.0, 3.0);
+        var dtos = List.of(obr1, obr2,obr3,obr6);
+        assertDoesNotThrow( () -> service.checkIfPlanAndIzvrsenjeAreZero(dtos));
+    }
     @Test
     void  shouldReturnPomObrazacWhenConvertZakListInPomObrazac() throws Exception {
         List<ZakljucniListDetails> zakljucniList = Arrays.asList(
@@ -242,52 +242,54 @@ class ObrazacIOServiceTest {
 
     @Test
     void shouldNotThrowIfEqulaWhenCompareIoAndZakljucni() throws Exception {
-//        List<ObrazacIODTO> ios = Arrays.asList(
-//                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
-//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
-//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
-//        );
-//        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
-//                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
-//                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
-//                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3600.0).POTRAZUJE_PS(100.0)
-//                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
-//                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
-//                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
-//        );
-//        var zakljucniListZb = new ZakljucniListZb();
-//        zakljucniListZb.setStavke(zakljucniList);
-//        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
-//                .thenReturn(Optional.of(zakljucniListZb));
-//
-//        assertDoesNotThrow(() -> service.compareIoAndZakljucni(ios,1,1));
+        List<ObrazacIODTO> ios = Arrays.asList(
+                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
+                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
+                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0),
+                new ObrazacIODTO(3, "GHI", 434569,"ABC", "ABC", 15000.0, 0.0)
+
+        );
+        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
+                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
+                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3600.0).POTRAZUJE_PS(100.0)
+                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
+                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
+        );
+        var zakljucniListZb = new ZakljucniListZb();
+        zakljucniListZb.setStavke(zakljucniList);
+        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
+                .thenReturn(Optional.of(zakljucniListZb));
+
+        assertDoesNotThrow(() -> service.compareIoAndZakljucni(ios,1,1));
     }
 
     @Test
     void shouldThrowIfNotEqulaWhenCompareIoAndZakljucni() throws Exception {
-//        List<ObrazacIODTO> ios = Arrays.asList(
-//                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
-//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
-//                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-//                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
-//        );
-//        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
-//                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
-//                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
-//                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(100.0)
-//                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
-//                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
-//                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
-//        );
-//        var zakljucniListZb = new ZakljucniListZb();
-//        zakljucniListZb.setStavke(zakljucniList);
-//        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
-//                .thenReturn(Optional.of(zakljucniListZb));
-//
-//        assertThrowsExactly(ObrazacException.class,() -> service.compareIoAndZakljucni(ios,1,1));
+        List<ObrazacIODTO> ios = Arrays.asList(
+                new ObrazacIODTO(1, "ABC", 123456,"ABC", "ABC", 10000.0, 8000.0),
+                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
+                new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
+                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
+        );
+        List<ZakljucniListDetails> zakljucniList = Arrays.asList(
+                ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
+                        .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(100.0)
+                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
+                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
+        );
+        var zakljucniListZb = new ZakljucniListZb();
+        zakljucniListZb.setStavke(zakljucniList);
+        when(zakljucniRepository.findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(anyInt(), anyInt()))
+                .thenReturn(Optional.of(zakljucniListZb));
+
+        assertThrowsExactly(ObrazacException.class,() -> service.compareIoAndZakljucni(ios,1,1));
     }
 
 
