@@ -22,7 +22,8 @@ public class PomObrazac {
         PomObrazac that = (PomObrazac) o;
         return Objects.equals(konto, that.konto)
                 &&
-                Objects.equals(saldo, that.saldo);
+                Math.abs(saldo - that.getSaldo()) < 0.0001;
+                //Objects.equals(saldo, that.saldo);
     }
 
     @Override

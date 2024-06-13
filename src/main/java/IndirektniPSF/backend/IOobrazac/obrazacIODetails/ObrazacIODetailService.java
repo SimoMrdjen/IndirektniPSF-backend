@@ -66,7 +66,7 @@ public class ObrazacIODetailService {
             this.addFromWhoIsMoney(obrazac, raspodelaList);
         });
         var listDetails = obrazacIODetailsRepository.saveAll(obrazacList);
-        this.compareIoDetailsWithZakListDetails(obrazacList, (List<ZakljucniListDetails>) zakListDetails);
+       // this.compareIoDetailsWithZakListDetails(obrazacList, (List<ZakljucniListDetails>) zakListDetails);
        return listDetails;
     }
 

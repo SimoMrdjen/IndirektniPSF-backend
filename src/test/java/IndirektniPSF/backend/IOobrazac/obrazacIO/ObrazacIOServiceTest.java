@@ -178,7 +178,7 @@ class ObrazacIOServiceTest {
                new PomObrazac(434567, 3000.0) ,
                 new PomObrazac(434568, 6000.0) );
 
-        assertEquals(service.convertZakListInPomObrazac(1,1),pomObrazacList);
+        assertEquals(service.convertZakListInPomObrazac(1,1, 400000),pomObrazacList);
     }
 
     @Test
@@ -195,7 +195,7 @@ class ObrazacIOServiceTest {
                 new PomObrazac(434567, 7000.0) ,
                 new PomObrazac(434568, 6000.0) );
 
-        assertEquals(service.convertIoToPomObrazac(ios), pomObrazacListUnique);
+        assertEquals(service.convertIoToPomObrazac(ios, 400000), pomObrazacListUnique);
     }
 
     @Test
@@ -379,19 +379,71 @@ class ObrazacIOServiceTest {
         );
         List<PomObrazac> zak = List.of(
                 new PomObrazac(400001, 1000.0),
-                new PomObrazac(400002, 2000.0)
+                new PomObrazac(400002, 3000.0)
         );
 
-        // Expect an ObrazacException to be thrown
         ObrazacException exception = assertThrows(ObrazacException.class, () -> {
             service.chekEqualityOfIoAndZlBySaldo(zak, io);
         });
 
-        // Optionally, check the exception message
         String expectedMessage = "Obrazac IO i vec ucitani Zakljucni list \n" +
-                "se ne slazu u kontima : 400001, 400002, ";
+                "se ne slazu u kontima : 400001, ";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
+    @Test
+    void shouldNotThrowCheckKlasa3InIoExistAndIsSmallerThenInZakList() {
+
+        List<PomObrazac> io = List.of(new PomObrazac(300001, 2000.0),
+                                      new PomObrazac(300002, 3000.0));
+        List<PomObrazac> zak = List.of(new PomObrazac(300001, 5000.0),
+                                       new PomObrazac(300002, 3000.0));
+
+        assertDoesNotThrow(() -> service.checkKlasa3InIoExistAndIsSmallerThenInZakList(io, zak));
+    }
+
+    @Test
+    void shouldThrowCheckKlasa3InIoExistAndIsSmallerThenInZakList() {
+
+        List<PomObrazac> io = List.of(new PomObrazac(300001, 6000.0),
+                new PomObrazac(300002, 3000.0));
+        List<PomObrazac> zak = List.of(new PomObrazac(300001, 5000.0),
+                new PomObrazac(300002, 3000.0));
+
+        ObrazacException exception = assertThrows(ObrazacException.class, () -> {
+            service.checkKlasa3InIoExistAndIsSmallerThenInZakList(io, zak);
+        });
+
+        String expectedMessage = "Konto 300001 u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));    }
+
+    @Test
+    void shouldThrowObrazacExceptionWhenIoSaldoIsGreaterThanZakSaldo() {
+        PomObrazac io1 = PomObrazac.builder().konto(300001).saldo(100.00).build();
+        PomObrazac zak1 = PomObrazac.builder().konto(300001).saldo(50.00).build(); // IO saldo is greater
+
+        List<PomObrazac> ioKlasa3 = Arrays.asList(io1);
+        List<PomObrazac> zakKlasa3 = Arrays.asList(zak1);
+
+        Exception exception = assertThrows(ObrazacException.class, () -> {
+            service.checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
+        });
+
+        assertTrue(exception.getMessage().contains("Konto 300001 u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!"));
+    }
+
+    @Test
+    void shouldNotThrowWhenIoSaldoIsLessThanOrEqualZakSaldo() {
+        PomObrazac io1 = PomObrazac.builder().konto(300001).saldo(50.00).build();
+        PomObrazac zak1 = PomObrazac.builder().konto(300001).saldo(50.00).build();
+
+        List<PomObrazac> ioKlasa3 = Arrays.asList(io1);
+        List<PomObrazac> zakKlasa3 = Arrays.asList(zak1);
+
+        assertDoesNotThrow(() -> {
+            service.checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
+        });
+    }
 }

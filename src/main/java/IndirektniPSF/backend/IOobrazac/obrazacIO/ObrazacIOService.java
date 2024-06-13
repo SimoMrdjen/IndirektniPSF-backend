@@ -131,7 +131,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             ObrazacIO obrIOSaved = obrazacIOrepository.save(obrIO);
 
             var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke(), oznakaGlave);
-            obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
+           // obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
             return responseMessage;
 
 
@@ -143,12 +143,32 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
     public void compareIoAndZakljucni(List<ObrazacIODTO> dtos, Integer kvartal, Integer jbbks) throws Exception {
 
-        List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks);
-        //List<ObrazacIODTO> dtosFiltered = dtos.stream().filter(entry -> entry.getIzvrsenje() > 0.0).toList();
-        List<PomObrazac> ioRaw = convertIoToPomObrazac(dtos);
+        //for compared klase 4,5,6,7,8,9
+        List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks, 300000);
+        List<PomObrazac> zak4 = zak.stream().filter(entry -> entry.getKonto() > 400000).toList();
+        List<PomObrazac> ioRaw = convertIoToPomObrazac(dtos, 400000);
         List<PomObrazac> io = ioRaw.stream().filter(entry -> entry.getSaldo() > 0.0).toList();
-        checkIfAllKontosFromIoExistInZk(zak,io);
-        chekEqualityOfIoAndZlBySaldo(zak, io);
+        checkIfAllKontosFromIoExistInZk(zak4,io);
+        chekEqualityOfIoAndZlBySaldo(zak4, io);
+
+        //for compared klasa 3
+        List<PomObrazac> io3 = convertIoToPomObrazac(dtos, 300000);
+        List<PomObrazac> ioKlasa3 = io3.stream().filter(entry ->  entry.getKonto() < 400000).toList();
+        List<PomObrazac> zakKlasa3 = zak.stream().filter(entry -> entry.getKonto() > 300000 && entry.getKonto() < 400000).toList();
+        checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
+
+    }
+
+    void checkKlasa3InIoExistAndIsSmallerThenInZakList(List<PomObrazac> ioKlasa3, List<PomObrazac> zakKlasa3) throws ObrazacException {
+
+        final Double tolerance = 0.0001;
+        for (PomObrazac io : ioKlasa3){
+            for (PomObrazac zak : zakKlasa3) {
+                if(io.getKonto().equals(zak.getKonto()) && (io.getSaldo() - zak.getSaldo() > tolerance)) {
+                    throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!" );
+                }
+            }
+        }
     }
 
     public void checkIfAllKontosFromIoExistInZk(List<PomObrazac> zak, List<PomObrazac> io) throws ObrazacException {
@@ -217,13 +237,9 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         }
     }
 
-    public List<PomObrazac> convertIoToPomObrazac(List<ObrazacIODTO> dtos) {
+    public List<PomObrazac> convertIoToPomObrazac(List<ObrazacIODTO> dtos, Integer konto) {
 
-        List<ObrazacIODTO> dtosFiltered = dtos.stream()
-                .filter(i -> i.getKonto() > 400000)
-                .filter(i -> i.getKonto() % 100 != 0)
-                .collect(Collectors.toList());
-
+        List<ObrazacIODTO> dtosFiltered = fiterDtosAccordingKonto(dtos,konto);
 
         List<PomObrazac> pomList = dtosFiltered.stream()
                 .map(i -> {
@@ -236,7 +252,14 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         return makeListOfPomUniqueKontosAndSumOfSaldo(pomList);
     }
 
-    public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks) throws Exception {
+    private List<ObrazacIODTO> fiterDtosAccordingKonto(List<ObrazacIODTO> dtos, int konto) {
+        return dtos.stream()
+                .filter(i -> i.getKonto() > konto)
+                .filter(i -> i.getKonto() % 100 != 0)
+                .collect(Collectors.toList());
+    }
+
+    public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks, Integer konto) throws Exception {
 
         List<ZakljucniListDetails> zakljucniListDetailsList = findValidZakList(kvartal,jbbks).getStavke();
 
@@ -247,7 +270,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                         pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + ( z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())));
                         return pom;
                 })
-                .filter(p -> p.getKonto() > 400000 )
+                .filter(p -> p.getKonto() > konto )
                 .collect(Collectors.toList());
     }
 
