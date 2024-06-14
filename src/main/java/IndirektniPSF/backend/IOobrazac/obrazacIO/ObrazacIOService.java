@@ -79,7 +79,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
       //  dtos.forEach(item -> System.out.println(item.getKonto()));
 
         //VARIOUS CHECKS
-        //chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
+        chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
         var sum791111 =

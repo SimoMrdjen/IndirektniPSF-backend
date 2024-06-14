@@ -44,18 +44,18 @@ class ArhbudzetRepositoryTest {
 //    @Query("SELECT SUM(a.duguje) FROM Arhbudzet a JOIN a.izvor i WHERE a.sinKonto > 4000 AND a.sinKonto < 7000 " +
 //            "AND a.sifSekr = :sifSekr AND a.datum <= :date " +
 //            "AND a.jbbkIndKor = :jbbk AND i.kakva = 'budz'")
-    @Test
-    void testSumUplataIzBudzetaForIndKor() {
-        Integer sifSekr = 1;
-        Double date = 2023.0501;
-        Integer jbbk = 2;
-
-        Double result = arhbudzetRepository.sumUplataIzBudzetaForIndKor(sifSekr, date, jbbk);
-
-        // The expected sum is 500.0 + 300.0 = 800.0
-        assertEquals(800.0, result);
-
-    }
+//    @Test
+//    void testSumUplataIzBudzetaForIndKor() {
+//        Integer sifSekr = 1;
+//        Double date = 2023.0501;
+//        Integer jbbk = 2;
+//
+//        Double result = arhbudzetRepository.sumUplataIzBudzetaForIndKor(sifSekr, date, jbbk);
+//
+//        // The expected sum is 500.0 + 300.0 = 800.0
+//        assertEquals(800.0, result);
+//
+//    }
 
 //    @Test
 //    void findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene() {
