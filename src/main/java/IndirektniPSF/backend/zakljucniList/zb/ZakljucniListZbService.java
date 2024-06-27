@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
+import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
@@ -82,6 +83,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         //provere
+        checkIfKonto999999Exist(dtos);
         checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
         checkJbbks(user, jbbk);
@@ -118,6 +120,14 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         var zbSaved = zakljucniRepository.save(zb);
         zakljucniDetailsService.saveDetailsExcel(dtos, zbSaved);
         return responseMessage;
+    }
+
+    public void checkIfKonto999999Exist(List<ZakljucniListDto> dtos) throws ObrazacException {
+        for (ZakljucniListDto dto : dtos) {
+            if ("999999".equals(dto.getKonto())) {
+                throw new ObrazacException("U obrascu imate konto 999999!");
+            }
+        }
     }
 
     private boolean isDoubledRecord(ZakljucniListZb zb) {

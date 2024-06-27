@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.parameters;
 
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
@@ -42,6 +43,15 @@ public  class StatusService {
     }
 
     public <Actual extends StatusUpdatable, Next extends StatusUpdatable> void resolveObrazacAccordingNextObrazac(Actual actual, Next next) throws Exception {
+
+        // TODO this block remove after implementing Obrazac5 in app
+        if (actual instanceof ObrazacIO) {
+            if (actual.getSTATUS() > next.getSTATUS() + 10) {
+                throw new ObrazacException("Ne postoji obrazac kojem mozete podici status\n" +
+                        "Morate prethodno podici status Obrascu 5 !");
+            }
+        }
+        //TODO
 
         if (actual.getSTATUS() > next.getSTATUS()) {
             throw new ObrazacException("Ne postoji obrazac kojem mozete podici status\n" +

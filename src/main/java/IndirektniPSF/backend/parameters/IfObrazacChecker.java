@@ -9,7 +9,7 @@ public interface IfObrazacChecker {
 
      default <T extends StatusUpdatable>void isObrazacSentToDBK(T zb) throws Exception {
 
-        if (zb.getSTATUS() >= 20) {
+        if (zb.getSTATUS() > 20) {
             throw new Exception("Obrazac je vec poslat vasem DBK-u");
         }
     }

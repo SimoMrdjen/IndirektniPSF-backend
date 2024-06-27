@@ -72,27 +72,19 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-//        try {
         Integer year = excelService.readCellByIndexes(file.getInputStream(), 2, 3);
         Integer jbbkExcel = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
         List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
-      //  dtos.forEach(item -> System.out.println(item.getKonto()));
 
         //VARIOUS CHECKS
         chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
-        var sum791111 =
-        responseMessage
-                .append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
-        responseMessage
-                .append(checkIfStandKlasifFromExcelExistInFinPlana(dtos,jbbks,kvartal));
+        responseMessage.append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
+        responseMessage.append(checkIfStandKlasifFromExcelExistInFinPlana(dtos,jbbks,kvartal));
         checkIfPlanAndIzvrsenjeAreZero(dtos);
-        responseMessage
-                .append(checkSumOnKlasa3(jbbks, file));
-
+        responseMessage.append(checkSumOnKlasa3(jbbks, file));
         compareIoAndZakljucni(dtos, kvartal, jbbks);
-
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         ObrazacIO obrIO = ObrazacIO.builder()
@@ -129,16 +121,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                     .build();
 
             ObrazacIO obrIOSaved = obrazacIOrepository.save(obrIO);
-
             var details = obrazacIODetailService.saveListOfObrazac5_pom(dtos, obrIOSaved, zakList.getStavke(), oznakaGlave);
-           // obrazacIODetailService.compareIoDetailsWithZakListDetails(details, zakList.getStavke());//TODO implement this check
             return responseMessage;
-
-
-//        } catch (Exception ex) {
-//            System.out.println("Exception occurred while processing the file" + ex);
-//            throw ex;
-//        }
     }
 
     public void compareIoAndZakljucni(List<ObrazacIODTO> dtos, Integer kvartal, Integer jbbks) throws Exception {
@@ -160,13 +144,22 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     }
 
     void checkKlasa3InIoExistAndIsSmallerThenInZakList(List<PomObrazac> ioKlasa3, List<PomObrazac> zakKlasa3) throws ObrazacException {
-
         final Double tolerance = 0.0001;
-        for (PomObrazac io : ioKlasa3){
+
+        for (PomObrazac io : ioKlasa3) {
+            boolean foundMatchingKonto = false;
+
             for (PomObrazac zak : zakKlasa3) {
-                if(io.getKonto().equals(zak.getKonto()) && (io.getSaldo() - zak.getSaldo() > tolerance)) {
-                    throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!" );
+                if (io.getKonto().equals(zak.getKonto())) {
+                    foundMatchingKonto = true;
+
+                    if ((zak.getSaldo() + tolerance) < io.getSaldo()) {
+                        throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!\n");
+                    }
                 }
+            }
+            if (!foundMatchingKonto) {
+                throw new ObrazacException("Konto " + io.getKonto() + " iz Obrasca IO ne postoji u vec ucitanom Zakljucnom listu!\n");
             }
         }
     }
@@ -187,7 +180,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         if (!ioIntUnique.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             ioIntUnique.forEach(d -> sb.append(d).append(", "));
-            throw new ObrazacException("Obrazac IO ima konta koja \n ne postoje u vec ucitanom Zakljucnom listu: \n" + sb);
+            throw new ObrazacException("Obrazac IO ima konta koja \n ne postoje u vec ucitanom Zakljucnom listu: \n" + sb + "\n");
         }
 
         List<Integer> zakInt4_7 = zakInt.stream().filter(z -> z > 400000 ).collect(Collectors.toList());
@@ -195,7 +188,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         if (!zakInt4_7.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             zakInt4_7.forEach(d -> sb.append(d).append(", "));
-            throw new ObrazacException("Vec ucitani Zakljucni list ima konta\n koja ne postoje u obrascu IO: \n" + sb);
+            throw new ObrazacException("Vec ucitani Zakljucni list ima konta\n koja ne postoje u obrascu IO: \n" + sb + "\n");
         }
     }
 
@@ -233,7 +226,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             StringBuilder sb = new StringBuilder();
             diffSet.forEach(d -> sb.append(d.getKonto()).append(", "));
             throw new ObrazacException("Obrazac IO i vec ucitani Zakljucni list \n" +
-                    "se ne slazu u kontima : " + sb);
+                    "se ne slazu u kontima : " + sb + "\n");
         }
     }
 
@@ -292,8 +285,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         System.out.println("from excel: " + amountFromExcel);
 
         if (!areEqual(sumFromStanjeKrta,amountFromExcel)) {
-            return "Ne slaže se suma na unetoj klasi 3 \n" +
-                    "sa stanjem na žiro racunima";
+            return "\nNe slaže se suma na unetoj klasi 3 \n" +
+                    "sa stanjem na žiro racunima \n";
         }
         return "";
     }
@@ -491,17 +484,20 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
         statusService.resolveObrazacAccordingStatus(zb, status);
         //check next
-        Obrazac5 obrazac5 =
-                obrazac5Service.findLastVersionOfObrazac5Zb(jbbks, kvartal)
-                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
-                                "jer ne postoji ucitan Obrazac 5.\n" +
-                                "Morate prethodno ucitati Obrazac 5!"));
+        //TODO uncoment next block after implementing obrazac 5
+//        Obrazac5 obrazac5 =
+//                obrazac5Service.findLastVersionOfObrazac5Zb(jbbks, kvartal)
+//                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
+//                                "jer ne postoji ucitan Obrazac 5.\n" +
+//                                "Morate prethodno ucitati Obrazac 5!"));
+//
+//        if (obrazac5.getSTORNO() == 1) {
+//            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac 5 storniran.\n" +
+//                    " Morate prethodno ucitati Obrazac 5!!");
+//        }
+//        statusService.resolveObrazacAccordingNextObrazac(zb, obrazac5);
+        //TODO uncoment previous block after implementing obrazac 5
 
-        if (obrazac5.getSTORNO() == 1) {
-            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac 5 storniran.\n" +
-                    " Morate prethodno ucitati Obrazac 5!!");
-        }
-        statusService.resolveObrazacAccordingNextObrazac(zb, obrazac5);
         // check previous
         var zakList = this.findValidZakList(kvartal, jbbks);
         statusService.resolveObrazacAccordingPreviousObrazac(zb, zakList);
@@ -549,12 +545,12 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         var messageForExcel = checkIfStandKlasifBetweenExcenAndFinPlan(dtosFromExcel, dtosFromArh);
         if (messageForExcel.length() > 0) {
             messageForExcel =  "Imate u obrascu standardne klasifikacije \nkoje ne postoje u fin.planu!\n "
-                             + messageForExcel;
+                             + messageForExcel + "\n";
         }
         var messageForPlan = "";//checkIfStandKlasifBetweenExcenAndFinPlan( dtosFromArh,dtos);
         if (messageForExcel.length() > 0) {
             messageForPlan =  "Imate u fin.planu standardne klasifikacije \nkoje ne postoje u obrascu!\n "
-                              +  messageForPlan;
+                              +  messageForPlan + "\n";
         }
 
         boolean clauseForCheckingInExcelStandKlas = false;//zuta greska
