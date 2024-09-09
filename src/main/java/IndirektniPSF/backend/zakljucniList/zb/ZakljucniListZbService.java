@@ -83,7 +83,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         //provere
-        checkIfKonto999999Exist(dtos);
+       //checkIfKonto999999Exist(dtos);
         checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
         checkJbbks(user, jbbk);

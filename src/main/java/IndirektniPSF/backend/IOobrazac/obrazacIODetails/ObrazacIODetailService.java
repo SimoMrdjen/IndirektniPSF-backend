@@ -83,9 +83,9 @@ public class ObrazacIODetailService {
                 obrazac.setPOKRAJINA(obrazac.getDUGUJE());
             } else if (kolona == 8) {
                 obrazac.setOPSTINA(obrazac.getDUGUJE());
-            } else if (kolona == 9) {
-                obrazac.setDONACIJE(obrazac.getDUGUJE());
             } else if (kolona == 10) {
+                obrazac.setDONACIJE(obrazac.getDUGUJE());
+            } else if (kolona == 9) {
                 obrazac.setOOSO(obrazac.getDUGUJE());
             } else if (kolona == 11) {
                 obrazac.setOSTALI(obrazac.getDUGUJE());

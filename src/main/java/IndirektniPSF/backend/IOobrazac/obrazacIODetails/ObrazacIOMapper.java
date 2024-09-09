@@ -24,11 +24,11 @@ public class ObrazacIOMapper {
         Double dugg =
                 (konto >= 400000 && konto <= 699999) ? obrazacIODTO.getPlan() : 0;
         Double potg =
-                (konto < 400000 && konto > 699999) ? obrazacIODTO.getPlan() : 0;
+                (konto < 400000 || konto > 699999) ? obrazacIODTO.getPlan() : 0;
         Double duguje =
                 (konto >= 400000 && konto <= 699999) ? obrazacIODTO.getIzvrsenje() : 0;
         Double potrazuje =
-                (konto < 400000 && konto > 699999) ? obrazacIODTO.getIzvrsenje() : 0;
+                (konto < 400000 || konto > 699999) ? obrazacIODTO.getIzvrsenje() : 0;
         return
         ObrazacIODetails.builder()
                 .RED_BROJ_AKT(obrazacIODTO.getRedBrojAkt())

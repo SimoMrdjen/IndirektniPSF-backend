@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.webjars.NotFoundException;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -127,9 +126,13 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
     public void compareIoAndZakljucni(List<ObrazacIODTO> dtos, Integer kvartal, Integer jbbks) throws Exception {
 
+//        Konta 311712 i 321311 ako postoje u zaključnom obrascu mora da postoje i u IO-obrasca i obrnuto.
+//        Vrednosti moraju da budu jednake
+
+
         //for compared klase 4,5,6,7,8,9
         List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks, 300000);
-        List<PomObrazac> zak4 = zak.stream().filter(entry -> entry.getKonto() > 400000).toList();
+        List<PomObrazac> zak4 = zak.stream().filter(entry -> entry.getKonto() > 400000 && entry.getKonto() < 999999).toList();
         List<PomObrazac> ioRaw = convertIoToPomObrazac(dtos, 400000);
         List<PomObrazac> io = ioRaw.stream().filter(entry -> entry.getSaldo() > 0.0).toList();
         checkIfAllKontosFromIoExistInZk(zak4,io);
@@ -485,17 +488,25 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         statusService.resolveObrazacAccordingStatus(zb, status);
         //check next
         //TODO uncoment next block after implementing obrazac 5
-//        Obrazac5 obrazac5 =
-//                obrazac5Service.findLastVersionOfObrazac5Zb(jbbks, kvartal)
-//                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
-//                                "jer ne postoji ucitan Obrazac 5.\n" +
-//                                "Morate prethodno ucitati Obrazac 5!"));
-//
+        Optional<Obrazac5> obrazac5 =
+                obrazac5Service.findLastVersionOfObrazac5Zb(jbbks, kvartal);
+
+        if(zb.getSTATUS() == 10) {
+            if(obrazac5.isEmpty()) {
+              throw  new ObrazacException("Nije moguce odobravanje obrrasca\n" +
+                        "jer ne postoji ucitan Obrazac 5.\n" +
+                        "Morate prethodno ucitati Obrazac 5!");
+            }
+        }
+        //TODO uncoment next block after implementing obrazac 5
+
 //        if (obrazac5.getSTORNO() == 1) {
 //            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac 5 storniran.\n" +
 //                    " Morate prethodno ucitati Obrazac 5!!");
 //        }
-//        statusService.resolveObrazacAccordingNextObrazac(zb, obrazac5);
+        if (obrazac5.isPresent()) {
+            statusService.resolveObrazacAccordingNextObrazac(zb, obrazac5.get());
+        }
         //TODO uncoment previous block after implementing obrazac 5
 
         // check previous
