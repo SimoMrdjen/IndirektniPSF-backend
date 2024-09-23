@@ -36,6 +36,9 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.abs;
+import static java.util.stream.Collectors.toList;
+
 
 @RequiredArgsConstructor
 @Service
@@ -143,7 +146,33 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<PomObrazac> ioKlasa3 = io3.stream().filter(entry ->  entry.getKonto() < 400000).toList();
         List<PomObrazac> zakKlasa3 = zak.stream().filter(entry -> entry.getKonto() > 300000 && entry.getKonto() < 400000).toList();
         checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
+        checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3);
+    }
 
+    void checkForKonto311712And321311InZakAndIo(List<PomObrazac> zakKlasa3, List<PomObrazac> ioKlasa3) throws ObrazacException {
+//        final Double tolerance = 0.0001;
+
+        List<PomObrazac> zakKonto311712And321311 = zakKlasa3.stream()
+                .filter(entry ->  entry.getKonto() == 311712 ||  entry.getKonto() == 321311).toList();
+
+        if (zakKonto311712And321311.size() !=  0) {
+            List<PomObrazac> ioKonto311712And321311 = ioKlasa3.stream()
+                    .filter(entry ->  entry.getKonto() == 311712 ||  entry.getKonto() == 321311).toList();
+            for (PomObrazac zak : zakKonto311712And321311) {
+                boolean foundMatchingKonto = false;
+                for (PomObrazac io : ioKonto311712And321311) {
+                    if (io.getKonto().equals(zak.getKonto())) {
+                        foundMatchingKonto = true;
+                        if (!io.equals(zak)) {
+                            throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima razlicitu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!\n");
+                        }
+                    }
+                }
+                if (!foundMatchingKonto) {
+                    throw new ObrazacException("Konto " + zak.getKonto() + " iz Zakljucnog lista ne postoji u Obrasca IO!\n");
+                }
+            }
+        }
     }
 
     void checkKlasa3InIoExistAndIsSmallerThenInZakList(List<PomObrazac> ioKlasa3, List<PomObrazac> zakKlasa3) throws ObrazacException {
@@ -167,14 +196,17 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         }
     }
 
+
+
+
     public void checkIfAllKontosFromIoExistInZk(List<PomObrazac> zak, List<PomObrazac> io) throws ObrazacException {
         List<Integer> zakInt = zak.stream()
                 .map(PomObrazac::getKonto)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<Integer> ioInt = io.stream()
                 .map(PomObrazac::getKonto)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         Set<Integer> ioIntSet = new HashSet<>(ioInt);
         List<Integer> ioIntUnique = new ArrayList<>(ioIntSet);
@@ -186,7 +218,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             throw new ObrazacException("Obrazac IO ima konta koja \n ne postoje u vec ucitanom Zakljucnom listu: \n" + sb + "\n");
         }
 
-        List<Integer> zakInt4_7 = zakInt.stream().filter(z -> z > 400000 ).collect(Collectors.toList());
+        List<Integer> zakInt4_7 = zakInt.stream().filter(z -> z > 400000 ).collect(toList());
         zakInt4_7.removeAll(new ArrayList<>(ioIntSet));
         if (!zakInt4_7.isEmpty()) {
             StringBuilder sb = new StringBuilder();
@@ -207,7 +239,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<PomObrazac> zakUnique = groupedByKonto.entrySet().stream()
                 .map(entry -> new PomObrazac(entry.getKey(), entry.getValue()))
                 .filter(entry -> entry.getKonto() >400000)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         return zakUnique;
     }
@@ -222,7 +254,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         diff2.removeAll(ioUnique);
 
         diff.addAll(diff2);
-        List<PomObrazac> diffFiltered = diff.stream().filter(d -> d.getSaldo() != 0.00).collect(Collectors.toList());
+        List<PomObrazac> diffFiltered = diff.stream().filter(d -> d.getSaldo() != 0.00).collect(toList());
         Set<PomObrazac> diffSet = new HashSet<>(diffFiltered);
 
         if (!diffSet.isEmpty()) {
@@ -244,7 +276,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                     pom.setSaldo(i.getIzvrsenje());
                     return  pom;
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
         return makeListOfPomUniqueKontosAndSumOfSaldo(pomList);
     }
 
@@ -252,7 +284,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         return dtos.stream()
                 .filter(i -> i.getKonto() > konto)
                 .filter(i -> i.getKonto() % 100 != 0)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks, Integer konto) throws Exception {
@@ -267,7 +299,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                         return pom;
                 })
                 .filter(p -> p.getKonto() > konto )
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<PomObrazac> makeListOfPomUniqueKontosAndSumOfSaldo(List<PomObrazac> pomList) {
@@ -277,7 +309,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                         Collectors.summingDouble(PomObrazac::getSaldo)))
                 .entrySet().stream()
                 .map(entry -> new PomObrazac(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private String checkSumOnKlasa3(Integer jbbks,MultipartFile file) throws Exception {
@@ -374,7 +406,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<ObrazacIODTO> details =
                 zb.getStavke().stream()
                         .map(mapper::toDto)
-                        .collect(Collectors.toList());
+                        .collect(toList());
         ObrazacResponse response = mapper.toResponse(zb);
         response.setObrazacIODTOS(details);
         response.setObrazacType(ObrazacType.OBRAZAC_IO);
@@ -551,7 +583,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                     newDto.setIzvrsenje(dto.getIzvrsenje());
                     return newDto;
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
 
         var messageForExcel = checkIfStandKlasifBetweenExcenAndFinPlan(dtosFromExcel, dtosFromArh);
         if (messageForExcel.length() > 0) {

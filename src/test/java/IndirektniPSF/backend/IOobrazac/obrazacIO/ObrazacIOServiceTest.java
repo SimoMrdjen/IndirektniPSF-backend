@@ -446,4 +446,53 @@ class ObrazacIOServiceTest {
             service.checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
         });
     }
+
+    @Test
+    void shouldNotThrowWhenSaldoKonto311712And321311InWithinTolerance() {
+        // Given
+        PomObrazac zakEntry = new PomObrazac(311712, 100.0000);
+        PomObrazac ioEntry = new PomObrazac(311712, 100.000001);
+        List<PomObrazac> zakKlasa3 = Arrays.asList(zakEntry);
+        List<PomObrazac> ioKlasa3 = Arrays.asList(ioEntry);
+
+        // When & Then
+        assertDoesNotThrow(() -> service.checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3));
+    }
+
+    @Test
+    void shouldThrowWhenSaldoKonto311712And321311OutsideTolerance() {
+        // Given
+        PomObrazac zakEntry = new PomObrazac(311712, 100.00);
+        PomObrazac ioEntry = new PomObrazac(311712, 101.00);
+        List<PomObrazac> zakKlasa3 = Arrays.asList(zakEntry);
+        List<PomObrazac> ioKlasa3 = Arrays.asList(ioEntry);
+
+        // When & Then
+        Exception exception = assertThrows(ObrazacException.class, () ->
+                service.checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3));
+        assertTrue(exception.getMessage().contains("ima razlicitu vrednost"));
+    }
+
+    @Test
+    void shouldThrowWhenSaldoKonto311712And321311WhenMissingKontoInIO() {
+        // Given
+        PomObrazac zakEntry = new PomObrazac(311712, 100.00);
+        List<PomObrazac> zakKlasa3 = Arrays.asList(zakEntry);
+        List<PomObrazac> ioKlasa3 = Arrays.asList(); // Empty list
+
+        // When & Then
+        Exception exception = assertThrows(ObrazacException.class, () ->
+                service.checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3));
+        assertTrue(exception.getMessage().contains("ne postoji u Obrasca IO"));
+    }
+
+    @Test
+    void shouldNotThrowWhenEmptyListsInSaldoKonto311712And321311() {
+        // Given
+        List<PomObrazac> zakKlasa3 = Arrays.asList();
+        List<PomObrazac> ioKlasa3 = Arrays.asList();
+
+        // When & Then
+        assertDoesNotThrow(() -> service.checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3));
+    }
 }
