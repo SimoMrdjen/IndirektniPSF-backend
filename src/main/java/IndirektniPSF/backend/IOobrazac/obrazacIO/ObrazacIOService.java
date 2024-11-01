@@ -57,7 +57,6 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     private final ZakljucniListZbRepository zakljucniRepository;
     private final StatusService statusService;
     private final GlavaSviService glavaSviService;
-
     private final ArhbudzetService arhbudzetService;
     private final StanjeKrtaService stanjeKrtaService;
 

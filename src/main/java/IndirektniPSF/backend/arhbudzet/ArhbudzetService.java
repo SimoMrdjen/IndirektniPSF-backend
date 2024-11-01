@@ -27,4 +27,8 @@ public class ArhbudzetService implements IfObrazacChecker {
     List<Arhbudzet> findByJbbkIndKorAndDatumLessThanEqualGroupByFields(Integer jbbkIndKor, Double datum) {
         return repository.findByJbbkIndKorAndDatumLessThanEqualGroupByFields(jbbkIndKor, datum);
     }
+
+    public Double sumUplataIzBudzetaForIndKorForIzvoriFin(Integer sifSekret, Double date, Integer jbbk) {
+        return repository.sumUplataIzBudzetaForIndKorForIzvoriFin(sifSekret, date, jbbk);
+    }
 }

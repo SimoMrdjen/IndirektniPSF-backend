@@ -3,7 +3,10 @@ package IndirektniPSF.backend.obrazac5.obrazac5;
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIORepository;
+import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
+import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
+import IndirektniPSF.backend.glavaSvi.GlavaSviService;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5Mapper;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5DetailsService;
@@ -41,29 +44,42 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     private final Obrazac5Mapper mapper;
     private final ObrazacIORepository obrazacIOrepository;
     private final StatusService statusService;
-
-
+    private final ExcelService excelService;
+    private final ArhbudzetService arhbudzetService;
+    private final GlavaSviService glavaSviService;
 
     //--5--
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
         responseMessage.delete(0, responseMessage.length());
-
-
-
         User user = this.getUser(email);
         var jbbk = getJbbksIBK(user);
 
+        //GET DATA FROM EXCEL
+        Double prihodiFromPokrajinaFromExcel =
+                excelService.readCellOfDoubleValueByIndexes(file.getInputStream(), 195, 6);
+        Double konto791100FromExcel =
+                excelService.readCellOfDoubleValueByIndexes(file.getInputStream(), 129, 6);
+
+
+        //GET DATA FROM ARGUMENTS
         Integer sifSekret = user.getZa_sif_sekret();
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
-        ObrazacIO validIO = this. findValidIO(kvartal, jbbk);
-//        checkDuplicatesKonta(dtos);
+        String oznakaGlave = glavaSviService.findGlava(jbbk);
+        ObrazacIO validIO = this. findValidIO(kvartal, jbbk);//greska 43
         Integer version = checkIfExistValidObrazac5AndFindVersion( jbbk, kvartal);
-
         List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
 
+        //VARIOUS CHECKS
+        checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
+                prihodiFromPokrajinaFromExcel, kvartal, jbbk, oznakaGlave, sifSekret);//greska 44
+        checkKonto791100InObrazacAgainstDataInArhBudzet(
+                konto791100FromExcel, kvartal, jbbk, sifSekret);//greska 45
+
+
+        //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         Obrazac5 zb = Obrazac5.builder()
                 //.gen_interbase(1)
                 .koji_kvartal(kvartal)
@@ -99,6 +115,33 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         var details =  obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
 
         return responseMessage;
+    }
+
+    void checkKonto791100InObrazacAgainstDataInArhBudzet(
+            Double konto791100FromExcel, Integer kvartal, Integer jbbk, Integer sifSekret) throws ObrazacException {
+
+        Double date = (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
+        Double prihodFromArhBudzet =
+                arhbudzetService.sumUplataIzBudzetaForIndKorForIzvoriFin(
+                        sifSekret, date,jbbk);
+        if (!areEqual(prihodFromArhBudzet, konto791100FromExcel)) {
+            throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV\n" +
+                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu");
+        }
+    }
+
+    void checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
+            Double prihodiFromPokrajinaFromExcel, Integer kvartal,
+            Integer jbbk, String oznakaGlave, Integer sifSekret) throws ObrazacException {
+
+        Double date = (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
+        Double prihodFromArhBudzet =
+                arhbudzetService.sumUplataIzBudzetaForIndKor(
+                        sifSekret, date, oznakaGlave, jbbk);
+        if (!areEqual(prihodFromArhBudzet, prihodiFromPokrajinaFromExcel)) {
+            throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV\n" +
+                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu");
+        }
     }
 
     @Override
@@ -258,5 +301,4 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         this.checkStatusAndStorno(zb);
         return statusService.raiseStatusDependentOfActuallStatus(zb, user, obrazacRepository);
     }
-
 }

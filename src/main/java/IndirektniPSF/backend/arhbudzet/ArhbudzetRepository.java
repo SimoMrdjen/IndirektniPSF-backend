@@ -45,4 +45,20 @@ public interface ArhbudzetRepository extends JpaRepository<Arhbudzet, ArhbudzetI
             @Param("jbbkIndKor") Integer jbbkIndKor,
             @Param("datum") Double datum);
 
+    @Query(value = "SELECT SUM(a.duguje) " +
+            "FROM Arhbudzet a " +
+            "WHERE a.SIN_KONTO > 4000 " +
+            "AND a.SIN_KONTO < 7000 " +
+            "AND a.SIF_SEKRET = :sifSekr " +
+            "AND a.datum <= :date " +
+            "AND a.JBBK_IND_KOR = :jbbk " +
+            "AND a.izvorfin in ('0100','0102','0112'," +
+            "'0701','0707','0708','0709','0710','0711','0713'," +
+            "'0912','1000','1100','1204','1205','1206','1300'," +
+            "'1302','1312','1400','1700')",
+            nativeQuery = true)
+    Double sumUplataIzBudzetaForIndKorForIzvoriFin(
+            @Param("sifSekr") Integer sifSekr,
+            @Param("date") Double date,
+            @Param("jbbk") Integer jbbk);
 }
