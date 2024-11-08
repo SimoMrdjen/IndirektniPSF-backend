@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.obrazac5.obrazac5Details;
 
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.review.ObrazacResponse;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class Obrazac5Mapper {
@@ -127,5 +129,47 @@ public class Obrazac5Mapper {
                 .donacije(obrazac5details.getDonacije())
                 .ostali(obrazac5details.getOstali())
                 .build();
+    }
+
+    public List<Obrazac5details> mapIOtoObr5(List<ObrazacIODetails> stavke) {
+        var obr5FromIO = stavke.stream().map( st ->
+                (Obrazac5details.builder()
+                        .konto(st.getSIN_KONTO() * 100)
+                        .republika(st.getREPUBLIKA())
+                        .pokrajina(st.getPOKRAJINA())
+                        .opstina(st.getOPSTINA())
+                        .ooso(st.getOOSO())
+                        .donacije(st.getDONACIJE())
+                        .ostali(st.getOSTALI())
+                        .build())
+        ).collect(Collectors.toList());
+        return aggregateByKonto(obr5FromIO);
+    }
+
+    public List<Obrazac5details> aggregateByKonto(List<Obrazac5details> detailsList) {
+        return detailsList.stream()
+                .collect(Collectors.groupingBy(
+                        Obrazac5details::getKonto, // Group by 'konto'
+                        Collectors.reducing(new Obrazac5details(), (a, b) -> {
+                            Obrazac5details result = new Obrazac5details();
+                            result.setKonto(a.getKonto() != null ? a.getKonto() : b.getKonto());
+                            result.setPokrajina((a.getPokrajina() != null ? a.getPokrajina() : 0.0) +
+                                    (b.getPokrajina() != null ? b.getPokrajina() : 0.0));
+                            result.setRepublika((a.getRepublika() != null ? a.getRepublika() : 0.0) +
+                                    (b.getRepublika() != null ? b.getRepublika() : 0.0));
+                            result.setOpstina((a.getOpstina() != null ? a.getOpstina() : 0.0) +
+                                    (b.getOpstina() != null ? b.getOpstina() : 0.0));
+                            result.setOoso((a.getOoso() != null ? a.getOoso() : 0.0) +
+                                    (b.getOoso() != null ? b.getOoso() : 0.0));
+                            result.setDonacije((a.getDonacije() != null ? a.getDonacije() : 0.0) +
+                                    (b.getDonacije() != null ? b.getDonacije() : 0.0));
+                            result.setOstali((a.getOstali() != null ? a.getOstali() : 0.0) +
+                                    (b.getOstali() != null ? b.getOstali() : 0.0));
+                            return result;
+                        })
+                ))
+                .values()
+                .stream()
+                .toList();
     }
 }

@@ -16,4 +16,9 @@ public class RaspodelaService {
     public List<Raspodela> findDistinctByIzvorFinAndIbkIsOne() {
         return raspodelaRepository.findDistinctByIzvorFinAndIbkIsOne();
     }
+
+    public List<Raspodela> findIzvorFinIfNotUnique() {
+        return raspodelaRepository.findIzvorFinIfNotUnique();
+    }
+
 }

@@ -1,7 +1,5 @@
 package IndirektniPSF.backend.raspodela;
 
-import IndirektniPSF.backend.arhbudzet.Arhbudzet;
-import IndirektniPSF.backend.arhbudzet.ArhbudzetId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -12,4 +10,7 @@ public interface RaspodelaRepository extends JpaRepository<Raspodela, RaspodelaI
             "(SELECT r2.izvorFin FROM Raspodela r2 WHERE r2.ibk = 1 GROUP BY r2.izvorFin HAVING COUNT(r2.izvorFin) = 1)")
     List<Raspodela> findDistinctByIzvorFinAndIbkIsOne();
 
+    @Query("SELECT r FROM Raspodela r WHERE r.ibk = 1 AND r.izvorFin IN " +
+            "(SELECT r2.izvorFin FROM Raspodela r2 WHERE r2.ibk = 1 GROUP BY r2.izvorFin HAVING COUNT(r2.izvorFin) > 1)")
+    List<Raspodela> findIzvorFinIfNotUnique();
 }

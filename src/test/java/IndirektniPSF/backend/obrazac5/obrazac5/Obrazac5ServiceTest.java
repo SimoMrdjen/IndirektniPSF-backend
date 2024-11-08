@@ -71,7 +71,7 @@ class Obrazac5ServiceTest {
     void shouldThrowForKonto791100() {
         Double konto791100FromExcel = 500.0;
         Double date = (double)service.getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
-        Double prihodFromArhBudzet = 400.0; 
+        Double prihodFromArhBudzet = 400.0;
 
         when(arhbudzetService.sumUplataIzBudzetaForIndKorForIzvoriFin(sifSekret, date, jbbk))
                 .thenReturn(prihodFromArhBudzet);

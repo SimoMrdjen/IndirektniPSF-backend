@@ -3,6 +3,7 @@ package IndirektniPSF.backend.obrazac5.obrazac5;
 import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIORepository;
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
@@ -10,10 +11,13 @@ import IndirektniPSF.backend.glavaSvi.GlavaSviService;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5Mapper;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5DetailsService;
+import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5details;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.Sekretarijat;
 import IndirektniPSF.backend.parameters.*;
+import IndirektniPSF.backend.raspodela.Raspodela;
+import IndirektniPSF.backend.raspodela.RaspodelaService;
 import IndirektniPSF.backend.review.ObrazacResponse;
 import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
@@ -28,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 //--5--
@@ -47,6 +52,8 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     private final ExcelService excelService;
     private final ArhbudzetService arhbudzetService;
     private final GlavaSviService glavaSviService;
+    private final RaspodelaService raspodelaService;
+
 
     //--5--
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -112,9 +119,30 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 .build();
 
         Obrazac5 zbSaved = obrazacRepository.save(zb);
-        var details =  obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
+        List<Obrazac5details> detailsObr5 =  obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
+        completeColumnInObrIODetailsUsingDataFromObr5(detailsObr5,validIO);
 
         return responseMessage;
+    }
+
+    private void completeColumnInObrIODetailsUsingDataFromObr5(List<Obrazac5details> detailsObr5, ObrazacIO validIO) {
+
+        //TODO popuniti podatke u kolonama prihoda  iz IO podacima iz Obr5
+        List<Obrazac5details> detailsFromObrIO = mapper.mapIOtoObr5(validIO.getStavke());
+        //TODO naci nerasporedjen deo u IO
+        List<Obrazac5details> differnciesBetweenObrIOAndObr5 = Obrazac5details.difference(detailsObr5, detailsFromObrIO);
+        //TODO proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
+        allocateExpensesByIncomeSource(validIO, differnciesBetweenObrIOAndObr5);
+
+    }
+
+    private void allocateExpensesByIncomeSource(ObrazacIO validIO, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
+
+
+        List<Raspodela> raspodelas = raspodelaService.findIzvorFinIfNotUnique();
+        Set<String> izvori = //raspodelas.stream().map(raspodela -> raspodela.getIzvorFin()).collect(Collectors.toSet());
+        List<ObrazacIODetails> detailsIO = validIO.getStavke();
+        detailsIO.stream()
     }
 
     void checkKonto791100InObrazacAgainstDataInArhBudzet(
