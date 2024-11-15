@@ -1,9 +1,10 @@
 package IndirektniPSF.backend.obrazac5.obrazac5;
 
-import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIORepository;
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailService;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailsRepository;
 import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
@@ -45,7 +46,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     private final Obrazac5DetailsService obrazac5DetailsService;
     private final PPartnerService pPartnerService;
     private final UserRepository userRepository;
-    private StringBuilder responseMessage =  new StringBuilder();
+    private StringBuilder responseMessage = new StringBuilder();
     private final Obrazac5Mapper mapper;
     private final ObrazacIORepository obrazacIOrepository;
     private final StatusService statusService;
@@ -53,6 +54,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     private final ArhbudzetService arhbudzetService;
     private final GlavaSviService glavaSviService;
     private final RaspodelaService raspodelaService;
+    private final ObrazacIODetailsRepository obrazacIODetailsRepository;
 
 
     //--5--
@@ -75,9 +77,9 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         String oznakaGlave = glavaSviService.findGlava(jbbk);
-        ObrazacIO validIO = this. findValidIO(kvartal, jbbk);//greska 43
-        Integer version = checkIfExistValidObrazac5AndFindVersion( jbbk, kvartal);
-        List<Obrazac5DTO> dtos =mapper.mapExcelToPojo(file.getInputStream());
+        ObrazacIO validIO = this.findValidIO(kvartal, jbbk);//greska 43
+        Integer version = checkIfExistValidObrazac5AndFindVersion(jbbk, kvartal);
+        List<Obrazac5DTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
         //VARIOUS CHECKS
         checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
@@ -119,30 +121,154 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 .build();
 
         Obrazac5 zbSaved = obrazacRepository.save(zb);
-        List<Obrazac5details> detailsObr5 =  obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
-        completeColumnInObrIODetailsUsingDataFromObr5(detailsObr5,validIO);
-
+        List<Obrazac5details> detailsObr5 = obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
+        completeColumnInObrIODetailsUsingDataFromObr5(detailsObr5, validIO);
         return responseMessage;
     }
 
     private void completeColumnInObrIODetailsUsingDataFromObr5(List<Obrazac5details> detailsObr5, ObrazacIO validIO) {
 
-        //TODO popuniti podatke u kolonama prihoda  iz IO podacima iz Obr5
+        //TODO naci listu stavki IO koje nisu popunjene
+        List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns = validIO.getStavke().stream()
+                .filter(this::isNotEqualDugujeAndSumOfIzvori)
+                .toList();
+        //TODO popuniti podatke u kolonama prihoda  iz IO podacima iz Obr5 sabran po sin kontima
         List<Obrazac5details> detailsFromObrIO = mapper.mapIOtoObr5(validIO.getStavke());
-        //TODO naci nerasporedjen deo u IO
+        //TODO naci nerasporedjen deo u IO i svisak smestiti u objekte lista 5
         List<Obrazac5details> differnciesBetweenObrIOAndObr5 = Obrazac5details.difference(detailsObr5, detailsFromObrIO);
         //TODO proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
-        allocateExpensesByIncomeSource(validIO, differnciesBetweenObrIOAndObr5);
+        allocateExpensesByIncomeSource(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5);
 
     }
 
-    private void allocateExpensesByIncomeSource(ObrazacIO validIO, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
+    //TODO proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
+    private void allocateExpensesByIncomeSource(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
 
-
+        //TODO naci izvore koji nemaju jednoznacni raspored
         List<Raspodela> raspodelas = raspodelaService.findIzvorFinIfNotUnique();
-        Set<String> izvori = //raspodelas.stream().map(raspodela -> raspodela.getIzvorFin()).collect(Collectors.toSet());
-        List<ObrazacIODetails> detailsIO = validIO.getStavke();
-        detailsIO.stream()
+
+        //TODO popuniti prazne stavke
+        populateEmptyIzvoriIO(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5, raspodelas);
+
+        //TODO snimiti stavke - persistance
+        obrazacIODetailsRepository.saveAll(ioDetailsEmptyPrihodiColumns);
+    }
+
+    private void populateEmptyIzvoriIO(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns,
+                                       List<Obrazac5details> differnciesBetweenObrIOAndObr5, List<Raspodela> raspodelas) {
+
+        //TODO proci kroz listu emptyIzvoriDetailsIO i popuniti kolonu prihodA u zavisnosti od izvora i
+        // umanjiti differnciesBetweenObrIOAndObr5
+        ioDetailsEmptyPrihodiColumns.stream()
+                .forEach(io -> populateColumnPrihodiInIO(io, differnciesBetweenObrIOAndObr5, raspodelas));
+    }
+
+    private void populateColumnPrihodiInIO(ObrazacIODetails ioEmptyPrihodiColumns,
+                                           List<Obrazac5details> differnciesBetweenObrIOAndObr5,
+                                           List<Raspodela> raspodelas) {
+
+        // TODO objekat razlike sa kolonama
+        Obrazac5details singleDifferencies = findProperDifferenceAccordingSinKonto(differnciesBetweenObrIOAndObr5,
+                ioEmptyPrihodiColumns.getKONTO());
+        //TODO popuniti polja prihoda u zavisnosti od izvora, i umanjiti raspolozivo
+        //TODO izmeniti tako da se radi sa listom raspodela u zvisnosti od izvora
+        List<Raspodela> raspodelasForParticularIzvor = raspodelas.stream()
+                .filter(a -> a.getIzvorFin() == ioEmptyPrihodiColumns.getIZVORFIN()).toList();
+
+        for (Raspodela raspodela : raspodelasForParticularIzvor) {
+                //TODO naci u koju kolonu treba upisati iznos i umanjiti diff iznos
+                populateColumnPrihodiInIOAccordingIzvorFin(raspodela, ioEmptyPrihodiColumns, singleDifferencies);
+            }
+    }
+
+    //TODO
+    private void populateColumnPrihodiInIOAccordingIzvorFin(Raspodela raspodela,
+                                                            ObrazacIODetails ioEmptyPrihodiColumns,
+                                                            Obrazac5details singleDifferencies) {
+        double x = ioEmptyPrihodiColumns.getDUGUJE();
+        double y= 0.0;
+        var kolona = raspodela.getKolona();
+        if (kolona == 6) {
+            y = singleDifferencies.getRepublika();
+            //TODO ako ima slobodnih sredstava u obr5 za tu kolonu
+            if (x < y || areEqual(x, y)) {
+                ioEmptyPrihodiColumns.setREPUBLIKA(x);
+                singleDifferencies.setRepublika(y-x);
+                //TODO ukoliko je manje sredstava u obr5 u toj koloni nego sto je potrbno
+            } else if ( !areEqual(y,0.0)) {
+                ioEmptyPrihodiColumns.setREPUBLIKA(y);
+                singleDifferencies.setRepublika(0.0);
+            }
+            //TODO kolona Pokrajina
+        } else if (kolona == 7) {
+            y = singleDifferencies.getPokrajina();
+            if (x < y || areEqual(x, y)) {
+                ioEmptyPrihodiColumns.setPOKRAJINA(x);
+                singleDifferencies.setPokrajina(y-x);
+            } else if ( !areEqual(y,0.0)) {
+                ioEmptyPrihodiColumns.setPOKRAJINA(y);
+                singleDifferencies.setPokrajina(0.0);
+            }
+            //TODO kolona OPSTINA
+        } else if (kolona == 8) {
+            y = singleDifferencies.getOpstina();
+            if (x < y || areEqual(x, y)) {
+                ioEmptyPrihodiColumns.setOPSTINA(x);
+                singleDifferencies.setOpstina(y-x);
+            } else if ( !areEqual(y,0.0)) {
+                ioEmptyPrihodiColumns.setOPSTINA(y);
+                singleDifferencies.setOpstina(0.0);
+            }
+            //TODO kolona DONACIJE
+        } else if (kolona == 10) {
+            y = singleDifferencies.getDonacije();
+            if (x < y || areEqual(x, y)) {
+                ioEmptyPrihodiColumns.setDONACIJE(x);
+                singleDifferencies.setDonacije(y-x);
+            } else if ( !areEqual(y,0.0)) {
+                ioEmptyPrihodiColumns.setDONACIJE(y);
+                singleDifferencies.setDonacije(0.0);
+            }
+            //TODO kolona OOSO
+        } else if (kolona == 9) {
+            y = singleDifferencies.getOoso();
+            if (x < y || areEqual(x, y)) {
+                ioEmptyPrihodiColumns.setOOSO(x);
+                singleDifferencies.setOoso(y-x);
+            } else if ( !areEqual(y,0.0)) {
+                ioEmptyPrihodiColumns.setOOSO(y);
+                singleDifferencies.setOoso(0.0);
+            }
+            //TODO kolona OSTALI
+        } else if (kolona == 11) {
+            y = singleDifferencies.getOstali();
+            if (x < y || areEqual(x, y)) {
+                ioEmptyPrihodiColumns.setOSTALI(x);
+                singleDifferencies.setOstali(y-x);
+            } else if ( !areEqual(y,0.0)) {
+                ioEmptyPrihodiColumns.setOSTALI(y);
+                singleDifferencies.setOstali(0.0);
+            }
+        }
+    }
+
+    private Obrazac5details findProperDifferenceAccordingSinKonto(List<Obrazac5details> differnciesBetweenObrIOAndObr5,
+                                                                  Integer konto) {
+        for (Obrazac5details singleDifferencies : differnciesBetweenObrIOAndObr5) {
+            if (singleDifferencies.getKonto() == konto)
+                return singleDifferencies;
+        }
+        //TODO add exception maybe
+        return null;
+    }
+
+    protected boolean isNotEqualDugujeAndSumOfIzvori(ObrazacIODetails io) {
+        return !areEqual(io.getDUGUJE(), sumOfIzvori(io));
+    }
+
+    protected double sumOfIzvori(ObrazacIODetails io) {
+        return io.getPOKRAJINA() + io.getREPUBLIKA() + io.getOPSTINA() +
+                io.getDONACIJE() + io.getOOSO() + io.getOSTALI();
     }
 
     void checkKonto791100InObrazacAgainstDataInArhBudzet(

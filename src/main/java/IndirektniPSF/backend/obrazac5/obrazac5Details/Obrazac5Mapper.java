@@ -131,6 +131,7 @@ public class Obrazac5Mapper {
                 .build();
     }
 
+    //vraca agregiranu listu po s
     public List<Obrazac5details> mapIOtoObr5(List<ObrazacIODetails> stavke) {
         var obr5FromIO = stavke.stream().map( st ->
                 (Obrazac5details.builder()

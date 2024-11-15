@@ -1,6 +1,7 @@
 package IndirektniPSF.backend.obrazac5.obrazac5;
 
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import org.junit.jupiter.api.AfterEach;
@@ -97,5 +98,56 @@ class Obrazac5ServiceTest {
                         konto791100FromExcel, kvartal, jbbk, sifSekret
                 )
         );
+    }
+
+    @Test
+    void testSumOfIzvori() {
+
+        ObrazacIODetails ioDetails = ObrazacIODetails.builder()
+                .POKRAJINA(100.0)
+                .REPUBLIKA(200.0)
+                .OPSTINA(150.0)
+                .OOSO(50.0)
+                .DONACIJE(30.0)
+                .OSTALI(20.0)
+                .build();
+
+        double sum = ioDetails.getPOKRAJINA() + ioDetails.getREPUBLIKA() +
+                ioDetails.getOPSTINA() + ioDetails.getOOSO() +
+                ioDetails.getDONACIJE() + ioDetails.getOSTALI();
+        assertEquals(550.0, sum);
+    }
+
+    @Test
+    void testIsNotEqualDugujeAndSumOfIzvori_WhenNotEqual() {
+
+        ObrazacIODetails ioDetails = ObrazacIODetails.builder()
+                .DUGUJE(500.0)
+                .POKRAJINA(100.0)
+                .REPUBLIKA(150.0)
+                .OPSTINA(100.0)
+                .OOSO(50.0)
+                .DONACIJE(70.0)
+                .OSTALI(20.0)
+                .build();
+
+        boolean result = service.isNotEqualDugujeAndSumOfIzvori(ioDetails);
+        assertTrue(result); //  500 != (100+150+100+50+70+20)
+    }
+
+    @Test
+    void testIsNotEqualDugujeAndSumOfIzvori_WhenEqual() {
+
+        ObrazacIODetails ioDetails = ObrazacIODetails.builder()
+                .DUGUJE(490.0)
+                .POKRAJINA(100.0)
+                .REPUBLIKA(150.0)
+                .OPSTINA(100.0)
+                .OOSO(50.0)
+                .DONACIJE(70.0)
+                .OSTALI(20.0)
+                .build();
+        boolean result = service.isNotEqualDugujeAndSumOfIzvori(ioDetails);
+        assertFalse(result); //  490 == (100+150+100+50+70+20)
     }
 }
