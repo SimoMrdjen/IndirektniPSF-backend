@@ -63,22 +63,22 @@ public class Obrazac5details {
     private Double planprihoda;
 
     @Column(name = "republika")
-    private Double republika;
+    private Double republika = 0.0;
 
     @Column(name = "pokrajina")
-    private Double pokrajina;
+    private Double pokrajina = 0.0;
 
     @Column(name = "opstina")
-    private Double opstina;
+    private Double opstina = 0.0;
 
     @Column(name = "ooso")
-    private Double ooso;
+    private Double ooso = 0.0;
 
     @Column(name = "donacije")
-    private Double donacije;
+    private Double donacije = 0.0;
 
     @Column(name = "ostali")
-    private Double ostali;
+    private Double ostali = 0.0;
 
     @Column(name = "godplan")
     private Double godplan;

@@ -2,6 +2,7 @@ package IndirektniPSF.backend.raspodela;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "obrazac5_izvor")
 public class Raspodela {
     @Id
@@ -28,4 +30,6 @@ public class Raspodela {
 
     @Column(name = "REDOSLED")
     private Integer redosled;
+
+
 }

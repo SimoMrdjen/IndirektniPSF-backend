@@ -24,6 +24,7 @@ import IndirektniPSF.backend.review.ObrazacType;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,6 +56,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     private final GlavaSviService glavaSviService;
     private final RaspodelaService raspodelaService;
     private final ObrazacIODetailsRepository obrazacIODetailsRepository;
+    private final ObrazacIODetailService obrazacIODetailsService;
 
 
     //--5--
@@ -142,7 +144,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     }
 
     //TODO proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
-    private void allocateExpensesByIncomeSource(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
+    void allocateExpensesByIncomeSource(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
 
         //TODO naci izvore koji nemaju jednoznacni raspored
         List<Raspodela> raspodelas = raspodelaService.findIzvorFinIfNotUnique();
@@ -151,7 +153,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         populateEmptyIzvoriIO(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5, raspodelas);
 
         //TODO snimiti stavke - persistance
-        obrazacIODetailsRepository.saveAll(ioDetailsEmptyPrihodiColumns);
+        obrazacIODetailsService.saveAll(ioDetailsEmptyPrihodiColumns);
     }
 
     private void populateEmptyIzvoriIO(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns,
@@ -163,9 +165,9 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 .forEach(io -> populateColumnPrihodiInIO(io, differnciesBetweenObrIOAndObr5, raspodelas));
     }
 
-    private void populateColumnPrihodiInIO(ObrazacIODetails ioEmptyPrihodiColumns,
-                                           List<Obrazac5details> differnciesBetweenObrIOAndObr5,
-                                           List<Raspodela> raspodelas) {
+    void populateColumnPrihodiInIO(ObrazacIODetails ioEmptyPrihodiColumns,
+                                   List<Obrazac5details> differnciesBetweenObrIOAndObr5,
+                                   List<Raspodela> raspodelas) {
 
         // TODO objekat razlike sa kolonama
         Obrazac5details singleDifferencies = findProperDifferenceAccordingSinKonto(differnciesBetweenObrIOAndObr5,
@@ -182,10 +184,11 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     }
 
     //TODO
-    private void populateColumnPrihodiInIOAccordingIzvorFin(Raspodela raspodela,
+    protected void populateColumnPrihodiInIOAccordingIzvorFin(Raspodela raspodela,
                                                             ObrazacIODetails ioEmptyPrihodiColumns,
                                                             Obrazac5details singleDifferencies) {
-        double x = ioEmptyPrihodiColumns.getDUGUJE();
+       //TODO set x kao vrednost duguje - rasporedeno
+        double x = ioEmptyPrihodiColumns.getDUGUJE()  - sumOfIzvori(ioEmptyPrihodiColumns);
         double y= 0.0;
         var kolona = raspodela.getKolona();
         if (kolona == 6) {
@@ -252,10 +255,10 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         }
     }
 
-    private Obrazac5details findProperDifferenceAccordingSinKonto(List<Obrazac5details> differnciesBetweenObrIOAndObr5,
+    protected Obrazac5details findProperDifferenceAccordingSinKonto(List<Obrazac5details> differnciesBetweenObrIOAndObr5,
                                                                   Integer konto) {
         for (Obrazac5details singleDifferencies : differnciesBetweenObrIOAndObr5) {
-            if (singleDifferencies.getKonto() == konto)
+            if (singleDifferencies.getKonto().equals(konto))
                 return singleDifferencies;
         }
         //TODO add exception maybe

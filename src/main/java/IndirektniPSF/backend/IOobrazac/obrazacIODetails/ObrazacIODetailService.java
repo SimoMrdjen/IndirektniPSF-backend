@@ -139,4 +139,8 @@ public class ObrazacIODetailService {
                     " \ndeo Kontnog plana: " + nonExistingKontosString);
         }
     }
+
+    public void saveAll(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns) {
+        obrazacIODetailsRepository.saveAll(ioDetailsEmptyPrihodiColumns);
+    }
 }
