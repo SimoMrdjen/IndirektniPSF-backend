@@ -78,7 +78,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
         //VARIOUS CHECKS
-        chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
+       // chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
         responseMessage.append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
