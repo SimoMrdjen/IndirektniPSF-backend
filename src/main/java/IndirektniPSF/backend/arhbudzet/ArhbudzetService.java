@@ -19,6 +19,12 @@ public class ArhbudzetService implements IfObrazacChecker {
         return repository.sumUplataIzBudzetaForIndKor(sifSekr, date, jbbk);
     }
 
+    public  Double sumUplataIzBudzetaForIndKorForObr5(Integer sifSekr, Double date, String glava, Integer jbbk) {
+
+        return repository.sumUplataIzBudzetaForIndKorForObr5(sifSekr, date, jbbk);
+    }
+
+
     public List<Arhbudzet> findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(Integer jbbkInd, Integer kvartal) {
         Double datum = getLastDayOfKvartalAsDouble(kvartal);
         return repository.findDistinctByJbbkIndKorAndSifSekrAndVrstaPromene(jbbkInd, datum);

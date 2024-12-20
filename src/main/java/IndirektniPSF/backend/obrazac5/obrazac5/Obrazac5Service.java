@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -86,7 +87,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 prihodiFromPokrajinaFromExcel, kvartal, jbbk, oznakaGlave, sifSekret);//greska 44
         checkKonto791100InObrazacAgainstDataInArhBudzet(
                 konto791100FromExcel, kvartal, jbbk, sifSekret);//greska 45
-
+        compareTroskoviForSinKontosIOAgainstOBr5(dtos, validIO);
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
         Obrazac5 zb = Obrazac5.builder()
@@ -124,6 +125,77 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         List<Obrazac5details> detailsObr5 = obrazac5DetailsService.saveDetailsExcel(dtos, zbSaved, validIO);
         completeColumnInObrIODetailsUsingDataFromObr5(detailsObr5, validIO);
         return responseMessage;
+    }
+
+    protected void compareTroskoviForSinKontosIOAgainstOBr5(List<Obrazac5DTO> dtos, ObrazacIO validIO) {
+        Map<Integer, Double> mapObr5 = transformObr5ToMap(dtos);
+        Map<Integer, Double> mapObrIo = transformObrIoToMap(validIO);
+
+        checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(mapObr5, mapObrIo);
+    }
+
+    protected void checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(
+            Map<Integer, Double> mapObr5, Map<Integer, Double> mapObrIo) {
+
+        StringBuilder exMess = new StringBuilder("Neuspešno učitavanje! \n");
+
+        if (!mapObr5.keySet().equals(mapObrIo.keySet())) {
+            var missingInObr5 = mapObrIo.keySet().stream()
+                    .filter(key -> !mapObr5.containsKey(key))
+                    .toList();
+            var missingInObrIo = mapObr5.keySet().stream()
+                    .filter(key -> !mapObrIo.containsKey(key))
+                    .toList();
+
+            if (!missingInObr5.isEmpty())
+                exMess.append("Sin. konto " + missingInObr5.toString() + "\n postoji u Obrascu IO ali ne i u Obrascu 5!\n");
+
+            if (!missingInObrIo.isEmpty())
+                exMess.append("Sin. konto " + missingInObrIo.toString() + "\n postoji u Obrascu 5 ali ne i u Obrascu IO!\n");
+
+            throw new IllegalArgumentException(String.valueOf(exMess));
+        }
+
+        // Compare values for the same keys
+        mapObr5.forEach((key, valueObr5) -> {
+            Double valueObrIo = mapObrIo.get(key);
+            if (!areEqual(valueObr5, valueObrIo)) {
+                exMess.append(String.format(
+                        "Postoje razlike u sin.kontu: %d: Obr5=%.2f, ObrIo=%.2f%n \n",
+                        key, valueObr5, valueObrIo
+                ));
+                throw new IllegalArgumentException(exMess.toString());
+            }
+        });
+    }
+
+    protected Map<Integer, Double> transformObr5ToMap(List<Obrazac5DTO> dtos) {
+        return dtos.stream()
+                .filter(dto -> dto.getKonto() % 1000 != 0)
+                .filter(dto -> dto.getPlanPrihoda() != 0 || dto.getIzvrsenje() != 0)
+                .collect(Collectors.toMap(
+                        Obrazac5DTO::getKonto,
+                        Obrazac5DTO::getIzvrsenje,
+                        Double::sum
+                ));
+    }
+
+    protected Map<Integer, Double> transformObrIoToMap( ObrazacIO validIO) {
+
+        return validIO.getStavke().stream()
+                .filter(a -> a.getSIN_KONTO() > 3999)
+                .map(a -> {
+                    ObrazacIODetails newDetail = new ObrazacIODetails();
+                    newDetail.setSIN_KONTO(a.getSIN_KONTO() * 100);
+                    newDetail.setDUGUJE(a.getDUGUJE() + a.getPOTRAZUJE());
+                    // Copy other fields if necessary
+                    return newDetail;
+                })
+                .collect(Collectors.toMap(
+                        ObrazacIODetails::getSIN_KONTO,
+                        ObrazacIODetails::getDUGUJE,
+                        Double::sum
+                ));
     }
 
     public void completeColumnInObrIODetailsUsingDataFromObr5(List<Obrazac5details> detailsObr5, ObrazacIO validIO) {
@@ -214,7 +286,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                                                             ObrazacIODetails ioEmptyPrihodiColumns,
                                                             Obrazac5details singleDifferencies) {
        //TODO set x kao vrednost duguje - rasporedeno
-        double x = ioEmptyPrihodiColumns.getDUGUJE()  - sumOfIzvori(ioEmptyPrihodiColumns);
+        double x = (ioEmptyPrihodiColumns.getDUGUJE() + ioEmptyPrihodiColumns.getPOTRAZUJE()) - sumOfIzvori(ioEmptyPrihodiColumns);
         double y= 0.0;
         var kolona = raspodela.getKolona();
         if (kolona == 6) {
@@ -293,7 +365,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     }
 
     public boolean isNotEqualDugujeAndSumOfIzvori(ObrazacIODetails io) {
-        return !areEqual(io.getDUGUJE(), sumOfIzvori(io));
+        return !areEqual((io.getDUGUJE() + io.getPOTRAZUJE()), sumOfIzvori(io));
     }
 
     public double sumOfIzvori(ObrazacIODetails io) {
@@ -309,8 +381,12 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 arhbudzetService.sumUplataIzBudzetaForIndKorForIzvoriFin(
                         sifSekret, date,jbbk);
         if (!areEqual(prihodFromArhBudzet, konto791100FromExcel)) {
-            throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV\n" +
-                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu");
+            throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV \n"  +
+                    "(" + prihodFromArhBudzet.doubleValue() + ")" +
+                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu \n" +
+                    "( " +  konto791100FromExcel.doubleValue() + ") 1"
+
+            );
         }
     }
 
@@ -320,11 +396,14 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
         Double date = (double)getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
         Double prihodFromArhBudzet =
-                arhbudzetService.sumUplataIzBudzetaForIndKor(
+                arhbudzetService.sumUplataIzBudzetaForIndKorForObr5(
                         sifSekret, date, oznakaGlave, jbbk);
         if (!areEqual(prihodFromArhBudzet, prihodiFromPokrajinaFromExcel)) {
-            throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV\n" +
-                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu");
+            throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV \n " +
+                    "(" + prihodFromArhBudzet.doubleValue() + ")" +
+                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu \n" +
+                    "( " +  prihodiFromPokrajinaFromExcel.doubleValue() + ") 2"
+            );
         }
     }
 

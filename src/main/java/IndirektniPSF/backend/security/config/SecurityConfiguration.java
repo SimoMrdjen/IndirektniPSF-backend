@@ -84,7 +84,7 @@ public class SecurityConfiguration {
 //                .and()
 
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)  //TODO comment this for bundling
+//                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)  //TODO uncomment this for bundling
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout()
                 .logoutUrl("/api/v1/auth/logout")

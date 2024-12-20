@@ -51,15 +51,15 @@ public class Obrazac5Mapper {
                 .build();
     }
 
-    public List<Obrazac5DTO> mapExcelToPojo(InputStream inputStream) {
+    public List<Obrazac5DTO> mapExcelToPojo(InputStream inputStream) throws Exception {
         List<Obrazac5DTO> dtos = new ArrayList<>();
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
-            int i = 25; // Start reading from the 26th row (assuming 0-based index)
+            int i = 26; // Start reading from the 26th row (assuming 0-based index)
             int consecutiveBlankRows = 0;
             int allowedBlankRows = 3; // End reading after 3 blank rows
 
-            while (consecutiveBlankRows < allowedBlankRows) {
+            while (consecutiveBlankRows < allowedBlankRows && i < 480) {
                 Row row = sheet.getRow(i);
                 if (row == null || row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK) {
                     consecutiveBlankRows++;
@@ -83,8 +83,10 @@ public class Obrazac5Mapper {
                 dtos.add(dto);
                 i++;
             }
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
+            throw new Exception("Podaci iz excel tabele nisu uspesno ucitani", e);
         }
         return dtos;
     }
@@ -94,12 +96,21 @@ public class Obrazac5Mapper {
     }
 
     private Double getDoubleValueFromCell(Cell cell) {
-        if (cell == null || cell.getCellType() != CellType.NUMERIC) {
-            return 0.00; // Return 0.00 if the cell is null or not numeric
-        } else {
-            return cell.getNumericCellValue(); // Return the cell's value if it is numeric
+
+        if (cell == null || cell.getCellType() == CellType.BLANK) {
+            return 0.00; // Return default value if cell is null
         }
+
+        if (cell.getCellType() == CellType.NUMERIC || cell.getCellType() == CellType.FORMULA ) {
+            return cell.getNumericCellValue();
+        }
+
+        throw new IllegalStateException("Obrazac nije moguće učitati jer imate \n" +
+                "u redu " + (cell.getRowIndex() + 1) + " a koloni broj " + (cell.getColumnIndex() + 1) +
+                " polje koje nema numeričku vrednost. (Greška je verovatno nastala prilikom kopiranja!)\n" +
+                " Ispravite polje i proverite ostala!");
     }
+
 
     public ObrazacResponse toResponse(Obrazac5 zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDatum_org() - 25569);

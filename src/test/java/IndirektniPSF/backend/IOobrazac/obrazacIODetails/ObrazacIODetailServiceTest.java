@@ -66,7 +66,7 @@ class ObrazacIODetailServiceTest {
                         .obrazacIO(new ObrazacIO())  // Assuming ObrazacIO is another entity class
                         .IZVORFIN("0100")
                         .DUGUJE(200.00)
-                        .POTRAZUJE(2000.00)
+                        .POTRAZUJE(0.0)
                         .REPUBLIKA(0.0)
                         .POKRAJINA(0.0)
                         .OPSTINA(0.0)
@@ -81,7 +81,7 @@ class ObrazacIODetailServiceTest {
                         .obrazacIO(new ObrazacIO())  // Assuming ObrazacIO is another entity class
                         .IZVORFIN("0200")
                         .DUGUJE(3000.00)
-                        .POTRAZUJE(2000.00)
+                        .POTRAZUJE(0.0)
                         .REPUBLIKA(0.0)
                         .POKRAJINA(0.0)
                         .OPSTINA(0.0)
@@ -105,8 +105,8 @@ class ObrazacIODetailServiceTest {
                 .REDNI(2)
                 .obrazacIO(new ObrazacIO())  // Assuming ObrazacIO is another entity class
                 .IZVORFIN("0100")
-                .DUGUJE(200.00)
-                .POTRAZUJE(2000.00)
+                .DUGUJE(0.00)
+                .POTRAZUJE(200.00)
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)

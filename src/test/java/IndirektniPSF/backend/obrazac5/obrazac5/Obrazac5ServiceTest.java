@@ -6,6 +6,7 @@ import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetailsRepository;
 import IndirektniPSF.backend.arhbudzet.ArhbudzetService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
+import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5Mapper;
 import IndirektniPSF.backend.obrazac5.obrazac5Details.Obrazac5details;
 import IndirektniPSF.backend.raspodela.Raspodela;
@@ -21,7 +22,9 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -60,6 +63,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421111)
                 .DUGUJE(110.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(50.0)
                 .POKRAJINA(40.0)
                 .OPSTINA(20.0)
@@ -73,7 +78,9 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(60.0)
-                .REPUBLIKA(0.0)
+               .POTRAZUJE(0.0)
+
+               .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
                 .DONACIJE(0.0)
@@ -84,7 +91,9 @@ class Obrazac5ServiceTest {
       ioDetail2 = ObrazacIODetails.builder()
                 .IZVORFIN("0700")
                 .DUGUJE(100.0)
-                .SIN_KONTO(4212)
+              .POTRAZUJE(0.0)
+
+              .SIN_KONTO(4212)
                 .KONTO(421212)
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
@@ -122,7 +131,7 @@ class Obrazac5ServiceTest {
         Double date = (double)service.getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
         Double prihodFromArhBudzet = 500.0; // Matching value to avoid exception
 
-        when(arhbudzetService.sumUplataIzBudzetaForIndKor(sifSekret, date, oznakaGlave, jbbk))
+        when(arhbudzetService.sumUplataIzBudzetaForIndKorForObr5(sifSekret, date, oznakaGlave, jbbk))
                 .thenReturn(prihodFromArhBudzet);
 
         Assertions.assertDoesNotThrow(() ->
@@ -187,6 +196,7 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetails = ObrazacIODetails.builder()
                 .DUGUJE(500.0)
+                .POTRAZUJE(0.0)
                 .POKRAJINA(100.0)
                 .REPUBLIKA(150.0)
                 .OPSTINA(100.0)
@@ -204,6 +214,8 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetails = ObrazacIODetails.builder()
                 .DUGUJE(490.0)
+                .POTRAZUJE(0.0)
+
                 .POKRAJINA(100.0)
                 .REPUBLIKA(150.0)
                 .OPSTINA(100.0)
@@ -250,6 +262,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(150.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -274,6 +288,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(100.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -298,6 +314,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(60.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -322,6 +340,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(50.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -346,6 +366,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(30.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -370,6 +392,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(15.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -393,6 +417,8 @@ class Obrazac5ServiceTest {
                 .SIN_KONTO(4211)
                 .KONTO(421112)
                 .DUGUJE(150.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -415,8 +441,8 @@ class Obrazac5ServiceTest {
 
         service.populateColumnPrihodiInIO(ioDetails, differncies, raspodelas);
 
-        assertEquals(150.0, ioDetails.getREPUBLIKA()); // Updated column
-        assertEquals(50.0, singleDifference.getRepublika()); // Remaining difference
+        assertEquals(150.0, ioDetails.getREPUBLIKA());
+        assertEquals(50.0, singleDifference.getRepublika());
     }
 
     @Test
@@ -450,8 +476,8 @@ class Obrazac5ServiceTest {
 
         service.populateColumnPrihodiInIO(ioDetails, differncies, raspodelas);
 
-        assertEquals(0.0, ioDetails.getREPUBLIKA()); // No change as izvorFin does not match
-        assertEquals(150.0, singleDifference.getRepublika()); // No difference used
+        assertEquals(0.0, ioDetails.getREPUBLIKA());
+        assertEquals(150.0, singleDifference.getRepublika());
     }
 
     @Test
@@ -461,6 +487,8 @@ class Obrazac5ServiceTest {
                 .KONTO(421100)
                 .SIN_KONTO(4211)
                 .DUGUJE(100.0)
+                .POTRAZUJE(0.0)
+
                 .IZVORFIN("1001")
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
@@ -474,6 +502,8 @@ class Obrazac5ServiceTest {
                 .KONTO(422200)
                 .SIN_KONTO(4222)
                 .DUGUJE(150.0)
+                .POTRAZUJE(0.0)
+
                 .IZVORFIN("2002")
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
@@ -512,8 +542,8 @@ class Obrazac5ServiceTest {
 
         service.allocateExpensesByIncomeSource(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5);
 
-        assertEquals(100.0, ioDetail1.getREPUBLIKA()); // Check allocation for REPUBLIKA
-        assertEquals(150.0, ioDetail2.getPOKRAJINA()); // Check allocation for POKRAJINA
+        assertEquals(100.0, ioDetail1.getREPUBLIKA());
+        assertEquals(150.0, ioDetail2.getPOKRAJINA());
 
         verify(raspodelaService, times(1)).findIzvorFinIfNotUnique();
          verify(obrazacIODetailsService, times(1)).saveAll(ioDetailsEmptyPrihodiColumns);
@@ -523,6 +553,8 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetail1 = ObrazacIODetails.builder()
                 .DUGUJE(100.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(50.0)
                 .POKRAJINA(30.0)
                 .OPSTINA(20.0)
@@ -533,6 +565,8 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetail2 = ObrazacIODetails.builder()
                 .DUGUJE(100.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(60.0)
                 .POKRAJINA(30.0)
                 .OPSTINA(10.0)
@@ -543,6 +577,8 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetail3 = ObrazacIODetails.builder()
                 .DUGUJE(90.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(0.0)
                 .POKRAJINA(0.0)
                 .OPSTINA(0.0)
@@ -557,7 +593,7 @@ class Obrazac5ServiceTest {
 
         List<ObrazacIODetails> result = service.getIoDetailsEmptyPrihodiColumns(validIO);
 
-        assertEquals(1, result.size()); // Only ioDetail3 should match
+        assertEquals(1, result.size());
         assertTrue(result.contains(ioDetail3));
     }
 
@@ -566,6 +602,8 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetail1 = ObrazacIODetails.builder()
                 .DUGUJE(100.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(50.0)
                 .POKRAJINA(30.0)
                 .OPSTINA(20.0)
@@ -576,6 +614,8 @@ class Obrazac5ServiceTest {
 
         ObrazacIODetails ioDetail2 = ObrazacIODetails.builder()
                 .DUGUJE(100.0)
+                .POTRAZUJE(0.0)
+
                 .REPUBLIKA(60.0)
                 .POKRAJINA(30.0)
                 .OPSTINA(10.0)
@@ -590,7 +630,7 @@ class Obrazac5ServiceTest {
 
         List<ObrazacIODetails> result = service.getIoDetailsEmptyPrihodiColumns(validIO);
 
-        assertTrue(result.isEmpty()); // All details match, no result should be returned
+        assertTrue(result.isEmpty());
     }
 
     @Test
@@ -602,12 +642,12 @@ class Obrazac5ServiceTest {
 
         List<ObrazacIODetails> result = service.getIoDetailsEmptyPrihodiColumns(validIO);
 
-        assertTrue(result.isEmpty()); // No details to process
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetDifference_WhenDifferencesExist() {
-        // Arrange
+
         Obrazac5details obr5Detail1 = Obrazac5details.builder()
                 .konto(421100)
                 .republika(200.0)
@@ -635,10 +675,8 @@ class Obrazac5ServiceTest {
         List<Obrazac5details> detailsObr5 = List.of(obr5Detail1, obr5Detail2);
         List<Obrazac5details> detailsFromObrIO = List.of(obrIODetail1, obrIODetail2);
 
-        // Act
         List<Obrazac5details> differences = service.getDifferenceBetweenPrihodiFromIoAgainstObr5(detailsObr5, detailsFromObrIO);
 
-        // Assert
         assertEquals(2, differences.size());
 
         Obrazac5details diff1 = differences.get(0);
@@ -654,7 +692,7 @@ class Obrazac5ServiceTest {
 
     @Test
     void testGetDifference_WhenNoDifferences() {
-        // Arrange
+
         Obrazac5details obr5Detail1 = Obrazac5details.builder()
                 .konto(421100)
                 .republika(100.0)
@@ -669,16 +707,14 @@ class Obrazac5ServiceTest {
 
         List<Obrazac5details> detailsObr5 = List.of(obr5Detail1);
         List<Obrazac5details> detailsFromObrIO = List.of(obrIODetail1);
-        // Act
         List<Obrazac5details> differences = service.getDifferenceBetweenPrihodiFromIoAgainstObr5(detailsObr5, detailsFromObrIO);
         System.out.println(differences);
-        // Assert
         assertTrue(differences.isEmpty());
     }
 
     @Test
     void testGetDifference_WhenNoMatchingKonto() {
-        // Arrange
+
         Obrazac5details obr5Detail1 = Obrazac5details.builder()
                 .konto(421100)
                 .republika(200.0)
@@ -702,11 +738,9 @@ class Obrazac5ServiceTest {
         List<Obrazac5details> detailsObr5 = List.of(obr5Detail1);
         List<Obrazac5details> detailsFromObrIO = List.of(obrIODetail1);
 
-        // Act
         List<Obrazac5details> differences =
                 service.getDifferenceBetweenPrihodiFromIoAgainstObr5(detailsObr5, detailsFromObrIO);
 
-        // Assert
         assertEquals(1, differences.size());
         Obrazac5details diff1 = differences.get(0);
         assertEquals(421100, diff1.getKonto());
@@ -785,36 +819,30 @@ class Obrazac5ServiceTest {
 
     @Test
     void testGetRaspodelasForParticularIzvorWithNoMatchingElements() {
-        // Arrange
+
         Raspodela raspodela1 = Raspodela.builder().izvorFin("0800").kolona(6).build();
         Raspodela raspodela2 = Raspodela.builder().izvorFin("0900").kolona(7).build();
         List<Raspodela> raspodelas = List.of(raspodela1, raspodela2);
 
-        // Act
         List<Raspodela> result = service.getRaspodelasForParticularIzvor("0700", raspodelas);
 
-        // Assert
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetRaspodelasForParticularIzvorWithEmptyList() {
-        // Arrange
+
         List<Raspodela> raspodelas = List.of();
 
-        // Act
         List<Raspodela> result =service.getRaspodelasForParticularIzvor("0700", raspodelas);
 
-        // Assert
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetRaspodelasForParticularIzvorWithNullList() {
-        // Arrange
         List<Raspodela> raspodelas = null;
 
-        // Act & Assert
         try {
             service.getRaspodelasForParticularIzvor("0700", raspodelas);
         } catch (NullPointerException e) {
@@ -822,4 +850,117 @@ class Obrazac5ServiceTest {
         }
     }
 
+    @Test
+    void testTransformObrIoToMap() {
+        ObrazacIO  validIO = new ObrazacIO();
+
+        List<ObrazacIODetails> stavke = Arrays.asList(
+                ObrazacIODetails.builder()
+                        .SIN_KONTO(3001)
+                        .DUGUJE(0.0)
+                        .POTRAZUJE(50.0)
+                        .build(),
+                ObrazacIODetails.builder()
+                        .SIN_KONTO(4001)
+                        .DUGUJE(0.0)
+                        .POTRAZUJE(50.0)
+                        .build(),
+                ObrazacIODetails.builder()
+                        .SIN_KONTO(4001)
+                        .DUGUJE(100.0)
+                        .POTRAZUJE(0.0)
+                        .build(),
+                ObrazacIODetails.builder()
+                        .SIN_KONTO(4002)
+                        .DUGUJE(300.0)
+                        .POTRAZUJE(100.0)
+                        .build(),
+                ObrazacIODetails.builder()
+                        .SIN_KONTO(4001) // Duplicate SIN_KONTO for testing merge function
+                        .DUGUJE(0.0)
+                        .POTRAZUJE(25.0)
+                        .build()
+        );
+
+        validIO.setStavke(stavke);
+        Map<Integer, Double> result = service.transformObrIoToMap(validIO);
+
+        assertNotNull(result, "Resulting map should not be null");
+        assertEquals(2, result.size(), "Map should contain 2 unique keys");
+
+        assertEquals(175.0, result.get(400100), "Key 100100 should have the correct summed value");
+        assertEquals(400.0, result.get(400200), "Key 100200 should have the correct summed value");
     }
+
+    @Test
+    void testTransformObr5ToMap() {
+        Obrazac5DTO detail1 = Obrazac5DTO.builder().izvrsenje(100.0).konto(421100).build();
+        Obrazac5DTO detail2 = Obrazac5DTO.builder().izvrsenje(200.0).konto(422200).build();
+        Obrazac5DTO detail3 = Obrazac5DTO.builder().izvrsenje(300.0).konto(423300).build();
+
+        List<Obrazac5DTO> details = List.of(detail1, detail2, detail3);
+        Map<Integer, Double> mapDeatails = Map.of(421100,100.0,422200,200.0, 423300,300.0);
+
+        assertEquals(mapDeatails, service.transformObr5ToMap(details));
+    }
+
+    @Test
+    void testCheckIfExistDiffernciesWithMatchingKeysAndValues() {
+        Map<Integer, Double> mapObr5 = Map.of(
+                100100, 500.0,
+                100200, 300.0,
+                100300, 400.0
+        );
+
+        Map<Integer, Double> mapObrIo = Map.of(
+                100100, 500.0,
+                100200, 300.0,
+                100300, 400.0
+        );
+
+        assertDoesNotThrow(() -> service.checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(mapObr5, mapObrIo));
+    }
+
+    @Test
+    void testCheckIfExistDiffernciesWithMissingKeys() {
+        Map<Integer, Double> mapObr5 = Map.of(
+                100100, 500.0,
+                100200, 300.0
+        );
+
+        Map<Integer, Double> mapObrIo = Map.of(
+                100100, 500.0,
+                100300, 400.0
+        );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> service.checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(mapObr5, mapObrIo));
+
+        String expectedMessage = "Sin. konto [100300]\n postoji u Obrascu IO ali ne i u Obrascu 5!\n" +
+                "Sin. konto [100200]\n postoji u Obrascu 5 ali ne i u Obrascu IO!";
+
+        System.out.println(exception.getMessage());
+        assertTrue(exception.getMessage().contains(expectedMessage));
+    }
+
+    @Test
+    void testCheckIfExistDiffernciesWithValueDifferences() {
+        Map<Integer, Double> mapObr5 = Map.of(
+                100100, 500.0,
+                100200, 300.0
+        );
+
+        Map<Integer, Double> mapObrIo = Map.of(
+                100100, 400.0,
+                100200, 300.0 // Difference in value
+        );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> service.checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(mapObr5, mapObrIo));
+        System.out.println(exception.getMessage());
+
+        String expectedMessage = "Postoje razlike u sin.kontu: 100100: Obr5=500.00, ObrIo=400.00";
+        assertTrue(exception.getMessage().contains(expectedMessage));
+    }
+}
+

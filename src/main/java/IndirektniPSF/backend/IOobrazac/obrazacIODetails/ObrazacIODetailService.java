@@ -78,17 +78,17 @@ public class ObrazacIODetailService {
         if (obrazac.getIZVORFIN().equals( raspodela.getIzvorFin())) {
             var kolona = raspodela.getKolona();
             if (kolona == 6) {
-                obrazac.setREPUBLIKA(obrazac.getDUGUJE());
+                obrazac.setREPUBLIKA(obrazac.getDUGUJE() + obrazac.getPOTRAZUJE());
             } else if (kolona == 7) {
-                obrazac.setPOKRAJINA(obrazac.getDUGUJE());
+                obrazac.setPOKRAJINA(obrazac.getDUGUJE()+ obrazac.getPOTRAZUJE());
             } else if (kolona == 8) {
-                obrazac.setOPSTINA(obrazac.getDUGUJE());
+                obrazac.setOPSTINA(obrazac.getDUGUJE()+ obrazac.getPOTRAZUJE());
             } else if (kolona == 10) {
-                obrazac.setDONACIJE(obrazac.getDUGUJE());
+                obrazac.setDONACIJE(obrazac.getDUGUJE()+ obrazac.getPOTRAZUJE());
             } else if (kolona == 9) {
-                obrazac.setOOSO(obrazac.getDUGUJE());
+                obrazac.setOOSO(obrazac.getDUGUJE()+ obrazac.getPOTRAZUJE());
             } else if (kolona == 11) {
-                obrazac.setOSTALI(obrazac.getDUGUJE());
+                obrazac.setOSTALI(obrazac.getDUGUJE()+ obrazac.getPOTRAZUJE());
             }
         }
     }

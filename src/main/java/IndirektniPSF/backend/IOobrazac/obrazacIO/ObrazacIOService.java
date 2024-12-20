@@ -393,7 +393,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
         if (!areEqual(sumOfPrenetihSreds, sum791111)) {
                 throw new ObrazacException("Ne slaže se iznos prenetih sredstava na rashodima\n" +
-                        "sa iznosom na kontu 791111 u Excel obrascu");
+                        "( " + sumOfPrenetihSreds.doubleValue() + " )\n" +
+                        "sa iznosom na kontu 791111 u Excel obrascu " +
+                        "( " + sum791111.doubleValue() + " )"
+                        );
             }
         return "";
     }
