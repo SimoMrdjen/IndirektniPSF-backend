@@ -30,8 +30,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -83,10 +86,12 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
         //VARIOUS CHECKS
       //  chekIfKvartalIsCorrect(kvartal, excelKvartal, year);//TODO implement this
-        checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
-                prihodiFromPokrajinaFromExcel, kvartal, jbbk, oznakaGlave, sifSekret);//greska 44
         checkKonto791100InObrazacAgainstDataInArhBudzet(
                 konto791100FromExcel, kvartal, jbbk, sifSekret);//greska 45
+        checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
+                prihodiFromPokrajinaFromExcel, kvartal, jbbk, oznakaGlave, sifSekret);//greska 44
+
+
         compareTroskoviForSinKontosIOAgainstOBr5(dtos, validIO);
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
@@ -382,10 +387,9 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                         sifSekret, date,jbbk);
         if (!areEqual(prihodFromArhBudzet, konto791100FromExcel)) {
             throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV \n"  +
-                    "(" + prihodFromArhBudzet.doubleValue() + ")" +
-                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu \n" +
-                    "( " +  konto791100FromExcel.doubleValue() + ") 1"
-
+                    "(" + formatDoubleLocale(prihodFromArhBudzet) + ")" +
+                    "sa iznosom primljenih sredstava od  APV za konto 791100 u Excel obrascu \n" +
+                    "( " +  formatDoubleLocale(konto791100FromExcel) + ")!"
             );
         }
     }
@@ -400,13 +404,19 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                         sifSekret, date, oznakaGlave, jbbk);
         if (!areEqual(prihodFromArhBudzet, prihodiFromPokrajinaFromExcel)) {
             throw new ObrazacException("Ne slaže se iznos prenetih sredstava iz evidencije APV \n " +
-                    "(" + prihodFromArhBudzet.doubleValue() + ")" +
-                    "sa iznosom primljenih sredstava od  APV  u Excel obrascu \n" +
-                    "( " +  prihodiFromPokrajinaFromExcel.doubleValue() + ") 2"
+                    "(" + formatDoubleLocale(prihodFromArhBudzet) + ")" +
+                    "sa iznosom primljenih sredstava od APV u Excel obrascu \n" +
+                    "OP:5171 (red 196) POKRAJINA (kolona G)\n" +
+                    "( " + formatDoubleLocale(prihodiFromPokrajinaFromExcel) + ")!"
             );
         }
     }
-
+    private String formatDoubleLocale(Double value) {
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        numberFormat.setMinimumFractionDigits(2);
+        numberFormat.setMaximumFractionDigits(2);
+        return numberFormat.format(value);
+    }
     @Override
     public Obrazac5 findObrazacById(Integer id, Integer kvartal) {
 

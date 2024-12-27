@@ -144,9 +144,10 @@ class Obrazac5ServiceTest {
     @Test
     void shouldThrowForKonto791100() {
         Double konto791100FromExcel = 500.0;
-        Double date = (double)service.getLastDayOfKvartal(kvartal).toEpochDay() + 25569;
+       Double date = Double.valueOf(service.getLastDayOfKvartal(kvartal).toEpochDay() + 25569);
         Double prihodFromArhBudzet = 400.0;
-
+        var sifSekret = 30;
+        var jbbk = 1;
         when(arhbudzetService.sumUplataIzBudzetaForIndKorForIzvoriFin(sifSekret, date, jbbk))
                 .thenReturn(prihodFromArhBudzet);
 
@@ -894,9 +895,9 @@ class Obrazac5ServiceTest {
 
     @Test
     void testTransformObr5ToMap() {
-        Obrazac5DTO detail1 = Obrazac5DTO.builder().izvrsenje(100.0).konto(421100).build();
-        Obrazac5DTO detail2 = Obrazac5DTO.builder().izvrsenje(200.0).konto(422200).build();
-        Obrazac5DTO detail3 = Obrazac5DTO.builder().izvrsenje(300.0).konto(423300).build();
+        Obrazac5DTO detail1 = Obrazac5DTO.builder().planPrihoda(0.0).izvrsenje(100.0).konto(421100).build();
+        Obrazac5DTO detail2 = Obrazac5DTO.builder().planPrihoda(0.0).izvrsenje(200.0).konto(422200).build();
+        Obrazac5DTO detail3 = Obrazac5DTO.builder().planPrihoda(0.0).izvrsenje(300.0).konto(423300).build();
 
         List<Obrazac5DTO> details = List.of(detail1, detail2, detail3);
         Map<Integer, Double> mapDeatails = Map.of(421100,100.0,422200,200.0, 423300,300.0);

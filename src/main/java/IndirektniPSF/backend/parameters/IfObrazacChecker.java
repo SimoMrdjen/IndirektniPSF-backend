@@ -36,42 +36,42 @@ public interface IfObrazacChecker {
     }
 
     default void checkIfKvartalIsForValidPeriod(Integer kvartal, Integer year, LocalDate currentDate) {
-//TODO uncoment for production
-//        Month currentMonth = currentDate.getMonth();
-//        int currentYear = currentDate.getYear();
-//        String message = "Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!";
-//
-//        if (kvartal == 1 &&
-//                !(currentMonth == Month.APRIL
-//                        && currentDate.getDayOfMonth() >= 1
-//                        && currentDate.getDayOfMonth() <= 20
-//                        && currentYear == year)) {
-//            throw new IllegalArgumentException(message);
-//        } else if (kvartal == 2 &&
-//                !(currentMonth == Month.JULY
-//                        && currentDate.getDayOfMonth() >= 1
-//                        && currentDate.getDayOfMonth() <= 20
-//                        && currentYear == year)) {
-//            throw new IllegalArgumentException(message);
-//        } else if (kvartal == 3 &&
-//                !(currentMonth == Month.OCTOBER
-//                        && currentDate.getDayOfMonth() >= 1
-//                        && currentDate.getDayOfMonth() <= 20
-//                        && currentYear == year)) {
-//            throw new IllegalArgumentException(message);
-//        } else if (kvartal == 4 &&
-//                !(currentMonth == Month.JANUARY
-//                        && currentDate.getDayOfMonth() >= 1
-//                        && currentDate.getDayOfMonth() <= 20
-//                        && (currentYear - 1) == year)) {
-//            throw new IllegalArgumentException(message);
-//        } else if (kvartal == 5) {
-//            if (!((currentMonth.getValue() >= Month.JANUARY.getValue()
-//                    && currentMonth.getValue() <= Month.MAY.getValue())
-//                    && (currentYear - 1) == year)) {
-//                throw new IllegalArgumentException(message);
-//            }
-//        }
+        //TODO uncoment for production
+        Month currentMonth = currentDate.getMonth();
+        int currentYear = currentDate.getYear();
+        String message = "Datum ili godina ne odgovaraju \nkvartalu koji ste izabrali!";
+
+        if (kvartal == 1 &&
+                !(currentMonth == Month.APRIL
+                        && currentDate.getDayOfMonth() >= 1
+                        && currentDate.getDayOfMonth() <= 20
+                        && currentYear == year)) {
+            throw new IllegalArgumentException(message);
+        } else if (kvartal == 2 &&
+                !(currentMonth == Month.JULY
+                        && currentDate.getDayOfMonth() >= 1
+                        && currentDate.getDayOfMonth() <= 20
+                        && currentYear == year)) {
+            throw new IllegalArgumentException(message);
+        } else if (kvartal == 3 &&
+                !(currentMonth == Month.OCTOBER
+                        && currentDate.getDayOfMonth() >= 1
+                        && currentDate.getDayOfMonth() <= 20
+                        && currentYear == year)) {
+            throw new IllegalArgumentException(message);
+        } else if (kvartal == 4 &&
+                !(currentMonth == Month.JANUARY
+                        && currentDate.getDayOfMonth() >= 1
+                        && currentDate.getDayOfMonth() <= 20
+                        && (currentYear - 1) == year)) {
+            throw new IllegalArgumentException(message);
+        } else if (kvartal == 5) {
+            if (!((currentMonth.getValue() >= Month.JANUARY.getValue()
+                    && currentMonth.getValue() <= Month.MAY.getValue())
+                    && (currentYear - 1) == year)) {
+                throw new IllegalArgumentException(message);
+            }
+        }
     }
 
     default LocalDate getLastDayOfKvartal(Integer kvaratl) {
