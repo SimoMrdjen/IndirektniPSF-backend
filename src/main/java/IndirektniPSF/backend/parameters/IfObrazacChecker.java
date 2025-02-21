@@ -62,7 +62,7 @@ public interface IfObrazacChecker {
         } else if (kvartal == 4 &&
                 !(currentMonth == Month.JANUARY
                         && currentDate.getDayOfMonth() >= 1
-                        && currentDate.getDayOfMonth() <= 20
+                        && currentDate.getDayOfMonth() <= 29
                         && (currentYear - 1) == year)) {
             throw new IllegalArgumentException(message);
         } else if (kvartal == 5) {

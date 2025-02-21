@@ -84,8 +84,9 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         Integer version = checkIfExistValidObrazac5AndFindVersion(jbbk, kvartal);
         List<Obrazac5DTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
+
         //VARIOUS CHECKS
-      //  chekIfKvartalIsCorrect(kvartal, excelKvartal, year);//TODO implement this
+//        chekIfKvartalIsCorrect(kvartal, excelKvartal, year);//TODO implement this
         checkKonto791100InObrazacAgainstDataInArhBudzet(
                 konto791100FromExcel, kvartal, jbbk, sifSekret);//greska 45
         checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
@@ -193,7 +194,6 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                     ObrazacIODetails newDetail = new ObrazacIODetails();
                     newDetail.setSIN_KONTO(a.getSIN_KONTO() * 100);
                     newDetail.setDUGUJE(a.getDUGUJE() + a.getPOTRAZUJE());
-                    // Copy other fields if necessary
                     return newDetail;
                 })
                 .collect(Collectors.toMap(
@@ -267,8 +267,19 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                                    List<Raspodela> raspodelas) {
 
         // TODO objekat razlike sa kolonama
-        Obrazac5details singleDifferencies = findProperDifferenceAccordingSinKonto(differnciesBetweenObrIOAndObr5,
-                ioEmptyPrihodiColumns.getSIN_KONTO());
+        Obrazac5details singleDifferencies = Optional.ofNullable(
+                findProperDifferenceAccordingSinKonto(differnciesBetweenObrIOAndObr5, ioEmptyPrihodiColumns.getSIN_KONTO())
+        ).orElseGet(() -> {
+            Obrazac5details defaultDetails = new Obrazac5details();
+            defaultDetails.setRepublika(0.0);
+            defaultDetails.setPokrajina(0.0);
+            defaultDetails.setOpstina(0.0);
+            defaultDetails.setOoso(0.0);
+            defaultDetails.setDonacije(0.0);
+            defaultDetails.setOstali(0.0);
+            return defaultDetails;
+        });
+
         //TODO popuniti polja prihoda u zavisnosti od izvora, i umanjiti raspolozivo
         //TODO izmeniti tako da se radi sa listom raspodela u zvisnosti od izvora
         List<Raspodela> raspodelasForParticularIzvor =

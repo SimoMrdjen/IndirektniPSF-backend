@@ -78,10 +78,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<ObrazacIODTO> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
         //VARIOUS CHECKS
-       // chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
+        chekIfKvartalIsCorrect(kvartal, kvartal, year); //TODO uncomment in production
         checkJbbks(user, jbbkExcel);
         checkForDuplicatesStandKlasif(dtos);
-        responseMessage.append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));
+        responseMessage.append(checkSumOfPrenetihSredsAgainstKonto791111(user, jbbks, oznakaGlave ,kvartal,  dtos));//TODO uncomment in production
         responseMessage.append(checkIfStandKlasifFromExcelExistInFinPlana(dtos,jbbks,kvartal));
         checkIfPlanAndIzvrsenjeAreZero(dtos);
         responseMessage.append(checkSumOnKlasa3(jbbks, file));
@@ -130,9 +130,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
 //        Konta 311712 i 321311 ako postoje u zaključnom obrascu mora da postoje i u IO-obrasca i obrnuto.
 //        Vrednosti moraju da budu jednake
-
-
         //for compared klase 4,5,6,7,8,9
+        //TODO za klase 4,5,6 poredi se io sa TP Duguje a zaklase 7,8,9 sa TP potrazuje
         List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks, 300000);
         List<PomObrazac> zak4 = zak.stream().filter(entry -> entry.getKonto() > 400000 && entry.getKonto() < 999999).toList();
         List<PomObrazac> ioRaw = convertIoToPomObrazac(dtos, 400000);
@@ -286,6 +285,23 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 .collect(toList());
     }
 
+//IZMENJENA METODA  ZBOG KVARTALA 5
+//    public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks, Integer konto) throws Exception {
+//
+//        List<ZakljucniListDetails> zakljucniListDetailsList = findValidZakList(kvartal,jbbks).getStavke();
+//
+//        return zakljucniListDetailsList.stream()
+//                .map(z -> {
+//                    PomObrazac pom = new PomObrazac();
+//                    pom.setKonto(z.getKONTO());
+//                    pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + ( z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())));
+//                    return pom;
+//                })
+//                .filter(p -> p.getKonto() > konto )
+//                .collect(toList());
+//    }
+
+
     public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks, Integer konto) throws Exception {
 
         List<ZakljucniListDetails> zakljucniListDetailsList = findValidZakList(kvartal,jbbks).getStavke();
@@ -294,7 +310,12 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 .map(z -> {
                     PomObrazac pom = new PomObrazac();
                         pom.setKonto(z.getKONTO());
-                        pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + ( z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())));
+                    //TODO za klase 4,5,6 poredi se io sa TP Duguje a zaklase 7,8,9 sa TP potrazuje
+                        if(400000 < z.getKONTO() && z.getKONTO() < 700000) {
+                            pom.setSaldo(NumberUtils.roundToTwoDecimals(z.getDUGUJE_PS()  +  z.getDUGUJE_PR()));
+                        } else {
+                            pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getPOTRAZUJE_PS() +  z.getPOTRAZUJE_PR())));
+                        }
                         return pom;
                 })
                 .filter(p -> p.getKonto() > konto )
@@ -520,6 +541,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         this.isObrazacStorniran(zb);
 
         statusService.resolveObrazacAccordingStatus(zb, status);
+
         //check next
         //TODO uncoment next block after implementing obrazac 5
         Optional<Obrazac5> obrazac5 =
@@ -542,10 +564,10 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
             statusService.resolveObrazacAccordingNextObrazac(zb, obrazac5.get());
         }
         //TODO uncoment previous block after implementing obrazac 5
-
         // check previous
         var zakList = this.findValidZakList(kvartal, jbbks);
         statusService.resolveObrazacAccordingPreviousObrazac(zb, zakList);
+
         return List.of(mapper.toResponse(zb));
     }
 

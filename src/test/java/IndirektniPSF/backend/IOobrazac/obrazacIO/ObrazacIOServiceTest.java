@@ -164,9 +164,9 @@ class ObrazacIOServiceTest {
         List<ZakljucniListDetails> zakljucniList = Arrays.asList(
                 ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
                          .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(600.0)
+                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(0.0).POTRAZUJE_PS(600.0)
                         .DUGUJE_PR(1100.0).POTRAZUJE_PR(1000.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
+                ( ZakljucniListDetails.builder().KONTO(734568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
                         .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
         );
         var zakljucniListZb = new ZakljucniListZb();
@@ -175,8 +175,8 @@ class ObrazacIOServiceTest {
                 .thenReturn(Optional.of(zakljucniListZb));
 
         List<PomObrazac> pomObrazacList = Arrays.asList(
-               new PomObrazac(434567, 3000.0) ,
-                new PomObrazac(434568, 6000.0) );
+               new PomObrazac(434567, 1100.0) ,
+                new PomObrazac(734568, 1000.0) );
 
         assertEquals(service.convertZakListInPomObrazac(1,1, 400000),pomObrazacList);
     }
@@ -248,16 +248,20 @@ class ObrazacIOServiceTest {
                 new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
                 new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
                 new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0),
-                new ObrazacIODTO(3, "GHI", 434569,"ABC", "ABC", 15000.0, 0.0)
+                new ObrazacIODTO(3, "GHI", 434569,"ABC", "ABC", 15000.0, 0.0),
+                new ObrazacIODTO(3, "GHI", 700001,"ABC", "ABC", 1.0, 1.0)
+
 
         );
         List<ZakljucniListDetails> zakljucniList = Arrays.asList(
                 ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
                         .DUGUJE_PR(1200.0).POTRAZUJE_PR(900.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3600.0).POTRAZUJE_PS(100.0)
-                        .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
-                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
-                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
+                ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(100.0)
+                        .DUGUJE_PR(3500.0).POTRAZUJE_PR(100.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(6000.0).POTRAZUJE_PS(500.0)
+                        .DUGUJE_PR(0.0).POTRAZUJE_PR(500.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(700001).DUGUJE_PS(5500.0).POTRAZUJE_PS(0.0)
+                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(1.0).build())
         );
         var zakljucniListZb = new ZakljucniListZb();
         zakljucniListZb.setStavke(zakljucniList);
