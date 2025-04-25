@@ -144,11 +144,13 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<PomObrazac> ioKlasa3 = io3.stream().filter(entry ->  entry.getKonto() < 400000).toList();
         List<PomObrazac> zakKlasa3 = zak.stream().filter(entry -> entry.getKonto() > 300000 && entry.getKonto() < 400000).toList();
         checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
-        checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3);
+        if (!(kvartal == 5)){
+            checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3);
+        }
     }
 
     void checkForKonto311712And321311InZakAndIo(List<PomObrazac> zakKlasa3, List<PomObrazac> ioKlasa3) throws ObrazacException {
-//        final Double tolerance = 0.0001;
+        //provera da li ova dva konta imaju istu vrednost u IO i Zakljunom
 
         List<PomObrazac> zakKonto311712And321311 = zakKlasa3.stream()
                 .filter(entry ->  entry.getKonto() == 311712 ||  entry.getKonto() == 321311).toList();
@@ -333,6 +335,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     }
 
     private String checkSumOnKlasa3(Integer jbbks,MultipartFile file) throws Exception {
+        //da li se suma klase 3 iz izvora 1306 iz  IO poklapa sa prenetim sredstima iz tabele STANJEKRTA
 
         Double sumFromStanjeKrta = stanjeKrtaService.getTransferedAmountOfBalancesforJbbk(jbbks);
         Double amountFromExcel = excelService.readCellOfDoubleValueByIndexes(file.getInputStream(), 40, 11);

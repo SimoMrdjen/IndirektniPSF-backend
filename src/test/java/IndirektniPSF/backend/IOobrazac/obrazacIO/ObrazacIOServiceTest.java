@@ -278,7 +278,7 @@ class ObrazacIOServiceTest {
                 new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
                 new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 2000.0),
                 new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
-                new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0)
+                new ObrazacIODTO(3, "GHI", 734568,"ABC", "ABC", 15000.0, 4000.0)
         );
         List<ZakljucniListDetails> zakljucniList = Arrays.asList(
                 ( ZakljucniListDetails.builder().KONTO(123456).DUGUJE_PS(1000.0).POTRAZUJE_PS(800.0)
@@ -286,6 +286,8 @@ class ObrazacIOServiceTest {
                 ( ZakljucniListDetails.builder().KONTO(434567).DUGUJE_PS(3500.0).POTRAZUJE_PS(100.0)
                         .DUGUJE_PR(3600.0).POTRAZUJE_PR(100.0).build()),
                 ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
+                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(734568).DUGUJE_PS(5500.0).POTRAZUJE_PS(500.0)
                         .DUGUJE_PR(1500.0).POTRAZUJE_PR(500.0).build())
         );
         var zakljucniListZb = new ZakljucniListZb();

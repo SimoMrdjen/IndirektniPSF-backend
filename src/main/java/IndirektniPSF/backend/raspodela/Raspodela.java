@@ -30,6 +30,4 @@ public class Raspodela {
 
     @Column(name = "REDOSLED")
     private Integer redosled;
-
-
 }

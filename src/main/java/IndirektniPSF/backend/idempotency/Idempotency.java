@@ -13,11 +13,14 @@ import java.util.UUID;
 public class Idempotency {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
     @Column
     private String status;
-
-    public Idempotency(java.util.UUID idempotencyKey, String processed) {
+    public Idempotency(UUID idempotencyKey, String status) {
+        this.id = idempotencyKey;
+        this.status = status;
     }
+//    public Idempotency(java.util.UUID idempotencyKey, String processed) {
+//    }
 }

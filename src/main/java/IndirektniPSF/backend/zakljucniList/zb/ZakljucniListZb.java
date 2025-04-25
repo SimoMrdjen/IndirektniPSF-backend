@@ -15,14 +15,15 @@ import java.util.Set;
 
 @Entity
 @Table(name = "OBRAZAC_ZAK_LIST_ZB")
+// , uniqueConstraints = {
+//        @UniqueConstraint(columnNames = {"KOJI_KVARTAL", "JBBK_IND_KOR", "GODINA", "STORNO"})
+//})
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 public class ZakljucniListZb implements StatusUpdatable {
     //Entity is inherited from existing table/DB , which is used from another desktop app
-
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

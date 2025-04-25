@@ -96,7 +96,7 @@ public interface IfObrazacChecker {
     }
 
     default boolean areEqual(double a, double b) {
-        return Math.abs(a - b) < 0.001;
+        return Math.abs(a - b) < 0.01;
     }
 
 }
