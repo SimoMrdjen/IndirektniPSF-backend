@@ -1,0 +1,85 @@
+package IndirektniPSF.backend.arhbudzet;
+
+import IndirektniPSF.backend.izvor.Izvor;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Entity
+@IdClass(ArhbudzetId.class)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+//@Table(name = "ARHBUDZET")
+public class Arhbudzet {
+    @Id
+    @Column(name = "SIF_RAC")
+    private Integer sifRac;
+
+    @Id
+    @Column(name = "BRNALOGA")
+    private String brNaloga;
+
+    @Id
+    @Column(name = "STAVKANAL")
+    private Long stavkaNal;
+
+    @Column(name = "DUGUJE")
+    private Double duguje;
+
+    @Column(name = "SIF_SEKRET")
+    private Integer sifSekr;
+
+    @Column(name = "SIN_KONTO")
+    private Integer sinKonto;
+
+    @Column(name = "DATUM")
+    private Double datum;
+//    @Column(name = "DATUM")
+//    private LocalDate datum;//DATUM
+
+    @Column(name = "OZNAKAGLAVE")
+    private String oznakaGlave;
+
+    @Column(name = "JBBK_IND_KOR")
+    private Integer jbbkIndKor;
+
+    @ManyToOne
+    @JoinColumn(name = "IZVORFIN")
+    private Izvor izvor;
+
+    @Column(name = "red_broj_akt")
+    private Integer redBrojAkt;
+
+    @Column(name = "funk_klas")
+    private Integer funkKlas;
+
+    @Column(name = "vrstapromene")
+    private Integer vrstaPromene;
+
+    @Column(name = "dugg")
+    private Double dugg;
+
+    @Column(name = "duggtbr")
+    private Integer duggtbr;
+
+
+    @Override
+    public String toString() {
+        return "Stand.klasif. :\n" +
+                "sin.konto: " + sinKonto +
+                ", izvor: " + izvor.getIZVORFIN() +
+                ", program-akt: " + redBrojAkt +
+                ", funk.klasif: " + funkKlas + ".";
+    }
+
+    public Arhbudzet(Integer sinKonto, Izvor izvor, Integer redBrojAkt, Integer funkKlas) {
+        this.sinKonto = sinKonto;
+        this.izvor = izvor;
+        this.redBrojAkt = redBrojAkt;
+        this.funkKlas = funkKlas;
+    }
+}

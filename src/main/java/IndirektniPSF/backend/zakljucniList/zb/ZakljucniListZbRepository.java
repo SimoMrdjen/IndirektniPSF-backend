@@ -10,4 +10,5 @@ public interface ZakljucniListZbRepository extends JpaRepository<ZakljucniListZb
 
     Optional<ZakljucniListZb> findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc( Integer kvartal, Integer jbbks);
     Optional<ZakljucniListZb> findFirstByKojiKvartalAndJbbkIndKorOrderByGenMysqlDesc( Integer kvartal, Integer jbbks);
-}
+
+    boolean existsByKojiKvartalAndJbbkIndKorAndGODINAAndSTORNO(Integer kvartal, Integer jbbkIndKor, Integer GODINA, Integer storno);}

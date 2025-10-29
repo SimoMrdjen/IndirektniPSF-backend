@@ -19,9 +19,10 @@ import static IndirektniPSF.backend.security.user.Role.USER;
 
 
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@EnableWebSecurity//(debug = true)
+
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -37,21 +38,28 @@ public class SecurityConfiguration {
                 .cors()
                 .and()
                 .authorizeHttpRequests()
+//                .requestMatchers(
+//                        "/", "/static/favicon.ico", "/static/index.html",
+//                        "/static/**", "/manifest.json", "/APV.png", "/logo192.png")
+                .requestMatchers(
+                        "/**", "/favicon.ico", "/index.html", "/static/**", "/manifest.json", "/APV.png", "/logo192.png"
+                        )
+                .permitAll()
                 .requestMatchers(
                         "/api/v1/auth/**",
-                        "/login",
-                        "/v2/api-docs",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/swagger-resources",
-                        "/swagger-resources/**",
-                        "/configuration/ui",
-                        "/configuration/security",
-                        "/swagger-ui/**",
-                        "/webjars/**",
-                        "/swagger-ui.html",
-                        "/", "/static/**", "/index.html", "/favicon.ico",
-                        "/manifest.json", "/APV.png", "/logo192.png"
+                        "/login"
+//                        "/v2/api-docs",
+//                        "/v3/api-docs",
+//                        "/v3/api-docs/**",
+//                        "/swagger-resources",
+//                        "/swagger-resources/**",
+//                        "/configuration/ui",
+//                        "/configuration/security",
+//                        "/swagger-ui/**",
+//                        "/webjars/**",
+//                        "/swagger-ui.html"
+//                        "/", "/static/**", "/index.html", "/favicon.ico",
+//                        "/manifest.json", "/APV.png", "/logo192.png"
                 )
                 .permitAll()
 
@@ -64,16 +72,19 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/v1/users/**").hasRole(ADMIN.name())
                 .anyRequest()
                 .authenticated()
+
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+
 //                .formLogin()
 //                .loginPage("/login") // Specify the URL of your login page
 //                .permitAll() // Allow access to the login page for everyone
 //                .and()
+
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class) // Add this line
+//                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)  //TODO uncomment this for bundling
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout()
                 .logoutUrl("/api/v1/auth/logout")

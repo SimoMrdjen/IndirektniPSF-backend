@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.parameters;
 
+import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.exceptions.ObrazacException;
 import IndirektniPSF.backend.security.user.User;
 import IndirektniPSF.backend.zakljucniList.zb.ZakljucniListZb;
@@ -35,13 +36,22 @@ public  class StatusService {
         if (actualStatus >= 20) {
             throw new Exception("Dokument je vec poslat Vasem DBK-u!");
         } else if(actualStatus == 0 && status == 10) {
-            throw new Exception("Dokument jos nije odobren, \nidite na opciju odobravanje!");
+            throw new Exception("Dokument jos nije overen, \nidite na opciju overavanje!");
         } else if(actualStatus == 10 && status == 0) {
-            throw new Exception("Dokument je vec odobren, \nmozete ici na opciju overavanje!");
+            throw new Exception("Dokument je vec overen, \nmozete ici na opciju odobravanje!");
         }
     }
 
     public <Actual extends StatusUpdatable, Next extends StatusUpdatable> void resolveObrazacAccordingNextObrazac(Actual actual, Next next) throws Exception {
+
+        // TODO this block remove after implementing Obrazac5 in app
+        if (actual instanceof ObrazacIO) {
+            if (actual.getSTATUS() > next.getSTATUS() + 10) {
+                throw new ObrazacException("Ne postoji obrazac kojem mozete podici status\n" +
+                        "Morate prethodno podici status Obrascu 5 !");
+            }
+        }
+        //TODO
 
         if (actual.getSTATUS() > next.getSTATUS()) {
             throw new ObrazacException("Ne postoji obrazac kojem mozete podici status\n" +

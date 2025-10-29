@@ -7,6 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Entity
 @Table(name = "obrazac")
 @AllArgsConstructor
@@ -59,22 +63,22 @@ public class Obrazac5details {
     private Double planprihoda;
 
     @Column(name = "republika")
-    private Double republika;
+    private Double republika = 0.0;
 
     @Column(name = "pokrajina")
-    private Double pokrajina;
+    private Double pokrajina = 0.0;
 
     @Column(name = "opstina")
-    private Double opstina;
+    private Double opstina = 0.0;
 
     @Column(name = "ooso")
-    private Double ooso;
+    private Double ooso = 0.0;
 
     @Column(name = "donacije")
-    private Double donacije;
+    private Double donacije = 0.0;
 
     @Column(name = "ostali")
-    private Double ostali;
+    private Double ostali = 0.0;
 
     @Column(name = "godplan")
     private Double godplan;
@@ -123,5 +127,53 @@ public class Obrazac5details {
 
     @Column(name = "nivo_konsolidacije")
     private Integer nivo_konsolidacije = 0;
+
+//    public static List<Obrazac5details> difference(List<Obrazac5details> detailsObr5, List<Obrazac5details> detailsFromObrIO) {
+//       for (Obrazac5details obr5 : detailsObr5) {
+//           for (Obrazac5details obrIO : detailsFromObrIO) {
+//               if(obr5.getKonto() == obrIO.getKonto()) {
+//                   obr5.setRepublika( obr5.getRepublika() - obrIO.getRepublika());
+//                   obr5.setPokrajina( obr5.getPokrajina() - obrIO.getPokrajina());
+//                   obr5.setOpstina( obr5.getOpstina() - obrIO.getOpstina());
+//                   obr5.setOoso( obr5.getOoso() - obrIO.getOoso());
+//                   obr5.setDonacije( obr5.getDonacije() - obrIO.getDonacije());
+//                   obr5.setOstali( obr5.getOstali() - obrIO.getOstali());
+//               }
+//           }
+//       }
+//       return detailsObr5;
+//    }
+    public static List<Obrazac5details> difference(List<Obrazac5details> detailsObr5, List<Obrazac5details> detailsFromObrIO) {
+     Map<Integer, Obrazac5details> detailsFromObrIOMap = detailsFromObrIO.stream()
+                .collect(Collectors.toMap(Obrazac5details::getKonto, obj -> obj));
+
+      return detailsObr5.stream()
+                .map(obr5 -> {
+                   Obrazac5details matchingObrIO = detailsFromObrIOMap.get(obr5.getKonto());
+                  if (matchingObrIO != null) {
+                      return subtractDetails(obr5, matchingObrIO);
+                   }
+                  return obr5;
+                })
+                .toList();
+    }
+
+    private static Obrazac5details subtractDetails(Obrazac5details obr5, Obrazac5details obrIO) {
+        Obrazac5details result = new Obrazac5details();
+        result.setKonto(obr5.getKonto());
+        result.setRepublika((obr5.getRepublika() != null ? obr5.getRepublika() : 0.0) -
+                (obrIO.getRepublika() != null ? obrIO.getRepublika() : 0.0));
+        result.setPokrajina((obr5.getPokrajina() != null ? obr5.getPokrajina() : 0.0) -
+                (obrIO.getPokrajina() != null ? obrIO.getPokrajina() : 0.0));
+        result.setOpstina((obr5.getOpstina() != null ? obr5.getOpstina() : 0.0) -
+                (obrIO.getOpstina() != null ? obrIO.getOpstina() : 0.0));
+        result.setOoso((obr5.getOoso() != null ? obr5.getOoso() : 0.0) -
+                (obrIO.getOoso() != null ? obrIO.getOoso() : 0.0));
+        result.setDonacije((obr5.getDonacije() != null ? obr5.getDonacije() : 0.0) -
+                (obrIO.getDonacije() != null ? obrIO.getDonacije() : 0.0));
+        result.setOstali((obr5.getOstali() != null ? obr5.getOstali() : 0.0) -
+                (obrIO.getOstali() != null ? obrIO.getOstali() : 0.0));
+        return result;
+    }
 
 }

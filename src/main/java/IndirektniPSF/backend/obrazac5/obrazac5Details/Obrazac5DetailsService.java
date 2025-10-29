@@ -22,6 +22,7 @@ public class Obrazac5DetailsService {
 
     @Transactional
     public List<Obrazac5details> saveDetailsExcel(List<Obrazac5DTO> dtos, Obrazac5 zb, ObrazacIO io) {
+
         List<Obrazac5details> obrazac5detailsList =
                 dtos.stream()
                         .filter(dto -> dto.getKonto() % 1000 != 0)
