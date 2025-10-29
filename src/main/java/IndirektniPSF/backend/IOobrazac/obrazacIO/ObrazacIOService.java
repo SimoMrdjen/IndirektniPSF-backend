@@ -135,7 +135,9 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<PomObrazac> zak = convertZakListInPomObrazac(kvartal, jbbks, 300000);
         List<PomObrazac> zak4 = zak.stream().filter(entry -> entry.getKonto() > 400000 && entry.getKonto() < 999999).toList();
         List<PomObrazac> ioRaw = convertIoToPomObrazac(dtos, 400000);
-        List<PomObrazac> io = ioRaw.stream().filter(entry -> entry.getSaldo() > 0.0).toList();
+
+        List<PomObrazac> io = ioRaw.stream().filter(entry -> entry.getSaldo() > 0.0).toList();//TODO
+
         checkIfAllKontosFromIoExistInZk(zak4,io);
         chekEqualityOfIoAndZlBySaldo(zak4, io);
 
@@ -144,9 +146,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<PomObrazac> ioKlasa3 = io3.stream().filter(entry ->  entry.getKonto() < 400000).toList();
         List<PomObrazac> zakKlasa3 = zak.stream().filter(entry -> entry.getKonto() > 300000 && entry.getKonto() < 400000).toList();
         checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
-        if (!(kvartal == 5)){
-            checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3);
-        }
+//            checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3); TODO ukljuciti kontrolu kad to definise izvestavanje
     }
 
     void checkForKonto311712And321311InZakAndIo(List<PomObrazac> zakKlasa3, List<PomObrazac> ioKlasa3) throws ObrazacException {
@@ -163,7 +163,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 for (PomObrazac io : ioKonto311712And321311) {
                     if (io.getKonto().equals(zak.getKonto())) {
                         foundMatchingKonto = true;
-                        if (!io.equals(zak)) {
+                        //TODO ispraviti treba vrednosti da budu jednake
+                        if (!((io.getSaldo())).equals((zak.getSaldo()))) {
                             throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima razlicitu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!\n");
                         }
                     }

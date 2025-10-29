@@ -86,13 +86,11 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
 
         //VARIOUS CHECKS
-//        chekIfKvartalIsCorrect(kvartal, excelKvartal, year);//TODO implement this
+      //  chekIfKvartalIsCorrect(kvartal, excelKvartal, year);//TODO implement this
         checkKonto791100InObrazacAgainstDataInArhBudzet(
                 konto791100FromExcel, kvartal, jbbk, sifSekret);//greska 45
         checkPrihodFromPokrajinaInObrazacAgainstDataInArhBudzet(
                 prihodiFromPokrajinaFromExcel, kvartal, jbbk, oznakaGlave, sifSekret);//greska 44
-
-
         compareTroskoviForSinKontosIOAgainstOBr5(dtos, validIO);
 
         //INITILIZATION AND PERSISTANCE OF MASTER OBJECT
@@ -240,23 +238,23 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 .toList();
     }
 
-    //TODO proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
+        // proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
     public void allocateExpensesByIncomeSource(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
 
-        //TODO naci izvore koji nemaju jednoznacni raspored
+        // naci izvore koji nemaju jednoznacni raspored
         List<Raspodela> raspodelas = raspodelaService.findIzvorFinIfNotUnique();
 
-        //TODO popuniti prazne stavke
+        // popuniti prazne stavke
         populateEmptyIzvoriIO(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5, raspodelas);
 
-        //TODO snimiti stavke - persistance
+        // snimiti stavke - persistance
         obrazacIODetailsService.saveAll(ioDetailsEmptyPrihodiColumns);
     }
 
     public void populateEmptyIzvoriIO(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns,
                                        List<Obrazac5details> differnciesBetweenObrIOAndObr5, List<Raspodela> raspodelas) {
 
-        //TODO proci kroz listu emptyIzvoriDetailsIO i popuniti kolonu prihodA u zavisnosti od izvora i
+        // proci kroz listu emptyIzvoriDetailsIO i popuniti kolonu prihodA u zavisnosti od izvora i
         // umanjiti differnciesBetweenObrIOAndObr5
         ioDetailsEmptyPrihodiColumns.stream()
                 .forEach(io -> populateColumnPrihodiInIO(io, differnciesBetweenObrIOAndObr5, raspodelas));
@@ -266,7 +264,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                                    List<Obrazac5details> differnciesBetweenObrIOAndObr5,
                                    List<Raspodela> raspodelas) {
 
-        // TODO objekat razlike sa kolonama
+        // objekat razlike sa kolonama
         Obrazac5details singleDifferencies = Optional.ofNullable(
                 findProperDifferenceAccordingSinKonto(differnciesBetweenObrIOAndObr5, ioEmptyPrihodiColumns.getSIN_KONTO())
         ).orElseGet(() -> {
@@ -280,13 +278,13 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
             return defaultDetails;
         });
 
-        //TODO popuniti polja prihoda u zavisnosti od izvora, i umanjiti raspolozivo
-        //TODO izmeniti tako da se radi sa listom raspodela u zvisnosti od izvora
+        // popuniti polja prihoda u zavisnosti od izvora, i umanjiti raspolozivo
+        // izmeniti tako da se radi sa listom raspodela u zvisnosti od izvora
         List<Raspodela> raspodelasForParticularIzvor =
                 getRaspodelasForParticularIzvor(ioEmptyPrihodiColumns.getIZVORFIN(), raspodelas);
 
         for (Raspodela raspodela : raspodelasForParticularIzvor) {
-                //TODO naci u koju kolonu treba upisati iznos i umanjiti diff iznos
+                // naci u koju kolonu treba upisati iznos i umanjiti diff iznos
                 populateColumnPrihodiInIOAccordingIzvorFin(raspodela, ioEmptyPrihodiColumns, singleDifferencies);
             }
     }
@@ -297,12 +295,14 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 .filter(a -> a.getIzvorFin().equals(izvor)).toList();
     }
 
-    //TODO
     public void populateColumnPrihodiInIOAccordingIzvorFin(Raspodela raspodela,
                                                             ObrazacIODetails ioEmptyPrihodiColumns,
                                                             Obrazac5details singleDifferencies) {
-       //TODO set x kao vrednost duguje - rasporedeno
+       // set x kao vrednost duguje - rasporedeno
         double x = (ioEmptyPrihodiColumns.getDUGUJE() + ioEmptyPrihodiColumns.getPOTRAZUJE()) - sumOfIzvori(ioEmptyPrihodiColumns);
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //TODO  dodati izlazak iz metode ako je x == 0  !!!!!!!!!!!!!
+
         double y= 0.0;
         var kolona = raspodela.getKolona();
         if (kolona == 6) {
