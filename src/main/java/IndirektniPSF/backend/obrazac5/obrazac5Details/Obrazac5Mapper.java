@@ -1,5 +1,6 @@
 package IndirektniPSF.backend.obrazac5.obrazac5Details;
 
+import IndirektniPSF.backend.IOobrazac.obrazacIODetails.ObrazacIODetails;
 import IndirektniPSF.backend.obrazac5.Obrazac5DTO;
 import IndirektniPSF.backend.obrazac5.obrazac5.Obrazac5;
 import IndirektniPSF.backend.review.ObrazacResponse;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class Obrazac5Mapper {
@@ -49,15 +51,15 @@ public class Obrazac5Mapper {
                 .build();
     }
 
-    public List<Obrazac5DTO> mapExcelToPojo(InputStream inputStream) {
+    public List<Obrazac5DTO> mapExcelToPojo(InputStream inputStream) throws Exception {
         List<Obrazac5DTO> dtos = new ArrayList<>();
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
-            int i = 25; // Start reading from the 26th row (assuming 0-based index)
+            int i = 26; // Start reading from the 26th row (assuming 0-based index)
             int consecutiveBlankRows = 0;
             int allowedBlankRows = 3; // End reading after 3 blank rows
 
-            while (consecutiveBlankRows < allowedBlankRows) {
+            while (consecutiveBlankRows < allowedBlankRows && i < 480) {
                 Row row = sheet.getRow(i);
                 if (row == null || row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK) {
                     consecutiveBlankRows++;
@@ -81,8 +83,10 @@ public class Obrazac5Mapper {
                 dtos.add(dto);
                 i++;
             }
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new IllegalStateException("Podaci iz excel tabele nisu uspesno ucitani", e);
+            throw new Exception("Podaci iz excel tabele nisu uspesno ucitani", e);
         }
         return dtos;
     }
@@ -92,12 +96,21 @@ public class Obrazac5Mapper {
     }
 
     private Double getDoubleValueFromCell(Cell cell) {
-        if (cell == null || cell.getCellType() != CellType.NUMERIC) {
-            return 0.00; // Return 0.00 if the cell is null or not numeric
-        } else {
-            return cell.getNumericCellValue(); // Return the cell's value if it is numeric
+
+        if (cell == null || cell.getCellType() == CellType.BLANK) {
+            return 0.00; // Return default value if cell is null
         }
+
+        if (cell.getCellType() == CellType.NUMERIC || cell.getCellType() == CellType.FORMULA ) {
+            return cell.getNumericCellValue();
+        }
+
+        throw new IllegalStateException("Obrazac nije moguće učitati jer imate \n" +
+                "u redu " + (cell.getRowIndex() + 1) + " a koloni broj " + (cell.getColumnIndex() + 1) +
+                " polje koje nema numeričku vrednost. (Greška je verovatno nastala prilikom kopiranja!)\n" +
+                " Ispravite polje i proverite ostala!");
     }
+
 
     public ObrazacResponse toResponse(Obrazac5 zb) {
         LocalDate date = LocalDate.ofEpochDay(zb.getDatum_org() - 25569);
@@ -127,5 +140,48 @@ public class Obrazac5Mapper {
                 .donacije(obrazac5details.getDonacije())
                 .ostali(obrazac5details.getOstali())
                 .build();
+    }
+
+    //vraca agregiranu listu po s
+    public List<Obrazac5details> mapIOtoObr5(List<ObrazacIODetails> stavke) {
+        var obr5FromIO = stavke.stream().map( st ->
+                (Obrazac5details.builder()
+                        .konto(st.getSIN_KONTO() * 100)
+                        .republika(st.getREPUBLIKA())
+                        .pokrajina(st.getPOKRAJINA())
+                        .opstina(st.getOPSTINA())
+                        .ooso(st.getOOSO())
+                        .donacije(st.getDONACIJE())
+                        .ostali(st.getOSTALI())
+                        .build())
+        ).collect(Collectors.toList());
+        return aggregateByKonto(obr5FromIO);
+    }
+
+    public List<Obrazac5details> aggregateByKonto(List<Obrazac5details> detailsList) {
+        return detailsList.stream()
+                .collect(Collectors.groupingBy(
+                        Obrazac5details::getKonto, // Group by 'konto'
+                        Collectors.reducing(new Obrazac5details(), (a, b) -> {
+                            Obrazac5details result = new Obrazac5details();
+                            result.setKonto(a.getKonto() != null ? a.getKonto() : b.getKonto());
+                            result.setPokrajina((a.getPokrajina() != null ? a.getPokrajina() : 0.0) +
+                                    (b.getPokrajina() != null ? b.getPokrajina() : 0.0));
+                            result.setRepublika((a.getRepublika() != null ? a.getRepublika() : 0.0) +
+                                    (b.getRepublika() != null ? b.getRepublika() : 0.0));
+                            result.setOpstina((a.getOpstina() != null ? a.getOpstina() : 0.0) +
+                                    (b.getOpstina() != null ? b.getOpstina() : 0.0));
+                            result.setOoso((a.getOoso() != null ? a.getOoso() : 0.0) +
+                                    (b.getOoso() != null ? b.getOoso() : 0.0));
+                            result.setDonacije((a.getDonacije() != null ? a.getDonacije() : 0.0) +
+                                    (b.getDonacije() != null ? b.getDonacije() : 0.0));
+                            result.setOstali((a.getOstali() != null ? a.getOstali() : 0.0) +
+                                    (b.getOstali() != null ? b.getOstali() : 0.0));
+                            return result;
+                        })
+                ))
+                .values()
+                .stream()
+                .toList();
     }
 }

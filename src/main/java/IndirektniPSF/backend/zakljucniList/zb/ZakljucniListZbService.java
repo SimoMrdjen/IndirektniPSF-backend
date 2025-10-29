@@ -1,9 +1,12 @@
 package IndirektniPSF.backend.zakljucniList.zb;
 
+import IndirektniPSF.backend.IOobrazac.ObrazacIODTO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIO;
 import IndirektniPSF.backend.IOobrazac.obrazacIO.ObrazacIOService;
 import IndirektniPSF.backend.excel.ExcelService;
 import IndirektniPSF.backend.exceptions.ObrazacException;
+import IndirektniPSF.backend.idempotency.Idempotency;
+import IndirektniPSF.backend.idempotency.IdempotencyRepository;
 import IndirektniPSF.backend.kontrole.obrazac.ObrKontrService;
 import IndirektniPSF.backend.obrazac5.ppartner.PPartnerService;
 import IndirektniPSF.backend.obrazac5.sekretarijat.SekretarijarService;
@@ -17,8 +20,10 @@ import IndirektniPSF.backend.zakljucniList.ZakljucniListDto;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniDetailsService;
 import IndirektniPSF.backend.zakljucniList.details.ZakljucniListMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +32,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -46,8 +52,46 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     private final ZakljucniListMapper mapper;
     private final StatusService statusService;
     private final ObrazacIOService obrazacIoService;
+    private final IdempotencyRepository idempotencyRepository;
 
 
+
+//    public String processFile(UUID idempotencyKey, MultipartFile file, Integer kvartal, String email) throws Exception {
+//        if (idempotencyRepository.existsById(idempotencyKey)) {
+//            return "Request already processed.";
+//        }
+//
+//        // Your file processing logic
+//        StringBuilder message = saveObrazacFromExcel(file, kvartal, email);
+//
+//        // Save the idempotency key in the database
+//        idempotencyRepository.save(new Idempotency(idempotencyKey, "Processed"));
+//
+//        return message.toString();
+//    }
+
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public String processFile(UUID idempotencyKey, MultipartFile file, Integer kvartal, String email) throws Exception {
+        try {
+            // Try to insert the idempotency key first - this will fail if it already exists
+            idempotencyRepository.save(new Idempotency(idempotencyKey, "Processing"));
+
+            // Process the file
+            StringBuilder message = saveObrazacFromExcel(file, kvartal, email);
+
+            // Update the status
+            Idempotency idempotency = idempotencyRepository.findById(idempotencyKey)
+                    .orElseThrow(() -> new IllegalStateException("Idempotency record not found"));
+            idempotency.setStatus("Processed");
+            idempotencyRepository.save(idempotency);
+
+            return message.toString();
+        } catch (DataIntegrityViolationException e) {
+            // This will be thrown if the idempotency key already exists
+            return "Request already processed or is being processed.";
+        }
+    }
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public StringBuilder saveObrazacFromExcel(MultipartFile file, Integer kvartal, String email) throws Exception {
 
@@ -55,7 +99,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Integer year = excelService.readCellByIndexes(file.getInputStream(), 3, 4);
         Integer jbbk = excelService.readCellByIndexes(file.getInputStream(), 2, 1);
         Integer excelKvartal = excelService.readCellByIndexes(file.getInputStream(), 3, 1);
-        //chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
+        chekIfKvartalIsCorrect(kvartal, excelKvartal, year);
 
         List<ZakljucniListDto> dtos = mapper.mapExcelToPojo(file.getInputStream());
 
@@ -64,6 +108,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         Sekretarijat sekretarijat = sekretarijarService.getSekretarijat(sifSekret);
         Integer today = (int) LocalDate.now().toEpochDay() + 25569;
         //provere
+       //checkIfKonto999999Exist(dtos);
         checkDuplicatesKonta(dtos);
         Integer version = checkIfExistValidZListAndFindVersion(jbbk, kvartal);
         checkJbbks(user, jbbk);
@@ -93,13 +138,46 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                         .STORNO(0)
                         .STOSIFRAD(0)
                         .build();
-        var zbSaved = zakljucniRepository.save(zb);
 
+//        if (isDoubledRecord(zb)) {
+//            return responseMessage;
+//        }
+        var zbSaved = zakljucniRepository.save(zb);
         zakljucniDetailsService.saveDetailsExcel(dtos, zbSaved);
         return responseMessage;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void checkIfKonto999999Exist(List<ZakljucniListDto> dtos) throws ObrazacException {
+        for (ZakljucniListDto dto : dtos) {
+            if ("999999".equals(dto.getKonto())) {
+                throw new ObrazacException("U obrascu imate konto 999999!");
+            }
+        }
+    }
+
+    private boolean isDoubledRecord(ZakljucniListZb zb) {
+        // Check if a record with the same business key already exists
+        return zakljucniRepository.existsByKojiKvartalAndJbbkIndKorAndGODINAAndSTORNO(
+                zb.getKojiKvartal(),
+                zb.getJbbkIndKor(),
+                zb.getGODINA(),
+                zb.getSTORNO()
+        );
+    }
+//    private boolean isDoubledRecord(ZakljucniListZb zb) {
+//        Optional<ZakljucniListZb> optionalZb =
+//                zakljucniRepository
+//                        .findFirstByKojiKvartalAndJbbkIndKorOrderByVerzijaDesc(
+//                                zb.getKojiKvartal(),
+//                                zb.getJbbkIndKor()
+//                        );
+//        if (optionalZb.isPresent() && optionalZb.get().getVerzija() == zb.getVerzija()) {
+//               return true;
+//        }
+//        return false;
+//    }
+
+    //   @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Integer checkIfExistValidZListAndFindVersion(Integer jbbks, Integer kvartal) throws Exception {
 
         Optional<ZakljucniListZb> optionalZb =
@@ -108,7 +186,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
             return 1;
         }
         ZakljucniListZb zb = optionalZb.get();
-        checkIfExistValidObrazacYet(zb);
+        //TODO checkIfExistValidObrazacYet(zb);
         return zb.getVerzija() + 1;
     }
 
@@ -120,12 +198,12 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         //check next
         ObrazacIO obrazacIO =
                 obrazacIoService.findLastOptionalIOForKvartal(email, kvartal)
-                        .orElseThrow(() -> new ObrazacException("Nije moguce odobravanje obrrasca\n" +
+                        .orElseThrow(() -> new ObrazacException("Nije moguce overavanje obrrasca\n" +
                                 "jer ne postoji ucitan Obrazac IO.\n" +
                                 "Morate prethodno ucitati Obrazac IO!"));
 
         if (obrazacIO.getSTORNO() == 1) {
-            throw new ObrazacException("Nije moguce odobravanje obrasca jer je Obrazac IO storniran.\n" +
+            throw new ObrazacException("Nije moguce overavanje obrasca jer je Obrazac IO storniran.\n" +
                     " Morate prethodno ucitati Obrazac IO!!");
         }
         statusService.resolveObrazacAccordingNextObrazac(zb, obrazacIO);
@@ -188,8 +266,6 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     public ZakljucniListZb findObrazacById(Integer id, Integer kvartal) {
 
         return zakljucniRepository.findById(id)
-
-//        return zakljucniRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Zakljucni list ne postoji!"));
     }
 
@@ -207,8 +283,8 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         //TODO dodati opis storno
         zb.setOPISSTORNO(opis);
         zakljucniRepository.save(zb);
-        return "Zakljucni list je storniran!\n"
-                + obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());
+        String message = obrazacIoService.stornoIOAfterStornoZakList(user, zb.getKojiKvartal());
+        return "Zakljucni list je storniran!\n" + message;
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -238,7 +314,6 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         return response;
     }
 
-    @Transactional
     public ObrazacResponse getObrazactWithDetailsForResponseById(Integer id, Integer kvartal) {
 
         ZakljucniListZb zb = findObrazacById(id, kvartal);

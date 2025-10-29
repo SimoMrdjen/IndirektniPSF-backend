@@ -21,11 +21,12 @@ public class ZakljucniDetailsService {
     private final SubkontoService subkontoService;
     private final GlavaSviService glavaSviService;
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+   // @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ZakljucniListDetails> saveDetailsExcel(List<ZakljucniListDto> dtos, ZakljucniListZb zbSaved) throws Exception {
 
+
         //TODO include next control before deploying
-       // this.checkIfKontosAreExisting(dtos);
+        this.checkIfKontosAreExisting(dtos);
         var jbbk = zbSaved.getJbbkIndKor();
         String oznakaGlave = glavaSviService.findGlava(jbbk);
         List<ZakljucniListDetails> details = dtos.stream()
@@ -33,7 +34,7 @@ public class ZakljucniDetailsService {
                 .collect(Collectors.toList());
         return zakljucniDetailsRepository.saveAll(details);
     }
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+   // @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void checkIfKontosAreExisting(List<ZakljucniListDto> dtos) throws Exception {
 
         List<Integer> kontosInKontniPlan = subkontoService.getKontniPlan();

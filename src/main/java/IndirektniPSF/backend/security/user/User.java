@@ -33,10 +33,10 @@ public class User implements UserDetails {
     private String ime;
     @Column
     private String lozinka;
-    @Column
-    private String sncert;
-    @Column
-    private String sncert_rez;
+//    @Column
+//    private String sncert;
+//    @Column
+//    private String sncert_rez;
     @Column
     private Integer javno_pred;
     @Column

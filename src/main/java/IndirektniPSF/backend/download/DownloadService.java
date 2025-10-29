@@ -28,8 +28,9 @@ public class DownloadService {
     private Path getPath(String typeOfObrazac) {
 
         var fileName =typeOfObrazac + ".xlsx";
-        return Paths.get("C:/Users/Simo/Desktop/Obrasci", fileName).normalize();
+       // return // Paths.get("C:/Users/Simo/Desktop/Obrasci", fileName).normalize();
         //PRODUCTION
-//            Path filePath = Paths.get("C:/Users/pavel/Desktop/Obrasci", fileName).normalize();
+            Path filePath = Paths.get("C:/Users/pavel/Desktop/Obrasci", fileName).normalize();
+            return filePath;
     }
 }

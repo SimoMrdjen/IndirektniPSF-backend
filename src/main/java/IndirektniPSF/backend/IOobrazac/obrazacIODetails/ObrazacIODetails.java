@@ -17,6 +17,7 @@ public class ObrazacIODetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "REDNI")
     private  Integer REDNI;
 
     @ManyToOne
@@ -88,22 +89,22 @@ public class ObrazacIODetails {
     private Double POTRAZUJE = 0.0;
 
     @Column
-    private Double REPUBLIKA;
+    private Double REPUBLIKA = 0.0;
 
     @Column
-    private Double POKRAJINA;
+    private Double POKRAJINA = 0.0;
 
     @Column
-    private Double OPSTINA;
+    private Double OPSTINA = 0.0 ;
 
     @Column
-    private Double OOSO;
+    private Double OOSO = 0.0 ;
 
     @Column
-    private Double DONACIJE;
+    private Double DONACIJE = 0.0;
 
     @Column
-    private Double OSTALI;
+    private Double OSTALI = 0.0;
 
     @Column(nullable = false)
     private Integer UNOSIO;
