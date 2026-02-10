@@ -20,4 +20,5 @@ public class AuthenticationResponse {
     private String role;
     @JsonProperty("indirektni")
     private String indirektni;
+
 }

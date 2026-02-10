@@ -305,25 +305,53 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 //    }
 
 
+//   METOFDA KOJA SPAJA METODE ZA SVE KVARTALE A NE ZNAM DA LI JE PRAVILO
+//   ILI IZUZETAK DA  KVARTAL 5 IMA DRUGACIJE VREDOSTI SALDA
     public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks, Integer konto) throws Exception {
 
-        List<ZakljucniListDetails> zakljucniListDetailsList = findValidZakList(kvartal,jbbks).getStavke();
+        List<ZakljucniListDetails> stavke = findValidZakList(kvartal, jbbks).getStavke();
 
-        return zakljucniListDetailsList.stream()
+        return stavke.stream()
                 .map(z -> {
                     PomObrazac pom = new PomObrazac();
-                        pom.setKonto(z.getKONTO());
-                    //TODO za klase 4,5,6 poredi se io sa TP Duguje a zaklase 7,8,9 sa TP potrazuje
-                        if(400000 < z.getKONTO() && z.getKONTO() < 700000) {
-                            pom.setSaldo(NumberUtils.roundToTwoDecimals(z.getDUGUJE_PS()  +  z.getDUGUJE_PR()));
-                        } else {
-                            pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getPOTRAZUJE_PS() +  z.getPOTRAZUJE_PR())));
-                        }
-                        return pom;
+                    Integer k = z.getKONTO();
+                    pom.setKonto(k);
+
+                    double saldo = (kvartal != null && kvartal == 5)
+                            // kvartal 5 -> stara logika (neto)
+                            ? (z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + (z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())
+                            // ostali kvartali -> nova logika (po klasama)
+                            : (k != null && 400000 < k && k < 700000)
+                            ? (z.getDUGUJE_PS() + z.getDUGUJE_PR())
+                            : (z.getPOTRAZUJE_PS() + z.getPOTRAZUJE_PR());
+
+                    pom.setSaldo(NumberUtils.roundToTwoDecimals(saldo));
+                    return pom;
                 })
-                .filter(p -> p.getKonto() > konto )
+                .filter(p -> p.getKonto() != null && p.getKonto() > konto)
                 .collect(toList());
     }
+
+//   STARA VERZIJA METODE KOJA JE FUNKCIONISALA ZA KVARTALE OD 1-4 VRATITI AKO TREBA
+//    public List<PomObrazac> convertZakListInPomObrazac(Integer kvartal, Integer jbbks, Integer konto) throws Exception {
+//
+//        List<ZakljucniListDetails> zakljucniListDetailsList = findValidZakList(kvartal,jbbks).getStavke();
+//
+//        return zakljucniListDetailsList.stream()
+//                .map(z -> {
+//                    PomObrazac pom = new PomObrazac();
+//                        pom.setKonto(z.getKONTO());
+//                    //TODO za klase 4,5,6 poredi se io sa TP Duguje a zaklase 7,8,9 sa TP potrazuje
+//                        if(400000 < z.getKONTO() && z.getKONTO() < 700000) {
+//                            pom.setSaldo(NumberUtils.roundToTwoDecimals(z.getDUGUJE_PS()  +  z.getDUGUJE_PR()));
+//                        } else {
+//                            pom.setSaldo(NumberUtils.roundToTwoDecimals((z.getPOTRAZUJE_PS() +  z.getPOTRAZUJE_PR())));
+//                        }
+//                        return pom;
+//                })
+//                .filter(p -> p.getKonto() > konto )
+//                .collect(toList());
+//    }
 
     public List<PomObrazac> makeListOfPomUniqueKontosAndSumOfSaldo(List<PomObrazac> pomList) {
         return pomList.stream()
