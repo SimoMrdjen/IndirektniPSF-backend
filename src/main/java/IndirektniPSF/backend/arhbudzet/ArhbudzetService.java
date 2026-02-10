@@ -14,6 +14,10 @@ public class ArhbudzetService implements IfObrazacChecker {
 
     private final ArhbudzetRepository repository;
 
+    public Integer  nothingJustProbe() {
+        retrn null;
+    }
+
     public  Double sumUplataIzBudzetaForIndKor(Integer sifSekr, Double date, String glava, Integer jbbk) {
 
         return repository.sumUplataIzBudzetaForIndKor(sifSekr, date, jbbk);
