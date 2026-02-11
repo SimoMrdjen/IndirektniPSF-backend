@@ -319,7 +319,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
 
                     double saldo = (kvartal != null && kvartal == 5)
                             // kvartal 5 -> stara logika (neto)
-                            ? (z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + (z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())
+                            ? (z.getPOTRAZUJE_PR())
+                            //(z.getDUGUJE_PS() - z.getPOTRAZUJE_PS()) + (z.getDUGUJE_PR() - z.getPOTRAZUJE_PR())
                             // ostali kvartali -> nova logika (po klasama)
                             : (k != null && 400000 < k && k < 700000)
                             ? (z.getDUGUJE_PS() + z.getDUGUJE_PR())
