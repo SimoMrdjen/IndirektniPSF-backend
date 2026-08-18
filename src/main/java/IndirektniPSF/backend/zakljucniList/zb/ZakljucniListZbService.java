@@ -54,23 +54,6 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
     private final ObrazacIOService obrazacIoService;
     private final IdempotencyRepository idempotencyRepository;
 
-
-
-//    public String processFile(UUID idempotencyKey, MultipartFile file, Integer kvartal, String email) throws Exception {
-//        if (idempotencyRepository.existsById(idempotencyKey)) {
-//            return "Request already processed.";
-//        }
-//
-//        // Your file processing logic
-//        StringBuilder message = saveObrazacFromExcel(file, kvartal, email);
-//
-//        // Save the idempotency key in the database
-//        idempotencyRepository.save(new Idempotency(idempotencyKey, "Processed"));
-//
-//        return message.toString();
-//    }
-
-
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String processFile(UUID idempotencyKey, MultipartFile file, Integer kvartal, String email) throws Exception {
         try {
@@ -186,7 +169,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
             return 1;
         }
         ZakljucniListZb zb = optionalZb.get();
-        //TODO checkIfExistValidObrazacYet(zb);
+        checkIfExistValidObrazacYet(zb);
         return zb.getVerzija() + 1;
     }
 
@@ -230,7 +213,7 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
         List<String> kontos =
                 dtos.stream()
                         .map(dto -> dto.getKonto().trim())
-                        .collect(Collectors.toList());
+                        .toList();
 
         List<String> duplicates = kontos.stream()
                 .collect(Collectors.toMap(
@@ -241,13 +224,13 @@ public class ZakljucniListZbService extends AbParameterService implements IfObra
                 .stream()
                 .filter(entry -> entry.getValue() > 1)
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+                .toList();
 
         if (isKontrolaActive) {
             if (!duplicates.isEmpty() && validError) {
                 throw new ObrazacException("Imate duplirana konta: " + duplicates);
             } else if (!duplicates.isEmpty() && !validError) {
-                responseMessage.append("Imate duplirana konta: " + duplicates);
+                responseMessage.append("Imate duplirana konta: ").append(duplicates);
             }
         }
     }

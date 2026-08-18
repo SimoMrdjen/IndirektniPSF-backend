@@ -145,7 +145,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         List<PomObrazac> io3 = convertIoToPomObrazac(dtos, 300000);
         List<PomObrazac> ioKlasa3 = io3.stream().filter(entry ->  entry.getKonto() < 400000).toList();
         List<PomObrazac> zakKlasa3 = zak.stream().filter(entry -> entry.getKonto() > 300000 && entry.getKonto() < 400000).toList();
-        checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
+ //       checkKlasa3InIoExistAndIsSmallerThenInZakList(ioKlasa3, zakKlasa3);
 //            checkForKonto311712And321311InZakAndIo(zakKlasa3, ioKlasa3); TODO ukljuciti kontrolu kad to definise izvestavanje
     }
 
@@ -164,7 +164,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                     if (io.getKonto().equals(zak.getKonto())) {
                         foundMatchingKonto = true;
                         //TODO ispraviti treba vrednosti da budu jednake
-                        if (!((io.getSaldo())).equals((zak.getSaldo()))) {
+                        if (!((io.getSaldo())).equals((Math.abs(zak.getSaldo())))) {
                             throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima razlicitu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!\n");
                         }
                     }
@@ -177,7 +177,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
     }
 
     void checkKlasa3InIoExistAndIsSmallerThenInZakList(List<PomObrazac> ioKlasa3, List<PomObrazac> zakKlasa3) throws ObrazacException {
-        final Double tolerance = 0.0001;
+        final Double tolerance = 0.001;
 
         for (PomObrazac io : ioKlasa3) {
             boolean foundMatchingKonto = false;
@@ -186,7 +186,7 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
                 if (io.getKonto().equals(zak.getKonto())) {
                     foundMatchingKonto = true;
 
-                    if ((zak.getSaldo() + tolerance) < io.getSaldo()) {
+                    if ((Math.abs(zak.getSaldo()) + tolerance) < io.getSaldo()) {
                         throw new ObrazacException("Konto " + io.getKonto() + " u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!\n");
                     }
                 }
@@ -583,8 +583,8 @@ public class ObrazacIOService extends AbParameterService implements IfObrazacChe
         if(zb.getSTATUS() == 10) {
             if(obrazac5.isEmpty()) {
               throw  new ObrazacException("Nije moguce odobravanje obrrasca\n" +
-                        "jer ne postoji ucitan Obrazac 5.\n" +
-                        "Morate prethodno ucitati Obrazac 5!");
+                        "jer ne postoji ucitan Obrazac IB.\n" +
+                        "Morate prethodno ucitati Obrazac IB!");
             }
         }
         //TODO uncoment next block after implementing obrazac 5

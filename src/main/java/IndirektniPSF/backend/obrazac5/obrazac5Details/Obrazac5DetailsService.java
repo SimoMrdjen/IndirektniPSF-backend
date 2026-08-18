@@ -25,10 +25,11 @@ public class Obrazac5DetailsService {
 
         List<Obrazac5details> obrazac5detailsList =
                 dtos.stream()
-                        .filter(dto -> dto.getKonto() % 1000 != 0)
-                        .filter(dto -> dto.getPlanPrihoda() != 0 || dto.getIzvrsenje() != 0)//TODO check if it is mandatory
+                        .filter(dto -> nz(dto.getKonto()) % 1000 != 0)
+                        .filter(dto -> nz(dto.getPlanPrihoda()) != 0d || nz(dto.getIzvrsenje()) != 0d)
                         .map(obrazac5Mapper::mapDtoToEntity)
                         .toList();
+
 
         obrazac5detailsList
                 .forEach(obrazac5details -> {
@@ -41,4 +42,7 @@ public class Obrazac5DetailsService {
                 });
         return obrazac5DetailsRepository.saveAll(obrazac5detailsList);
     }
+    private static double nz(Double v) { return v == null ? 0d : v; }
+    private static int nz(Integer v) { return v == null ? 0 : v; }
+
 }

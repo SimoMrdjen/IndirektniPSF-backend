@@ -44,7 +44,7 @@ public interface IfObrazacChecker {
         if (kvartal == 1 &&
                 !(currentMonth == Month.APRIL
                         && currentDate.getDayOfMonth() >= 1
-                        && currentDate.getDayOfMonth() <= 20
+                        && currentDate.getDayOfMonth() <= 30
                         && currentYear == year)) {
             throw new IllegalArgumentException(message);
         } else if (kvartal == 2 &&

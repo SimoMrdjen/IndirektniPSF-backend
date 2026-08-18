@@ -249,7 +249,9 @@ class ObrazacIOServiceTest {
                 new ObrazacIODTO(2, "DEF", 434567, "ABC", "ABC",20000.0, 3500.0),
                 new ObrazacIODTO(3, "GHI", 434568,"ABC", "ABC", 15000.0, 4000.0),
                 new ObrazacIODTO(3, "GHI", 434569,"ABC", "ABC", 15000.0, 0.0),
-                new ObrazacIODTO(3, "GHI", 700001,"ABC", "ABC", 1.0, 1.0)
+                new ObrazacIODTO(3, "GHI", 700001,"ABC", "ABC", 1.0, 1.0),
+                new ObrazacIODTO(3, "GHI", 300001,"ABC", "ABC", 1.0, 1.0)
+
 
 
         );
@@ -261,7 +263,9 @@ class ObrazacIOServiceTest {
                 ( ZakljucniListDetails.builder().KONTO(434568).DUGUJE_PS(6000.0).POTRAZUJE_PS(500.0)
                         .DUGUJE_PR(0.0).POTRAZUJE_PR(500.0).build()),
                 ( ZakljucniListDetails.builder().KONTO(700001).DUGUJE_PS(5500.0).POTRAZUJE_PS(0.0)
-                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(1.0).build())
+                        .DUGUJE_PR(1500.0).POTRAZUJE_PR(1.0).build()),
+                ( ZakljucniListDetails.builder().KONTO(300001).DUGUJE_PS(0.0).POTRAZUJE_PS(1.0)
+                        .DUGUJE_PR(0.0).POTRAZUJE_PR(0.0).build())
         );
         var zakljucniListZb = new ZakljucniListZb();
         zakljucniListZb.setStavke(zakljucniList);
@@ -394,6 +398,32 @@ class ObrazacIOServiceTest {
 
         String expectedMessage = "Obrazac IO i vec ucitani Zakljucni list \n" +
                 "se ne slazu u kontima : 400001, ";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    void shouldNotThrowCheckKlasa3InIoExistAndIsSmallerThenInZakListIfNegative() {
+
+        List<PomObrazac> io = List.of(new PomObrazac(300001, 2000.01),
+                new PomObrazac(300002, 5000.12));
+        List<PomObrazac> zak = List.of(new PomObrazac(300001, -2000.01),
+                new PomObrazac(300002, -5000.12));
+
+        assertDoesNotThrow(() -> service.checkKlasa3InIoExistAndIsSmallerThenInZakList(io, zak));
+    }
+    @Test
+    void shouldThrowCheckKlasa3InIoExistAndIsSmallerThenInZakListIfNegative() {
+
+        List<PomObrazac> io = List.of(new PomObrazac(300001, 2000.012));
+
+        List<PomObrazac> zak = List.of(new PomObrazac(300001, -2000.01));
+
+
+        ObrazacException exception = assertThrows(ObrazacException.class, () -> {
+            service.checkKlasa3InIoExistAndIsSmallerThenInZakList(io, zak);
+        });
+        String expectedMessage = "Konto 300001 u Obrascu IO ima vecu vrednost \n od istog konta u vec ucitanom Zakljucnom listu!";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
