@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -130,6 +131,8 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
         completeColumnInObrIODetailsUsingDataFromObr5(detailsObr5, validIO);
         return responseMessage;
     }
+    private static double nz(Double v) { return v == null ? 0d : v; }
+    private static int nz(Integer v) { return v == null ? 0 : v; }
 
     protected void compareTroskoviForSinKontosIOAgainstOBr5(List<Obrazac5DTO> dtos, ObrazacIO validIO) {
         Map<Integer, Double> mapObr5 = transformObr5ToMap(dtos);
@@ -175,14 +178,15 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     protected Map<Integer, Double> transformObr5ToMap(List<Obrazac5DTO> dtos) {
         return dtos.stream()
-                .filter(dto -> dto.getKonto() % 1000 != 0)
-                .filter(dto -> dto.getPlanPrihoda() != 0 || dto.getIzvrsenje() != 0)
+                .filter(dto -> nz(dto.getKonto()) % 1000 != 0)
+                .filter(dto -> nz(dto.getPlanPrihoda()) != 0d || nz(dto.getIzvrsenje()) != 0d)
                 .collect(Collectors.toMap(
-                        Obrazac5DTO::getKonto,
-                        Obrazac5DTO::getIzvrsenje,
+                        dto -> nz(dto.getKonto()),
+                        dto -> nz(dto.getIzvrsenje()),
                         Double::sum
                 ));
     }
+
 
     protected Map<Integer, Double> transformObrIoToMap( ObrazacIO validIO) {
 
@@ -201,7 +205,7 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
                 ));
     }
 
-    public void completeColumnInObrIODetailsUsingDataFromObr5(List<Obrazac5details> detailsObr5, ObrazacIO validIO) {
+    public void completeColumnInObrIODetailsUsingDataFromObr5(List<Obrazac5details> detailsObr5, ObrazacIO validIO) throws ObrazacException {
 
         List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns =
                 getIoDetailsEmptyPrihodiColumns(validIO);//nepopunjeni io
@@ -239,25 +243,140 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
     }
 
         // proci kroz IO i rasporediti za izvore koji nisu jdnoznacni
-    public void allocateExpensesByIncomeSource(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns, List<Obrazac5details> differnciesBetweenObrIOAndObr5) {
+    public void allocateExpensesByIncomeSource(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns, List<Obrazac5details> differnciesBetweenObrIOAndObr5) throws ObrazacException {
 
         // naci izvore koji nemaju jednoznacni raspored
         List<Raspodela> raspodelas = raspodelaService.findIzvorFinIfNotUnique();
 
-        // popuniti prazne stavke
+        // popuniti prazne stavke, u vise iteracija dok se raspored ne stabilizuje
         populateEmptyIzvoriIO(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5, raspodelas);
+
+        // proveriti da li je raspored ispravan (i po stavci, i po konto/koloni) pre snimanja
+        verifyAllocation(ioDetailsEmptyPrihodiColumns, differnciesBetweenObrIOAndObr5);
 
         // snimiti stavke - persistance
         obrazacIODetailsService.saveAll(ioDetailsEmptyPrihodiColumns);
     }
 
+    private static final int MAX_ITERACIJA_RASPOREDJIVANJA = 50;
+
+    // Redosled obrade stavki utice na ishod: ako stavka koja ima VISE mogucih kolona
+    // (npr. izvor koji se moze upisati u REPUBLIKA/POKRAJINA/OPSTINA) bude obradjena PRE
+    // stavke koja ima SAMO JEDNU moguću kolonu, moze "pojesti" sredstva koja su bila
+    // jedina opcija za tu drugu stavku - iako postoji raspored koji bi zadovoljio obe.
+    // Zato se u svakoj iteraciji stavke sortiraju po broju TRENUTNO jos uvek mogucih
+    // (neiscrpljenih) kolona - prvo se obradjuju najogranicenije stavke - a onda se
+    // ponovo racuna i sortira za sledecu iteraciju, jer obrada jedne stavke moze da
+    // promeni broj mogucih kolona za ostale. Iteracije staju kada vise nema promena.
     public void populateEmptyIzvoriIO(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns,
                                        List<Obrazac5details> differnciesBetweenObrIOAndObr5, List<Raspodela> raspodelas) {
 
-        // proci kroz listu emptyIzvoriDetailsIO i popuniti kolonu prihodA u zavisnosti od izvora i
-        // umanjiti differnciesBetweenObrIOAndObr5
-        ioDetailsEmptyPrihodiColumns.stream()
-                .forEach(io -> populateColumnPrihodiInIO(io, differnciesBetweenObrIOAndObr5, raspodelas));
+        boolean promenjenoUIteraciji = true;
+        int iteracija = 0;
+
+        while (promenjenoUIteraciji && iteracija < MAX_ITERACIJA_RASPOREDJIVANJA) {
+            promenjenoUIteraciji = false;
+            iteracija++;
+
+            List<ObrazacIODetails> preostaloZaRaspodelu = ioDetailsEmptyPrihodiColumns.stream()
+                    .filter(this::isNotEqualDugujeAndSumOfIzvori)
+                    .sorted(Comparator.comparingInt(io ->
+                            countTrenutnoMogucihKolona(io, differnciesBetweenObrIOAndObr5, raspodelas)))
+                    .toList();
+
+            for (ObrazacIODetails io : preostaloZaRaspodelu) {
+                double sumaPre = sumOfIzvori(io);
+                populateColumnPrihodiInIO(io, differnciesBetweenObrIOAndObr5, raspodelas);
+                if (!areEqual(sumOfIzvori(io), sumaPre)) {
+                    promenjenoUIteraciji = true;
+                }
+            }
+        }
+    }
+
+    // Broj kolona u koje IZVORFIN ove stavke sme da upise sredstva, a Obrazac5 za taj
+    // konto trenutno jos uvek ima nerasporedjen (nenula) iznos u toj koloni.
+    int countTrenutnoMogucihKolona(ObrazacIODetails io, List<Obrazac5details> differnciesBetweenObrIOAndObr5,
+                                    List<Raspodela> raspodelas) {
+
+        Obrazac5details singleDifferencies =
+                findProperDifferenceAccordingSinKonto(differnciesBetweenObrIOAndObr5, io.getSIN_KONTO());
+        if (singleDifferencies == null) {
+            return 0;
+        }
+
+        return (int) getRaspodelasForParticularIzvor(io.getIZVORFIN(), raspodelas).stream()
+                .filter(raspodela -> !areEqual(getColumnValue(singleDifferencies, raspodela.getKolona()), 0.0))
+                .count();
+    }
+
+    private double getColumnValue(Obrazac5details details, Integer kolona) {
+        if (kolona == 6) return nz(details.getRepublika());
+        if (kolona == 7) return nz(details.getPokrajina());
+        if (kolona == 8) return nz(details.getOpstina());
+        if (kolona == 9) return nz(details.getOoso());
+        if (kolona == 10) return nz(details.getDonacije());
+        if (kolona == 11) return nz(details.getOstali());
+        return 0.0;
+    }
+
+    // Provera nakon raspoređivanja:
+    //  1) da li se za svaki konto u Obrascu 5 slaze raspored po kolonama sa onim sto je
+    //     stvarno rasporedjeno u Obrascu IO (hvata i gresku unosa - npr. korisnik upise
+    //     iznos u pogresnu kolonu u Obrascu 5, a izvor finansiranja u Obrascu IO
+    //     nedvosmisleno pripada drugoj koloni),
+    //  2) da li je za svaku pojedinacnu stavku Obrasca IO DUGUJE+POTRAZUJE = zbir kolona
+    //     (hvata slucaj da izvor uopste nije u tabeli raspodele izvora, ili da stvarno
+    //     nema dovoljno slobodnih sredstava ni uz najbolji moguci redosled).
+    void verifyAllocation(List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns,
+                           List<Obrazac5details> differnciesBetweenObrIOAndObr5) throws ObrazacException {
+
+        StringBuilder greske = new StringBuilder();
+
+        for (Obrazac5details diff : differnciesBetweenObrIOAndObr5) {
+            appendGreskaAkoNijeNula(greske, diff.getKonto(), "REPUBLIKA", nz(diff.getRepublika()));
+            appendGreskaAkoNijeNula(greske, diff.getKonto(), "POKRAJINA", nz(diff.getPokrajina()));
+            appendGreskaAkoNijeNula(greske, diff.getKonto(), "OPSTINA", nz(diff.getOpstina()));
+            appendGreskaAkoNijeNula(greske, diff.getKonto(), "OOSO", nz(diff.getOoso()));
+            appendGreskaAkoNijeNula(greske, diff.getKonto(), "DONACIJE", nz(diff.getDonacije()));
+            appendGreskaAkoNijeNula(greske, diff.getKonto(), "OSTALI", nz(diff.getOstali()));
+        }
+
+        List<ObrazacIODetails> nerasporedjenaSredstva = ioDetailsEmptyPrihodiColumns.stream()
+                .filter(this::isNotEqualDugujeAndSumOfIzvori)
+                .toList();
+
+        for (ObrazacIODetails io : nerasporedjenaSredstva) {
+            double nerasporedjeno = (io.getDUGUJE() + io.getPOTRAZUJE()) - sumOfIzvori(io);
+            greske.append(String.format(
+                    "- Konto %d, izvor finansiranja %s: neraspoređeno %.2f din. " +
+                            "(proverite da li ovaj izvor finansiranja uopšte postoji u tabeli raspodele izvora)%n",
+                    io.getSIN_KONTO() * 100, io.getIZVORFIN(), nerasporedjeno));
+        }
+
+        if (greske.length() > 0) {
+            throw new ObrazacException(
+                    "Neuspešno raspoređivanje sredstava po kolonama REPUBLIKA/POKRAJINA/OPSTINA/OOSO/DONACIJE/OSTALI!\n" +
+                            "Obrazac 5 (IB) i Obrazac IO se ne slažu za sledeće konte:\n\n" + greske +
+                            "\nProverite unos u Obrascu 5 (IB) - najčešći uzrok je iznos upisan u pogrešnu kolonu za dati konto.");
+        }
+    }
+
+    private void appendGreskaAkoNijeNula(StringBuilder sb, Integer konto, String kolonaNaziv, double vrednost) {
+        if (areEqual(vrednost, 0.0)) {
+            return;
+        }
+        if (vrednost > 0) {
+            sb.append(String.format(
+                    "- Konto %d, kolona %s: Obrazac 5 (IB) predviđa %.2f din. koje Obrazac IO, prema tabeli " +
+                            "raspodele izvora, ne može da rasporedi u tu kolonu.%n",
+                    konto, kolonaNaziv, vrednost));
+        } else {
+            sb.append(String.format(
+                    "- Konto %d, kolona %s: Obrazac IO je rasporedio %.2f din. u tu kolonu, a Obrazac 5 (IB) " +
+                            "za taj konto ne predviđa sredstva u toj koloni.%n",
+                    konto, kolonaNaziv, Math.abs(vrednost)));
+        }
     }
 
     public void populateColumnPrihodiInIO(ObrazacIODetails ioEmptyPrihodiColumns,
@@ -292,7 +411,12 @@ public class Obrazac5Service extends AbParameterService implements IfObrazacChec
 
     public List<Raspodela> getRaspodelasForParticularIzvor(String izvor, List<Raspodela> raspodelas) {
         return raspodelas.stream()
-                .filter(a -> a.getIzvorFin().equals(izvor)).toList();
+                .filter(a -> a.getIzvorFin().equals(izvor))
+                // REDOSLED se ranije nigde nije koristio (kolona je bila samo mapirana, ne i citana).
+                // Koristi se ovde kao pomocni kriterijum unutar jedne stavke - glavni faktor tacnosti
+                // rasporedjivanja je redosled OBRADE STAVKI (vidi populateEmptyIzvoriIO), ne ovaj sort.
+                .sorted(Comparator.comparing(Raspodela::getRedosled, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
     }
 
     public void populateColumnPrihodiInIOAccordingIzvorFin(Raspodela raspodela,

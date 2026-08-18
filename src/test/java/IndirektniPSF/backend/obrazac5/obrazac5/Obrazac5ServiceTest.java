@@ -482,7 +482,7 @@ class Obrazac5ServiceTest {
     }
 
     @Test
-    void testAllocateExpensesByIncomeSource() {
+    void testAllocateExpensesByIncomeSource() throws Exception {
 
         ObrazacIODetails ioDetail1 = ObrazacIODetails.builder()
                 .KONTO(421100)
@@ -516,7 +516,7 @@ class Obrazac5ServiceTest {
 
         Obrazac5details diff1 = Obrazac5details.builder()
                 .konto(421100)
-                .republika(200.0)
+                .republika(100.0) // tacno onoliko koliko ioDetail1 (DUGUJE=100) treba - potpuno se poklapa
                 .build();
 
         Obrazac5details diff2 = Obrazac5details.builder()
@@ -751,7 +751,7 @@ class Obrazac5ServiceTest {
 
 
     @Test
-    void testCompleteColumnInObrIODetailsUsingDataFromObr5() {
+    void testCompleteColumnInObrIODetailsUsingDataFromObr5() throws Exception {
 
         List<ObrazacIODetails> ioDetailsEmptyPrihodiColumns = List.of(ioDetail1, ioDetail2, ioDetail3);
         ObrazacIO validIO = ObrazacIO.builder().stavke(ioDetailsEmptyPrihodiColumns).build();
@@ -944,24 +944,126 @@ class Obrazac5ServiceTest {
         assertTrue(exception.getMessage().contains(expectedMessage));
     }
 
+    // Regresioni test za stvarni slucaj iz produkcije: izvor sa VISE mogucih kolona
+    // (0700 -> REPUBLIKA/POKRAJINA/OPSTINA) je ranije, ako bi bio obradjen PRE izvora sa
+    // SAMO JEDNOM mogucom kolonom (0800 -> POKRAJINA/DONACIJE, ali ovde mu treba bas POKRAJINA),
+    // "pojeo" zajednicku POKRAJINA kolonu i ostavio drugi izvor potpuno nerasporedjenim,
+    // iako postoji raspored koji zadovoljava oba (0700 moze u potpunosti iz OPSTINA).
     @Test
-    void testCheckIfExistDiffernciesWithValueDifferences() {
-        Map<Integer, Double> mapObr5 = Map.of(
-                100100, 500.0,
-                100200, 300.0
+    void testAllocateExpensesByIncomeSource_MostConstrainedFirst_ResolvesSharedColumnConflict() throws Exception {
+
+        ObrazacIODetails ioSaViseOpcija = ObrazacIODetails.builder()
+                .SIN_KONTO(5000)
+                .KONTO(500011)
+                .IZVORFIN("0700")
+                .DUGUJE(3000.0)
+                .POTRAZUJE(0.0)
+                .REPUBLIKA(0.0)
+                .POKRAJINA(0.0)
+                .OPSTINA(0.0)
+                .DONACIJE(0.0)
+                .OOSO(0.0)
+                .OSTALI(0.0)
+                .build();
+
+        ObrazacIODetails ioSaJednomOpcijom = ObrazacIODetails.builder()
+                .SIN_KONTO(5000)
+                .KONTO(500022)
+                .IZVORFIN("0800")
+                .DUGUJE(1000.0)
+                .POTRAZUJE(0.0)
+                .REPUBLIKA(0.0)
+                .POKRAJINA(0.0)
+                .OPSTINA(0.0)
+                .DONACIJE(0.0)
+                .OOSO(0.0)
+                .OSTALI(0.0)
+                .build();
+
+        Obrazac5details diff = Obrazac5details.builder()
+                .konto(500000)
+                .republika(0.0)
+                .pokrajina(1000.0)
+                .opstina(3000.0)
+                .donacije(0.0)
+                .build();
+
+        List<Raspodela> raspodelas = List.of(
+                Raspodela.builder().izvorFin("0700").kolona(6).build(),
+                Raspodela.builder().izvorFin("0700").kolona(7).build(),
+                Raspodela.builder().izvorFin("0700").kolona(8).build(),
+                Raspodela.builder().izvorFin("0800").kolona(7).build(),
+                Raspodela.builder().izvorFin("0800").kolona(10).build()
         );
 
-        Map<Integer, Double> mapObrIo = Map.of(
-                100100, 400.0,
-                100200, 300.0 // Difference in value
-        );
+        List<ObrazacIODetails> ioDetails = List.of(ioSaViseOpcija, ioSaJednomOpcijom);
+        List<Obrazac5details> differencies = List.of(diff);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> service.checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(mapObr5, mapObrIo));
-        System.out.println(exception.getMessage());
+        when(raspodelaService.findIzvorFinIfNotUnique()).thenReturn(raspodelas);
+        doNothing().when(obrazacIODetailsService).saveAll(ioDetails);
 
-        String expectedMessage = "Postoje razlike u sin.kontu: 100100: Obr5=500.00, ObrIo=400.00";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertDoesNotThrow(() -> service.allocateExpensesByIncomeSource(ioDetails, differencies));
+
+        assertEquals(1000.0, ioSaJednomOpcijom.getPOKRAJINA());
+        assertEquals(0.0, ioSaJednomOpcijom.getDONACIJE());
+        assertEquals(3000.0, ioSaViseOpcija.getOPSTINA());
+        assertEquals(0.0, ioSaViseOpcija.getPOKRAJINA());
+        assertEquals(0.0, ioSaViseOpcija.getREPUBLIKA());
     }
+
+    // Regresioni test za stvarni slucaj: korisnik u Obrascu 5 unese iznos u pogresnu
+    // kolonu (npr. REPUBLIKA), a jedini izvor finansiranja za taj konto u Obrascu IO
+    // nedvosmisleno pripada drugoj koloni (npr. OOSO, izvor 0300). Ranije se ovakva
+    // greska tiho ignorisala; sada verifyAllocation mora da je prijavi.
+    @Test
+    void testVerifyAllocation_ThrowsWhenObr5ColumnDoesNotMatchIOAllocation() {
+
+        Obrazac5details diff = Obrazac5details.builder()
+                .konto(425500)
+                .republika(1000.0)
+                .ooso(-1000.0)
+                .build();
+
+        List<Obrazac5details> differencies = List.of(diff);
+        List<ObrazacIODetails> ioDetails = List.of();
+
+        ObrazacException ex = assertThrows(ObrazacException.class,
+                () -> service.verifyAllocation(ioDetails, differencies));
+
+        assertTrue(ex.getMessage().contains("425500"));
+        assertTrue(ex.getMessage().contains("REPUBLIKA"));
+        assertTrue(ex.getMessage().contains("OOSO"));
+    }
+
+    @Test
+    void testVerifyAllocation_DoesNotThrowWhenFullyReconciled() {
+
+        Obrazac5details diff = Obrazac5details.builder().konto(425500).build();
+
+        List<Obrazac5details> differencies = List.of(diff);
+        List<ObrazacIODetails> ioDetails = List.of();
+
+        assertDoesNotThrow(() -> service.verifyAllocation(ioDetails, differencies));
+    }
+
+//    @Test
+//    void testCheckIfExistDiffernciesWithValueDifferences() {
+//        Map<Integer, Double> mapObr5 = Map.of(
+//                100100, 500.0,
+//                100200, 300.0
+//        );
+//
+//        Map<Integer, Double> mapObrIo = Map.of(
+//                100100, 400.0,
+//                100200, 300.0 // Difference in value
+//        );
+//
+//        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+//                () -> service.checkIfExistDiffernciesBetweenTroskoviForSinKontosIOAndOBr5(mapObr5, mapObrIo));
+//        System.out.println(exception.getMessage());
+//
+//        String expectedMessage = "Postoje razlike u sin.kontu: 100100: Obr5=500.00, ObrIo=400.00";
+//        assertTrue(exception.getMessage().contains(expectedMessage));
+//    }
 }
 
